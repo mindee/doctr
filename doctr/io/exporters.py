@@ -89,6 +89,16 @@ def _covering_region_indices(
     return _covering_regions(_to_boxes(geoms), _to_boxes(region_geoms), min_coverage, region_labels)
 
 
+def _merge_overlapping_regions(elt_regions: list[int], region_geoms: list[Any], region_labels: list[str]) -> list[int]:
+    """Map the layout region of each element (-1 for none) to its group of overlapping regions of the same label"""
+    from doctr.models.reading_order.base import _region_groups, _to_boxes
+
+    if len(region_geoms) < 2:
+        return list(elt_regions)
+    groups = _region_groups(_to_boxes(region_geoms), region_labels)
+    return [groups[reg] if reg >= 0 else reg for reg in elt_regions]
+
+
 def _xyxy(geometry: Any) -> tuple[float, float, float, float]:
     """Return the enclosing box (xmin, ymin, xmax, ymax) of a box or a polygon"""
     pts = np.asarray(geometry, dtype=np.float64).reshape(-1, 2)
@@ -155,7 +165,7 @@ def page_reading_order(
         normalize_layout_label,
         resolve_reading_segments,
     )
-    from doctr.models.reading_order.base import _FURNITURE_ROLES, _to_boxes
+    from doctr.models.reading_order.base import _FURNITURE_ROLES, _float_text_label, _to_boxes
 
     signature = _reading_order_signature(page, direction)
     cached = getattr(page, "_reading_order_cache", None)
@@ -206,14 +216,27 @@ def page_reading_order(
             elt_labels[idx] = "Table"
         elif not isinstance(elt, LayoutElement) and elt_regions[idx] in furniture_labels:
             elt_labels[idx] = furniture_labels[elt_regions[idx]]
-    # Page-wide figures do not vote in the multi-column detection
+    # Page-wide figures and tables do not vote in the multi-column detection
     boxes = _to_boxes(elt_geoms)
     span = float(boxes[:, 2].max() - boxes[:, 0].min()) or 1.0
     column_voters = [
-        not (isinstance(elt, LayoutElement) and box[2] - box[0] > 0.5 * span) for elt, box in zip(elements, boxes)
+        not (isinstance(elt, (LayoutElement, Table)) and box[2] - box[0] > 0.5 * span)
+        for elt, box in zip(elements, boxes)
+    ]
+    # A text line in a table or figure region keeps its label, but is grouped into paragraphs like regular text
+    order_labels = [
+        _float_text_label(str(label))
+        if not isinstance(elt, (Table, LayoutElement)) and layout_label_role(label) == "float"
+        else label
+        for elt, label in zip(elements, elt_labels)
     ]
     segments = resolve_reading_segments(
-        elt_geoms, direction=direction, labels=elt_labels, column_voters=column_voters, region_groups=elt_regions
+        elt_geoms,
+        direction=direction,
+        labels=order_labels,
+        page_shape=page.dimensions,
+        column_voters=column_voters,
+        region_groups=_merge_overlapping_regions(elt_regions, region_geoms, region_labels),
     )
 
     def _is_float_item(idx: int) -> bool:
@@ -467,14 +490,19 @@ class _PageTextExporter:
         if not figure_idcs or not (render or not include_furniture):
             return _FigurePlan({}, set(), set())
 
-        # Same upright frame as the reading order
+        # Same upright frame as the reading order (the lines of the blocks too)
+        line_owners = [idx for idx, item in enumerate(items) if isinstance(item, Block) for _ in item.lines]
         upright, upright_regions = deskew_reading_geometries(
-            [item.geometry for item in items],
+            [item.geometry for item in items]
+            + [line.geometry for item in items if isinstance(item, Block) for line in item.lines],
             [region.geometry for region in page.layout],
             page_shape=page.dimensions,
             angle_geoms=[word.geometry for block in page.blocks for line in block.lines for word in line.words],
         )
-        boxes = [_xyxy(geom) for geom in upright]
+        boxes = [_xyxy(geom) for geom in upright[: len(items)]]
+        line_boxes: dict[int, list[tuple[float, ...]]] = {}
+        for owner, geom in zip(line_owners, upright[len(items) :]):
+            line_boxes.setdefault(owner, []).append(_xyxy(geom))
 
         def _coverage(box: tuple[float, ...], target: tuple[float, ...]) -> float:
             """Share of `box` covered by `target`"""
@@ -482,6 +510,10 @@ class _PageTextExporter:
                 min(box[3], target[3]) - max(box[1], target[1]), 0.0
             )
             return inter / max((box[2] - box[0]) * (box[3] - box[1]), 1e-9)
+
+        def _inside(idx: int, fig_idx: int) -> bool:
+            """Whether each line of a block lies in a figure"""
+            return all(_coverage(box, boxes[fig_idx]) >= 0.5 for box in line_boxes.get(idx, [boxes[idx]]))
 
         def _figure_text(fig_idx: int) -> set[int]:
             """Blocks covered by a figure and labeled as part of it (or as furniture, for a figure in furniture)"""
@@ -494,7 +526,7 @@ class _PageTextExporter:
                     is_picture_label(labels[idx])
                     or (in_furniture and layout_label_role(labels[idx]) in _FURNITURE_ROLES)
                 )
-                and _coverage(boxes[idx], boxes[fig_idx]) >= 0.5
+                and _inside(idx, fig_idx)
             }
 
         hidden: set[int] = set()
@@ -512,15 +544,15 @@ class _PageTextExporter:
         for idx in figure_idcs:
             if sources[idx] is not None:
                 hidden |= _figure_text(idx)
-        region_of = _covering_region_indices(upright, upright_regions, region_labels=[r.type for r in page.layout])
+        region_of = _covering_region_indices(
+            upright[: len(items)], upright_regions, region_labels=[r.type for r in page.layout]
+        )
 
         def _is_caption(idx: int) -> bool:
             return isinstance(items[idx], Block) and normalize_layout_label(labels[idx]) == "caption"
 
         def _is_inner_text(idx: int, fig_idx: int) -> bool:
-            return (
-                isinstance(items[idx], Block) and not _is_caption(idx) and _coverage(boxes[idx], boxes[fig_idx]) >= 0.5
-            )
+            return isinstance(items[idx], Block) and not _is_caption(idx) and _inside(idx, fig_idx)
 
         def _caption_run(start: int) -> tuple[int, ...]:
             # A caption region can span several blocks
@@ -640,7 +672,11 @@ class _PageTextExporter:
             if len(item_lines) == 0:
                 continue
             norm_label = normalize_layout_label(label)
-            if norm_label in self.headings:
+            if layout_label_role(label) == "float":
+                # Text of a table or figure region without structure: one paragraph per row
+                _flush_list()
+                parts.extend(self.render_paragraph([line], escape) for line in item_lines)
+            elif norm_label in self.headings:
                 _flush_list()
                 parts.append(self.render_heading(norm_label, item_lines, escape))
             elif norm_label in _LIST_LABELS:
