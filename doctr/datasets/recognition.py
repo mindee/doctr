@@ -47,10 +47,10 @@ class RecognitionDataset(AbstractDataset):
             self.data.append((img_name, label))
 
     def merge_dataset(self, ds: AbstractDataset) -> None:
-        # Update data with new root for self
-        self.data = [(str(Path(self.root).joinpath(img_path)), label) for img_path, label in self.data]
+        # Update data with new root for self (absolute paths, a relative one would be read from the new root)
+        self.data = [(str(Path(self.root).absolute().joinpath(img_path)), label) for img_path, label in self.data]
         # Define new root
         self.root = Path("/")
         # Merge with ds data
         for img_path, label in ds.data:
-            self.data.append((str(Path(ds.root).joinpath(img_path)), label))
+            self.data.append((str(Path(ds.root).absolute().joinpath(img_path)), label))

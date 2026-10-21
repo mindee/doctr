@@ -378,6 +378,22 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     move(os.path.join(ds.root, "tmp_file"), os.path.join(ds.root, img_name))
 
 
+def test_recognition_dataset_merge(mock_image_folder, mock_recognition_label, monkeypatch):
+    # Relative image folders, e.g. the subfolders of a relative `--train_path` of the recognition training script
+    monkeypatch.chdir(os.path.dirname(mock_image_folder))
+    img_folder = os.path.basename(mock_image_folder)
+    ds = datasets.RecognitionDataset(img_folder, mock_recognition_label)
+    labels = [label for _, label in ds.data]
+
+    ds.merge_dataset(datasets.RecognitionDataset(img_folder, mock_recognition_label))
+    ds.merge_dataset(datasets.RecognitionDataset(img_folder, mock_recognition_label))
+    assert len(ds) == 15
+    assert [label for _, label in ds.data] == 3 * labels
+    for idx in range(len(ds)):
+        sample = ds[idx]
+        assert isinstance(sample.image, torch.Tensor) and sample.target == ds.data[idx][1]
+
+
 @pytest.mark.parametrize(
     "use_polygons",
     [False, True],
