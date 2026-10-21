@@ -324,6 +324,18 @@ def test_extract_rcrops(mock_pdf, assume_horizontal):
         assert all(isinstance(crop, np.ndarray) for crop in croped_imgs)
         assert all(crop.ndim == 3 for crop in croped_imgs)
 
+    # Zero-width boxes yield an empty crop, without shifting the other crops
+    collapsed_boxes = np.array(
+        [[[x, 0.25], [x, 0.25], [x, 0.75], [x, 0.75]] for x in (0.0, 0.5, 1.0)] + [[[0.5, 0.5]] * 4],
+        dtype=np.float32,
+    )
+    croped_imgs = geometry.extract_rcrops(
+        doc_img, np.concatenate([rel_boxes, collapsed_boxes]), assume_horizontal=assume_horizontal
+    )
+    assert len(croped_imgs) == num_crops + len(collapsed_boxes)
+    assert all(crop.size > 0 for crop in croped_imgs[:num_crops])
+    assert all(crop.shape == (0, 0, 3) and crop.dtype == doc_img.dtype for crop in croped_imgs[num_crops:])
+
     # No box
     assert geometry.extract_rcrops(doc_img, np.zeros((0, 4, 2)), assume_horizontal=assume_horizontal) == []
 

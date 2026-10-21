@@ -156,13 +156,26 @@ def test_predictors_on_empty_batch(mock_vocab):
         assert out.export() == {"pages": []}
 
 
+@pytest.mark.parametrize("assume_straight_pages", [True, False])
 @pytest.mark.parametrize("predictor_cls", [OCRPredictor, KIEPredictor])
-def test_predictors_keep_objectness_scores_aligned(predictor_cls):
-    # The middle box lies on the right border of the page: its crop is empty, so it is dropped before recognition
-    boxes = np.array(
-        [[0.1, 0.1, 0.3, 0.2, 0.9], [1.0, 0.5, 1.0, 0.6, 0.1], [0.5, 0.1, 0.7, 0.2, 0.8]],
-        dtype=np.float32,
-    )
+def test_predictors_keep_objectness_scores_aligned(predictor_cls, assume_straight_pages):
+    # The middle box lies on the right border of the page and has no width: its crop is empty,
+    # so it is dropped before recognition
+    if assume_straight_pages:
+        boxes = np.array(
+            [[0.1, 0.1, 0.3, 0.2, 0.9], [1.0, 0.5, 1.0, 0.6, 0.1], [0.5, 0.1, 0.7, 0.2, 0.8]],
+            dtype=np.float32,
+        )
+    else:
+        # Polygons with the objectness score in the last row
+        boxes = np.array(
+            [
+                [[0.1, 0.1], [0.3, 0.1], [0.3, 0.2], [0.1, 0.2], [0.9, 0.9]],
+                [[1.0, 0.5], [1.0, 0.5], [1.0, 0.6], [1.0, 0.6], [0.1, 0.1]],
+                [[0.5, 0.1], [0.7, 0.1], [0.7, 0.2], [0.5, 0.2], [0.8, 0.8]],
+            ],
+            dtype=np.float32,
+        )
 
     class _FixedDetPredictor(nn.Module):
         def forward(self, pages, **kwargs):
@@ -172,7 +185,14 @@ def test_predictors_keep_objectness_scores_aligned(predictor_cls):
         def forward(self, crops, **kwargs):
             return [(f"word{idx}", 1.0) for idx in range(len(crops))]
 
-    predictor = predictor_cls(_FixedDetPredictor(), _DummyRecoPredictor(), assume_straight_pages=True)
+    # Without page orientation, rotated boxes are cropped with `assume_horizontal=True`
+    predictor = predictor_cls(
+        _FixedDetPredictor(),
+        _DummyRecoPredictor(),
+        assume_straight_pages=assume_straight_pages,
+        disable_page_orientation=True,
+        disable_crop_orientation=True,
+    )
     page = predictor([np.full((100, 200, 3), 255, dtype=np.uint8)]).pages[0]
     if predictor_cls is KIEPredictor:
         words = page.predictions[CLASS_NAME]
