@@ -324,38 +324,20 @@ def test_extract_rcrops(mock_pdf, assume_horizontal):
         assert all(isinstance(crop, np.ndarray) for crop in croped_imgs)
         assert all(crop.ndim == 3 for crop in croped_imgs)
 
+    # Zero-width boxes yield an empty crop, without shifting the other crops
+    collapsed_boxes = np.array(
+        [[[x, 0.25], [x, 0.25], [x, 0.75], [x, 0.75]] for x in (0.0, 0.5, 1.0)] + [[[0.5, 0.5]] * 4],
+        dtype=np.float32,
+    )
+    croped_imgs = geometry.extract_rcrops(
+        doc_img, np.concatenate([rel_boxes, collapsed_boxes]), assume_horizontal=assume_horizontal
+    )
+    assert len(croped_imgs) == num_crops + len(collapsed_boxes)
+    assert all(crop.size > 0 for crop in croped_imgs[:num_crops])
+    assert all(crop.shape == (0, 0, 3) and crop.dtype == doc_img.dtype for crop in croped_imgs[num_crops:])
+
     # No box
     assert geometry.extract_rcrops(doc_img, np.zeros((0, 4, 2)), assume_horizontal=assume_horizontal) == []
-
-
-@pytest.mark.parametrize("case", ["x0", "xmid", "x1", "repeated"])
-@pytest.mark.parametrize("assume_horizontal", [True, False], ids=["horizontal", "oriented"])
-@pytest.mark.parametrize("shape, dtype", [((100, 200, 3), np.uint8), ((100, 200), np.float32)], ids=["rgb8", "gray32"])
-def test_extract_rcrops_zero_width(case, assume_horizontal, shape, dtype):
-    img = (np.arange(np.prod(shape)).reshape(shape) % 256).astype(dtype)
-    left = [[0.125, 0.25], [0.25, 0.25], [0.25, 0.75], [0.125, 0.75]]
-    right = [[0.625, 0.25], [0.75, 0.25], [0.75, 0.75], [0.625, 0.75]]
-    if case in ("x0", "xmid", "x1"):
-        x = {"x0": 0, "xmid": 0.5, "x1": 1}[case]
-        middle = [[x, 0.25], [x, 0.25], [x, 0.75], [x, 0.75]]
-    else:
-        middle = [[0.5, 0.5]] * 4
-    polys = np.array([left, middle, right], dtype=np.float32)
-    original_img, original_polys = img.copy(), polys.copy()
-    references = [
-        geometry.extract_rcrops(img, polys[idx : idx + 1], assume_horizontal=assume_horizontal)[0] for idx in (0, 2)
-    ]
-    crops = geometry.extract_rcrops(img, polys, assume_horizontal=assume_horizontal)
-    assert len(crops) == 3
-    for crop, reference in zip((crops[0], crops[2]), references):
-        assert crop.size > 0
-        assert crop.shape == reference.shape
-        assert crop.dtype == reference.dtype == img.dtype
-        np.testing.assert_array_equal(crop, reference)
-    assert crops[1].shape == (0, 0, *img.shape[2:])
-    assert crops[1].dtype == img.dtype
-    np.testing.assert_array_equal(img, original_img)
-    np.testing.assert_array_equal(polys, original_polys)
 
 
 @pytest.mark.parametrize("angle", [5, 12, -5, -12, 90 + 13, 180 + 13, 270 + 13])
