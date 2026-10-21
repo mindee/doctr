@@ -140,54 +140,6 @@ def test_page_export_as_markdown_rtl():
     assert page.export_as_markdown(direction="ltr").startswith("الأيسر")
 
 
-def test_page_reading_order_table_region_text():
-    # A table region from the layout model, without table structure (`detect_tables=False`): its lines keep the
-    # region label, but they are not floats themselves, so they are neither nested into each other nor isolated
-    lines = [
-        _line_at("Pos Datum Einzelpreis Gesamt", 0.10, 0.40, 0.90, 0.44),  # header line merged across the cells
-        _line_at("pro UE", 0.55, 0.425, 0.75, 0.46),  # second header row, under "Einzelpreis"
-        _line_at("EUR", 0.80, 0.42, 0.88, 0.45),  # second header row, under "Gesamt": mostly inside the first line
-        _line_at("1 Deutsch 22,50 22,50", 0.10, 0.48, 0.90, 0.52),
-    ]
-    page = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8),
-        [elements.Block(lines=lines)],
-        0,
-        (1000, 800),
-        layout=[elements.LayoutElement("Table", 0.9, ((0.08, 0.38), (0.92, 0.54)))],
-    )
-    items, labels, _ = page_reading_order(page)
-    texts = [" ".join(word.value for word in line.words) for item in items for line in item.lines]
-    assert texts == ["Pos Datum Einzelpreis Gesamt", "pro UE", "EUR", "1 Deutsch 22,50 22,50"]
-    assert labels == ["Table"] * len(items)
-    assert len(items) < len(lines)
-    # Rendered like the rows of a table: one paragraph per line
-    assert page.export_as_markdown().split("\n\n") == texts
-    # The rows of a table region level with the paragraph beside it are read after that paragraph
-    lines = [_line_at(f"intro line {i} of the body", 0.08, 0.05 + 0.04 * i, 0.92, 0.08 + 0.04 * i) for i in range(6)]
-    lines += [
-        _line_at(f"para line {i} beside the table", 0.08, 0.30 + 0.04 * i, 0.55, 0.33 + 0.04 * i) for i in range(4)
-    ]
-    lines += [_line_at(f"Row{i} {i}0", 0.62, 0.30 + 0.04 * i, 0.92, 0.33 + 0.04 * i) for i in range(4)]
-    lines += [_line_at(f"outro line {i} of the body", 0.08, 0.50 + 0.04 * i, 0.92, 0.53 + 0.04 * i) for i in range(6)]
-    layout = [
-        elements.LayoutElement("Text", 0.9, ((0.06, 0.04), (0.94, 0.28))),
-        elements.LayoutElement("Text", 0.9, ((0.06, 0.29), (0.57, 0.46))),
-        elements.LayoutElement("Table", 0.9, ((0.60, 0.29), (0.94, 0.46))),
-        elements.LayoutElement("Text", 0.9, ((0.06, 0.49), (0.94, 0.74))),
-    ]
-    page = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8), [elements.Block(lines=lines)], 0, (1000, 800), layout=layout
-    )
-    items, labels, _ = page_reading_order(page)
-    texts = [text for item in _texts(items) for text in item]
-    paragraph = [texts.index(f"para line {i} beside the table") for i in range(4)]
-    rows = [texts.index(f"Row{i} {i}0") for i in range(4)]
-    assert paragraph == list(range(paragraph[0], paragraph[0] + 4))
-    assert rows == list(range(paragraph[-1] + 1, paragraph[-1] + 5))
-    assert {label for item, label in zip(_texts(items), labels) if item[0].startswith("Row")} == {"Table"}
-
-
 def test_page_export_with_tables():
     cells = [
         elements.TableCell("Name", 0.9, ((0.1, 0.55), (0.4, 0.6)), 0, 0, 0, 0),
@@ -226,6 +178,51 @@ def test_page_export_with_tables():
     # Each section is read column after column
     sections = [[f"{col} {i}" for col in ("left", "right") for i in idcs] for idcs in (range(3), range(3, 6))]
     assert texts == ["A title over both columns", *sections[0], *sections[1]]
+    # A table region from the layout model, without table structure (`detect_tables=False`): its lines keep the
+    # region label, but they are not floats themselves, so they are neither nested into each other nor isolated
+    lines = [
+        _line_at("Pos Datum Einzelpreis Gesamt", 0.10, 0.40, 0.90, 0.44),  # header line merged across the cells
+        _line_at("pro UE", 0.55, 0.425, 0.75, 0.46),  # second header row, under "Einzelpreis"
+        _line_at("EUR", 0.80, 0.42, 0.88, 0.45),  # second header row, under "Gesamt": mostly inside the first line
+        _line_at("1 Deutsch 22,50 22,50", 0.10, 0.48, 0.90, 0.52),
+    ]
+    page = elements.Page(
+        np.zeros((10, 10, 3), dtype=np.uint8),
+        [elements.Block(lines=lines)],
+        0,
+        (1000, 800),
+        layout=[elements.LayoutElement("Table", 0.9, ((0.08, 0.38), (0.92, 0.54)))],
+    )
+    items, labels, _ = page_reading_order(page)
+    texts = [text for item in _texts(items) for text in item]
+    assert texts == ["Pos Datum Einzelpreis Gesamt", "pro UE", "EUR", "1 Deutsch 22,50 22,50"]
+    assert labels == ["Table"] * len(items)
+    assert len(items) < len(lines)
+    # Rendered like the rows of a table: one paragraph per line
+    assert page.export_as_markdown().split("\n\n") == texts
+    # The rows of a table region level with the paragraph beside it are read after that paragraph
+    lines = [_line_at(f"intro line {i} of the body", 0.08, 0.05 + 0.04 * i, 0.92, 0.08 + 0.04 * i) for i in range(6)]
+    lines += [
+        _line_at(f"para line {i} beside the table", 0.08, 0.30 + 0.04 * i, 0.55, 0.33 + 0.04 * i) for i in range(4)
+    ]
+    lines += [_line_at(f"Row{i} {i}0", 0.62, 0.30 + 0.04 * i, 0.92, 0.33 + 0.04 * i) for i in range(4)]
+    lines += [_line_at(f"outro line {i} of the body", 0.08, 0.50 + 0.04 * i, 0.92, 0.53 + 0.04 * i) for i in range(6)]
+    layout = [
+        elements.LayoutElement("Text", 0.9, ((0.06, 0.04), (0.94, 0.28))),
+        elements.LayoutElement("Text", 0.9, ((0.06, 0.29), (0.57, 0.46))),
+        elements.LayoutElement("Table", 0.9, ((0.60, 0.29), (0.94, 0.46))),
+        elements.LayoutElement("Text", 0.9, ((0.06, 0.49), (0.94, 0.74))),
+    ]
+    page = elements.Page(
+        np.zeros((10, 10, 3), dtype=np.uint8), [elements.Block(lines=lines)], 0, (1000, 800), layout=layout
+    )
+    items, labels, _ = page_reading_order(page)
+    texts = [text for item in _texts(items) for text in item]
+    paragraph = [texts.index(f"para line {i} beside the table") for i in range(4)]
+    rows = [texts.index(f"Row{i} {i}0") for i in range(4)]
+    assert paragraph == list(range(paragraph[0], paragraph[0] + 4))
+    assert rows == list(range(paragraph[-1] + 1, paragraph[-1] + 5))
+    assert {label for item, label in zip(_texts(items), labels) if item[0].startswith("Row")} == {"Table"}
 
 
 def test_page_export_as_asciidoc():
