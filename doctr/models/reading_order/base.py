@@ -44,8 +44,8 @@ _FLOAT_LABELS = {"table", "picture", "figure", "image", "chart", "graphic"}
 
 _FURNITURE_ROLES = ("header", "footer", "footnote")
 
-# Label suffix of the text lying in a float region without float element (e.g. a table without structure)
-_FLOAT_TEXT_SUFFIX = " text"
+# Normalized labels of the text lying in a float region without float element (e.g. a table without structure)
+_FLOAT_TEXT_LABELS = {f"{label}_text" for label in _FLOAT_LABELS}
 
 
 def normalize_layout_label(label: str | None) -> str:
@@ -87,13 +87,7 @@ def layout_label_role(label: str | None) -> str:
 
 def _float_text_label(label: str) -> str:
     """Return the label of a text element lying in a float region (e.g. 'Table' -> 'Table text')"""
-    return f"{label}{_FLOAT_TEXT_SUFFIX}"
-
-
-def _is_float_text(label: str | None) -> bool:
-    """Check whether a label is the one of a text element lying in a float region"""
-    norm = normalize_layout_label(label)
-    return any(norm == normalize_layout_label(_float_text_label(float_label)) for float_label in _FLOAT_LABELS)
+    return f"{label} text"
 
 
 def detect_text_direction(texts: Iterable[str], language: str | None = None) -> str:
@@ -396,7 +390,7 @@ def _defer_floats(
     inner = {idx for idcs in members.values() for idx in idcs}
 
     def _is_float(idx: int) -> bool:
-        return labels[idx] in _FLOAT_LABELS or _is_float_text(labels[idx]) or idx in inner
+        return labels[idx] in _FLOAT_LABELS or labels[idx] in _FLOAT_TEXT_LABELS or idx in inner
 
     out = list(order)
     pos = 0
@@ -819,15 +813,9 @@ def assign_layout_labels(
 
 
 def _region_groups(regions: np.ndarray, labels: Sequence[str | None], min_overlap: float = 0.1) -> list[int]:
-    """Group the overlapping layout regions of the same label (e.g. two regions for a paragraph around a figure)
-
-    Args:
-        regions: the (R, 4) boxes of the layout regions
-        labels: the label of each region
-        min_overlap: minimum intersection of two regions, relative to the area of the smaller one, to group them
-
-    Returns:
-        the group of each region (the index of one of the regions of the group)
+    """Return the group of each (R, 4) layout region (the index of one of its members), grouping the regions of the
+    same label which overlap by more than `min_overlap` of the smaller one (e.g. two regions for a paragraph around a
+    figure)
     """
     norm = [normalize_layout_label(label) for label in labels]
     areas = (regions[:, 2] - regions[:, 0]) * (regions[:, 3] - regions[:, 1])

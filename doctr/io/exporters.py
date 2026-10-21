@@ -90,16 +90,7 @@ def _covering_region_indices(
 
 
 def _merge_overlapping_regions(elt_regions: list[int], region_geoms: list[Any], region_labels: list[str]) -> list[int]:
-    """Map the layout region of each element to its group of overlapping regions of the same label
-
-    Args:
-        elt_regions: the layout region index of each element (-1 for none)
-        region_geoms: the geometries of the layout regions
-        region_labels: the labels of the layout regions
-
-    Returns:
-        the region group of each element (-1 for none)
-    """
+    """Map the layout region of each element (-1 for none) to its group of overlapping regions of the same label"""
     from doctr.models.reading_order.base import _region_groups, _to_boxes
 
     if len(region_geoms) < 2:

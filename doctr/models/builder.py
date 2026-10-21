@@ -149,7 +149,7 @@ class DocumentBuilder(NestedObject):
 
                 # Compute distance between the sub-line and the box
                 dist = boxes[i, 0] - right
-                # If distance between boxes is lower than the break distance, same sub-line
+                # If the distance is lower than the break distance, same sub-line
                 if dist < break_dist:
                     horiz_break = False
                 # Unless the box and the sub-line lie in distinct regions (e.g. columns separated by a narrow gutter)
@@ -237,7 +237,8 @@ class DocumentBuilder(NestedObject):
         """Group straight boxes into visual rows
 
         A box joins the row whose horizontally closest boxes are the best aligned with it (less than half a median
-        height apart), which follows slanted lines and keeps the rows of offset columns apart.
+        height apart), which follows slanted lines and keeps the rows of offset columns apart. A box right under or over
+        one of them, away from the others (e.g. stacked figure labels), does not join the row.
 
         Args:
             boxes: straight bounding boxes of shape (N, 4)
@@ -245,15 +246,26 @@ class DocumentBuilder(NestedObject):
             y_med: the median box height
 
         Returns:
-            the rows (lists of box indices), from top to bottom
+            the rows (lists of box indices)
         """
         if not y_med > 0:
             return [[idx] for idx in idxs.tolist()]
         lefts, rights = boxes[:, 0].tolist(), boxes[:, 2].tolist()
         centers = ((boxes[:, 1] + boxes[:, 3]) / 2).tolist()
+        heights = (boxes[:, 3] - boxes[:, 1]).tolist()
         row_lefts: list[list[float]] = []  # sorted left edges of the boxes of each row
         row_boxes: list[list[int]] = []  # boxes of each row, sorted by left edge
         spans: list[list[float]] = []  # highest and lowest box center of each row
+
+        def _stacked(idx: int, other: int, median: float) -> bool:
+            """Whether two full-height boxes lie one over the other, `other` being level with its row"""
+            overlap = min(rights[idx], rights[other]) - max(lefts[idx], lefts[other])
+            return (
+                overlap >= 0.5 * min(rights[idx] - lefts[idx], rights[other] - lefts[other])
+                and abs(centers[idx] - centers[other]) >= y_med / 2
+                and abs(centers[other] - median) < y_med / 2
+                and min(heights[idx], heights[other]) >= 0.75 * y_med
+            )
 
         def _best_row(idx: int, rows: list[int]) -> int:
             center, left, right = centers[idx], lefts[idx], rights[idx]
@@ -267,7 +279,11 @@ class DocumentBuilder(NestedObject):
                     (max(lefts[other] - right, left - rights[other], 0.0), other)
                     for other in row_boxes[row][max(pos - 3, 0) : pos + 3]
                 )[:3]
-                offset = abs(statistics.median(centers[other] for _, other in nearest) - center)
+                median = statistics.median(centers[other] for _, other in nearest)
+                stacked = [_stacked(idx, other, median) for _, other in nearest]
+                if any(stacked) and all(dist >= y_med for (dist, _), flag in zip(nearest, stacked) if not flag):
+                    continue
+                offset = abs(median - center)
                 # The distance breaks ties on slanted lines, where the next line can start before this one ends
                 key = (offset + _ROW_DISTANCE_WEIGHT * nearest[0][0], nearest[0][0])
                 if offset < y_med / 2 and key < best_key:
