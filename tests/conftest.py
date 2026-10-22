@@ -54,6 +54,17 @@ def mock_payslip(tmpdir_factory):
 
 
 @pytest.fixture(scope="session")
+def mock_table_image(tmpdir_factory):
+    url = "https://github.com/mindee/doctr/releases/download/v1.1.0/table_structure_example.png"
+    file = BytesIO(requests.get(url).content)
+    folder = tmpdir_factory.mktemp("data")
+    fn = str(folder.join("mock_table.png"))
+    with open(fn, "wb") as f:
+        f.write(file.getbuffer())
+    return fn
+
+
+@pytest.fixture(scope="session")
 def mock_figure_page(mock_image_stream, tmpdir_factory):
     # A heading, two paragraphs and a captioned photograph in between
     page = Image.new("RGB", (1240, 1754), (255, 255, 255))

@@ -6,6 +6,7 @@ import onnxruntime
 import pytest
 import torch
 
+from doctr.io import DocumentFile
 from doctr.models import table_structure
 from doctr.models.table_structure import TableCenterNet
 from doctr.models.table_structure.predictor import TablePredictor
@@ -161,19 +162,27 @@ def test_models_onnx_export(arch_name, input_shape):
         "tablecenternet",
     ],
 )
-def test_torch_compiled_models(arch_name):
-    page = (255 * np.random.rand(1024, 1024, 3)).astype(np.uint8)
+def test_torch_compiled_models(arch_name, mock_table_image):
+    doc = DocumentFile.from_images([mock_table_image])
     predictor = table_structure.zoo.table_predictor(arch_name, pretrained=True)
     assert isinstance(predictor, TablePredictor)
-    out = predictor([page])
+    out = predictor(doc)
 
     # Compile the model
     base = table_structure.__dict__[arch_name](pretrained=True).eval()
     compiled_model = torch.compile(base)
     assert isinstance(compiled_model, _CompiledModule)
     compiled_predictor = table_structure.zoo.table_predictor(compiled_model)
-    compiled_out = compiled_predictor([page])
+    compiled_out = compiled_predictor(doc)
 
     # Compare that outputs are close
     assert len(out) == len(compiled_out) == 1
-    assert {"cells", "num_rows", "num_cols"} <= set(compiled_out[0])
+    table, compiled_table = out[0], compiled_out[0]
+    # A table was actually found, otherwise there is nothing to compare
+    assert len(table["cells"]) > 0
+    assert len(table["cells"]) == len(compiled_table["cells"])
+    assert (table["num_rows"], table["num_cols"]) == (compiled_table["num_rows"], compiled_table["num_cols"])
+    for cell, compiled_cell in zip(table["cells"], compiled_table["cells"]):
+        assert np.allclose(cell["geometry"], compiled_cell["geometry"], atol=1e-4)
+        assert np.isclose(cell["score"], compiled_cell["score"], atol=1e-4)
+        assert all(cell[k] == compiled_cell[k] for k in ("row_start", "row_end", "col_start", "col_end"))
