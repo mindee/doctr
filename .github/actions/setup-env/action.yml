@@ -39,14 +39,25 @@ runs:
           references/requirements.txt
           demo/pt-requirements.txt
 
+    # A pull request only restores: a branch-scoped copy it saved would be
+    # visible to nothing else and would evict main's, which every run reuses.
     - name: Cache pretrained models
-      if: inputs.cache-models == 'true'
+      if: inputs.cache-models == 'true' && github.event_name == 'push'
       uses: actions/cache@v6
       with:
         path: |
           ~/.cache/doctr
           ~/.cache/huggingface
         # Bump the -v1 suffix to invalidate if the set of models a job uses changes
+        key: doctr-models-${{ github.job }}-v1
+
+    - name: Restore pretrained models
+      if: inputs.cache-models == 'true' && github.event_name != 'push'
+      uses: actions/cache/restore@v6
+      with:
+        path: |
+          ~/.cache/doctr
+          ~/.cache/huggingface
         key: doctr-models-${{ github.job }}-v1
 
     # The default PyPI torch wheel on Linux bundles CUDA (multi-GB) which CI
