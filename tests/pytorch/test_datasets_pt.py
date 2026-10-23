@@ -350,7 +350,7 @@ def test_table_dataset(mock_image_folder, mock_table_label, use_polygons):
     move(os.path.join(mock_image_folder, "tmp_file"), os.path.join(mock_image_folder, img_name))
 
 
-def test_recognition_dataset(mock_image_folder, mock_recognition_label):
+def test_recognition_dataset(mock_image_folder, mock_recognition_label, monkeypatch):
     input_size = (32, 128)
     ds = datasets.RecognitionDataset(
         img_folder=mock_image_folder,
@@ -376,6 +376,26 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     with pytest.raises(FileNotFoundError):
         datasets.RecognitionDataset(mock_image_folder, mock_recognition_label)
     move(os.path.join(ds.root, "tmp_file"), os.path.join(ds.root, img_name))
+
+    # Merge datasets with a relative image folder
+    monkeypatch.chdir(os.path.dirname(mock_image_folder))
+    img_folder = os.path.basename(mock_image_folder)
+    ds = datasets.RecognitionDataset(
+        img_folder=img_folder,
+        labels_path=mock_recognition_label,
+        img_transforms=Resize(input_size, preserve_aspect_ratio=True),
+    )
+    labels = [label for _, label in ds.data]
+    ds.merge_dataset(datasets.RecognitionDataset(img_folder, mock_recognition_label))
+    ds.merge_dataset(datasets.RecognitionDataset(img_folder, mock_recognition_label))
+    assert len(ds) == 15
+
+    loader = DataLoader(ds, batch_size=5, collate_fn=ds.collate_fn)
+    merged_labels = []
+    for images, batch_labels in loader:
+        assert isinstance(images, torch.Tensor) and images.shape == (5, 3, *input_size)
+        merged_labels.extend(batch_labels)
+    assert merged_labels == 3 * labels
 
 
 @pytest.mark.parametrize(
