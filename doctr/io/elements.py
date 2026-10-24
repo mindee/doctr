@@ -408,9 +408,8 @@ class Block(Element):
         if geometry is None:
             line_boxes = [word.geometry for line in lines for word in line.words]
             artefact_boxes = [artefact.geometry for artefact in artefacts]
-            box_resolution_fn = (
-                resolve_enclosing_rbbox if isinstance(lines[0].geometry, np.ndarray) else resolve_enclosing_bbox
-            )
+            # Check whether this is a rotated or straight box (geometries read back from an export are lists)
+            box_resolution_fn = resolve_enclosing_rbbox if len(lines[0].geometry) == 4 else resolve_enclosing_bbox
             geometry = box_resolution_fn(line_boxes + artefact_boxes)  # type: ignore
 
         super().__init__(lines=lines, artefacts=artefacts)

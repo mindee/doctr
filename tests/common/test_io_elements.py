@@ -442,6 +442,25 @@ def test_block():
     }
 
 
+def test_block_rotated_lines_from_dict():
+    # Rotated geometries read back from an export are nested lists, not numpy arrays
+    polygon = [[0.1, 0.1], [0.4, 0.2], [0.35, 0.4], [0.05, 0.3]]
+    word = elements.Word("hello", 0.9, polygon, 0.9, {"value": 0, "confidence": None})
+    line = elements.Line.from_dict(elements.Line([word], geometry=polygon).export())
+    assert isinstance(line.geometry, list)
+
+    # The block geometry is resolved as a rotated box, not as a straight one
+    block = elements.Block([line])
+    assert np.asarray(block.geometry).shape == (4, 2)
+
+    # Exporting a page loaded from a dict keeps the rotated block geometry
+    page = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [elements.Block([line])], 0, (10, 10))
+    exported = json.loads(json.dumps(page.export()))
+    reloaded = elements.Page.from_dict(exported).export()
+    assert np.asarray(reloaded["blocks"][0]["geometry"]).shape == (4, 2)
+    np.testing.assert_allclose(reloaded["blocks"][0]["geometry"], exported["blocks"][0]["geometry"], atol=1e-6)
+
+
 def test_page():
     page = np.zeros((300, 200, 3), dtype=np.uint8)
     page_idx = 0
