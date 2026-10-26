@@ -157,160 +157,203 @@ def page_reading_order(
     Returns:
         the ordered items, their layout label (None without layout) and the effective reading direction
     """
-    from doctr.io.elements import Block, LayoutElement, Table
-    from doctr.models.reading_order import (
-        ReadingOrderPredictor,
-        deskew_reading_geometries,
-        layout_label_role,
-        normalize_layout_label,
-        resolve_reading_segments,
-    )
-    from doctr.models.reading_order.base import _FURNITURE_ROLES, _float_text_label, _to_boxes
+    from doctr.models.reading_order import ReadingOrderPredictor, deskew_reading_geometries, resolve_reading_segments
 
     signature = _reading_order_signature(page, direction)
     cached = getattr(page, "_reading_order_cache", None)
     if cached is not None and cached[0] == signature:
-        items, labels, resolved = cached[1]
-        return _select_items(list(items), list(labels), resolved, include_figures)
-
-    texts = [word.value for block in page.blocks for line in block.lines for word in line.words]
-    language = page.language.get("value") if isinstance(page.language, dict) else None
-    direction = ReadingOrderPredictor(direction=direction).resolve_direction(texts, language=language)
-    region_geoms = [region.geometry for region in page.layout]
-    region_labels = [region.type for region in page.layout]
+        cached_items, cached_labels, resolved = cached[1]
+        return _select_items(list(cached_items), list(cached_labels), resolved, include_figures)
 
     lines = [line for block in page.blocks for line in block.lines]
-    # Figures take part in the ordering as floats
-    figures = picture_regions(page)
-    elements: list[Any] = [*lines, *page.tables, *figures]
-    if len(elements) == 0:
-        _store_reading_order(page, signature, ([], [], direction))
-        return [], [], direction
-    # De-skew once so labeling, ordering and region grouping share the same upright frame; the page angle is
-    # estimated from the word polygons, which carry the detection model's true orientation
-    elt_geoms, region_geoms = deskew_reading_geometries(
-        [elt.geometry for elt in elements],
-        region_geoms,
-        page_shape=page.dimensions,
-        angle_geoms=[word.geometry for line in lines for word in line.words],
+    words = [word for line in lines for word in line.words]
+    language = page.language.get("value") if isinstance(page.language, dict) else None
+    direction = ReadingOrderPredictor(direction=direction).resolve_direction(
+        [word.value for word in words], language=language
     )
-    elt_labels: list[str | None] = [None] * len(elements)
-    elt_regions = _covering_region_indices(elt_geoms, region_geoms, region_labels=region_labels)
-    if len(region_geoms) > 0:
-        elt_labels = [str(region_labels[reg]) if reg >= 0 else None for reg in elt_regions]
+    # Lines, tables and figures (as floats) are ordered together
+    elements: list[Any] = [*lines, *page.tables, *picture_regions(page)]
+    items: list[Any] = []
+    labels: list[str | None] = []
+    if len(elements) > 0:
+        # De-skew once so labeling, ordering and region grouping share the same upright frame; the page angle is
+        # estimated from the word polygons, which carry the detection model's true orientation
+        elt_geoms, region_geoms = deskew_reading_geometries(
+            [elt.geometry for elt in elements],
+            [region.geometry for region in page.layout],
+            page_shape=page.dimensions,
+            angle_geoms=[word.geometry for word in words],
+        )
+        region_labels = [region.type for region in page.layout]
+        elt_regions = _covering_region_indices(elt_geoms, region_geoms, region_labels=region_labels)
+        elt_labels = _element_labels(page, elements, elt_geoms, elt_regions, region_geoms)
+        segments = resolve_reading_segments(
+            elt_geoms,
+            direction=direction,
+            labels=[_order_label(elt, label) for elt, label in zip(elements, elt_labels)],
+            page_shape=page.dimensions,
+            column_voters=_column_voters(elements, elt_geoms, elt_regions, region_geoms, region_labels),
+            region_groups=_merge_overlapping_regions(elt_regions, region_geoms, region_labels),
+        )
+        items, labels = _segments_to_items(page, elements, segments, elt_labels, elt_regions)
+    _store_reading_order(page, signature, (items, labels, direction))
+    return _select_items(list(items), list(labels), direction, include_figures)
 
-    # A figure lying in page furniture (e.g. a logo in the page header) is read with it, along with its text
+
+def _element_labels(
+    page: "Page", elements: list[Any], elt_geoms: list[Any], elt_regions: list[int], region_geoms: list[Any]
+) -> list[str | None]:
+    """Return the layout label of each element: the label of its layout region (None for none), 'Table' for a table
+
+    A figure takes its own type, unless it lies in page furniture (e.g. a logo in the page header): it is then read with
+    the furniture, along with its text.
+    """
+    from doctr.io.elements import LayoutElement, Table
+    from doctr.models.reading_order import layout_label_role
+    from doctr.models.reading_order.base import _FURNITURE_ROLES
+
+    region_labels = [str(region.type) for region in page.layout]
+    labels: list[str | None] = [region_labels[reg] if reg >= 0 else None for reg in elt_regions]
     furniture = [reg for reg, label in enumerate(region_labels) if layout_label_role(label) in _FURNITURE_ROLES]
-    fig_idcs = [idx for idx, elt in enumerate(elements) if isinstance(elt, LayoutElement)]
-    fig_furniture = _covering_region_indices(
-        [elt_geoms[idx] for idx in fig_idcs], [region_geoms[reg] for reg in furniture]
+    figures = [idx for idx, elt in enumerate(elements) if isinstance(elt, LayoutElement)]
+    in_furniture = _covering_region_indices(
+        [elt_geoms[idx] for idx in figures], [region_geoms[reg] for reg in furniture]
     )
     region_index = {id(region): reg for reg, region in enumerate(page.layout)}
-    furniture_labels: dict[int, str] = {}  # figure region index -> furniture label
-    for idx, reg in zip(fig_idcs, fig_furniture):
-        elt_labels[idx] = str(region_labels[furniture[reg]]) if reg >= 0 else elements[idx].type
+    furniture_of_figure: dict[int, str] = {}  # figure region index -> label of the furniture holding it
+    for idx, reg in zip(figures, in_furniture):
+        labels[idx] = region_labels[furniture[reg]] if reg >= 0 else elements[idx].type
         if reg >= 0:
-            furniture_labels[region_index[id(elements[idx])]] = str(region_labels[furniture[reg]])
+            furniture_of_figure[region_index[id(elements[idx])]] = region_labels[furniture[reg]]
     for idx, elt in enumerate(elements):
         if isinstance(elt, Table):
-            elt_labels[idx] = "Table"
-        elif not isinstance(elt, LayoutElement) and elt_regions[idx] in furniture_labels:
-            elt_labels[idx] = furniture_labels[elt_regions[idx]]
-    # Page-wide figures and tables do not vote in the multi-column detection, nor do the text lines of a page-wide table
-    # region: its cells (e.g. the amounts of a receipt detected as a table) would read as columns
+            labels[idx] = "Table"
+        elif not isinstance(elt, LayoutElement) and elt_regions[idx] in furniture_of_figure:
+            labels[idx] = furniture_of_figure[elt_regions[idx]]
+    return labels
+
+
+def _order_label(element: Any, label: str | None) -> str | None:
+    """Return the label used to order an element: a text line in a table or figure region keeps the label of its
+    region, but is grouped into paragraphs like regular text"""
+    from doctr.io.elements import LayoutElement, Table
+    from doctr.models.reading_order import layout_label_role
+    from doctr.models.reading_order.base import _float_text_label
+
+    if not isinstance(element, (Table, LayoutElement)) and layout_label_role(label) == "float":
+        return _float_text_label(str(label))
+    return label
+
+
+def _column_voters(
+    elements: list[Any], elt_geoms: list[Any], elt_regions: list[int], region_geoms: list[Any], region_labels: list[str]
+) -> list[bool]:
+    """Return the elements voting in the multi-column detection
+
+    Page-wide figures and tables do not vote, nor do the text lines of a page-wide table region: its cells (e.g. the
+    amounts of a receipt detected as a table) would read as columns.
+    """
+    from doctr.io.elements import LayoutElement, Table
+    from doctr.models.reading_order import normalize_layout_label
+    from doctr.models.reading_order.base import _to_boxes
+
     boxes = _to_boxes(elt_geoms)
     span = float(boxes[:, 2].max() - boxes[:, 0].min()) or 1.0
-    region_boxes = _to_boxes(region_geoms) if len(region_geoms) > 0 else np.zeros((0, 4))
+    region_boxes = _to_boxes(region_geoms)
     wide_tables = {
         reg
         for reg, (label, box) in enumerate(zip(region_labels, region_boxes))
         if normalize_layout_label(label) == "table" and box[2] - box[0] > 0.5 * span
     }
-    column_voters = [
-        not (isinstance(elt, (LayoutElement, Table)) and box[2] - box[0] > 0.5 * span)
-        and (isinstance(elt, (LayoutElement, Table)) or reg not in wide_tables)
+    return [
+        not (box[2] - box[0] > 0.5 * span) if isinstance(elt, (LayoutElement, Table)) else reg not in wide_tables
         for elt, box, reg in zip(elements, boxes, elt_regions)
     ]
-    # A text line in a table or figure region keeps its label, but is grouped into paragraphs like regular text
-    order_labels = [
-        _float_text_label(str(label))
-        if not isinstance(elt, (Table, LayoutElement)) and layout_label_role(label) == "float"
-        else label
-        for elt, label in zip(elements, elt_labels)
-    ]
-    segments = resolve_reading_segments(
-        elt_geoms,
-        direction=direction,
-        labels=order_labels,
-        page_shape=page.dimensions,
-        column_voters=column_voters,
-        region_groups=_merge_overlapping_regions(elt_regions, region_geoms, region_labels),
-    )
 
-    def _is_float_item(idx: int) -> bool:
-        return isinstance(elements[idx], (Table, LayoutElement))
 
-    def _split_floats(segment: list[int]) -> list[list[int]]:
-        """Split the tables and figures out of a segment (a figure in page furniture can share one)"""
-        runs: list[list[int]] = []
-        for idx in segment:
-            if runs and not _is_float_item(idx) and not _is_float_item(runs[-1][-1]):
-                runs[-1].append(idx)
-            else:
-                runs.append([idx])
-        return runs
+def _segments_to_items(
+    page: "Page", elements: list[Any], segments: list[list[int]], elt_labels: list[str | None], elt_regions: list[int]
+) -> tuple[list[Any], list[str | None]]:
+    """Turn reading-ordered segments of elements into page items: one block per paragraph, one block per list item
+    (a list item wrapped over several lines is one block), tables and figures as they are
 
-    segments = [run for segment in segments for run in _split_floats(segment)]
+    The artefacts of a block follow its first line; those of blocks without lines go to the last block.
+    """
+    from doctr.io.elements import LayoutElement, Table
+    from doctr.models.reading_order import normalize_layout_label
 
-    items = []
-    labels = []
-    line_owner = {id(line): idx for idx, block in enumerate(page.blocks) for line in block.lines}
-    pending_artefacts = {idx: list(block.artefacts) for idx, block in enumerate(page.blocks) if block.artefacts}
-
-    def _claim_artefacts(block_lines: list[Any]) -> list[Any]:
-        claimed: list[Any] = []
-        for line in block_lines:
-            owner = line_owner.get(id(line))
-            if owner is not None and owner in pending_artefacts:
-                claimed.extend(pending_artefacts.pop(owner))
-        return claimed
-
-    # Region index covering each element, used to group the lines of a wrapped list item under a single bullet
-    region_idx = elt_regions
-    open_list_region: int | None = None  # region of the list bullet currently being built (None outside a list)
-    for segment in segments:
-        first = elements[segment[0]]
-        seg_label = elt_labels[segment[0]]
+    artefacts = _ArtefactClaims(page.blocks)
+    items: list[Any] = []
+    labels: list[str | None] = []
+    list_region: int | None = None  # region of the list item being built
+    for run in (run for segment in segments for run in _float_runs(elements, segment)):
+        first, label = elements[run[0]], elt_labels[run[0]]
         if isinstance(first, (Table, LayoutElement)):
             items.append(first)
-            labels.append("Table" if isinstance(first, Table) else seg_label)
-            open_list_region = None
-            continue
-        if normalize_layout_label(seg_label) in _LIST_LABELS:
-            # One bullet per list-item region: consecutive lines sharing the same region are one bullet, so a
-            # list item wrapped over several visual lines renders as a single bullet point.
-            for idx in segment:
-                region = region_idx[idx]
-                if open_list_region is not None and region == open_list_region and region != -1:
-                    merged = [*items[-1].lines, elements[idx]]
-                    items[-1] = Block(lines=merged, artefacts=[*items[-1].artefacts, *_claim_artefacts([merged[-1]])])
+            labels.append("Table" if isinstance(first, Table) else label)
+            list_region = None
+        elif normalize_layout_label(label) in _LIST_LABELS:
+            # One bullet per list-item region: consecutive lines of the same region are a single bullet
+            for idx in run:
+                region = elt_regions[idx]
+                if region != -1 and region == list_region:
+                    items[-1] = artefacts.block([*items[-1].lines, elements[idx]], items[-1].artefacts)
                 else:
-                    items.append(Block(lines=[elements[idx]], artefacts=_claim_artefacts([elements[idx]])))
-                    labels.append(seg_label)
-                    open_list_region = region
+                    items.append(artefacts.block([elements[idx]]))
+                    labels.append(label)
+                    list_region = region
         else:
-            block_lines = [elements[idx] for idx in segment]
-            items.append(Block(lines=block_lines, artefacts=_claim_artefacts(block_lines)))
-            labels.append(seg_label)
-            open_list_region = None
-    # Artefacts of blocks without any line stay attached to the page
-    leftover = [artefact for artefacts in pending_artefacts.values() for artefact in artefacts]
-    if leftover:
+            items.append(artefacts.block([elements[idx] for idx in run]))
+            labels.append(label)
+            list_region = None
+    artefacts.attach_leftovers(items)
+    return items, labels
+
+
+class _ArtefactClaims:
+    """Hand the artefacts of the page blocks over to the blocks built in reading order
+
+    Args:
+        blocks: the blocks of the page
+    """
+
+    def __init__(self, blocks: list[Any]) -> None:
+        self.owner = {id(line): idx for idx, block in enumerate(blocks) for line in block.lines}
+        self.pending = {idx: list(block.artefacts) for idx, block in enumerate(blocks) if block.artefacts}
+
+    def block(self, lines: list[Any], artefacts: list[Any] | None = None) -> Any:
+        """Build a block, which claims the artefacts of the blocks its lines come from (unless already claimed)"""
+        from doctr.io.elements import Block
+
+        claimed = list(artefacts or [])
+        for line in lines:
+            owner = self.owner.get(id(line))
+            if owner is not None and owner in self.pending:
+                claimed.extend(self.pending.pop(owner))
+        return Block(lines=lines, artefacts=claimed)
+
+    def attach_leftovers(self, items: list[Any]) -> None:
+        """Attach the artefacts of blocks without any line to the last block, so they stay on the page"""
+        from doctr.io.elements import Block
+
+        leftover = [artefact for artefacts in self.pending.values() for artefact in artefacts]
         last_block = next((item for item in reversed(items) if isinstance(item, Block)), None)
-        if last_block is not None:
+        if leftover and last_block is not None:
             last_block.artefacts = [*last_block.artefacts, *leftover]
-    _store_reading_order(page, signature, (items, labels, direction))
-    return _select_items(list(items), list(labels), direction, include_figures)
+
+
+def _float_runs(elements: list[Any], segment: list[int]) -> list[list[int]]:
+    """Split the tables and figures out of a segment (a figure in page furniture can share one)"""
+    from doctr.io.elements import LayoutElement, Table
+
+    runs: list[list[int]] = []
+    for idx in segment:
+        is_float = isinstance(elements[idx], (Table, LayoutElement))
+        if runs and not is_float and not isinstance(elements[runs[-1][-1]], (Table, LayoutElement)):
+            runs[-1].append(idx)
+        else:
+            runs.append([idx])
+    return runs
 
 
 def _select_items(
@@ -390,6 +433,145 @@ class _FigurePlan(NamedTuple):
     markup: dict[int, str]  # figure markup
     captions: set[int]  # captions rendered with their figure
     hidden: set[int]  # text left out of the export
+
+
+class _PageFigures:
+    """The figures of a linearized page, in the upright frame of the reading order
+
+    Args:
+        page: the page
+        items: the linearized page content, figures included
+        labels: the layout label of each item
+    """
+
+    def __init__(self, page: "Page", items: list[Any], labels: list[str | None]) -> None:
+        from doctr.io.elements import Block
+        from doctr.models.reading_order import deskew_reading_geometries
+
+        self.items, self.labels = items, labels
+        # Same upright frame as the reading order, for the items and the lines of the blocks
+        block_lines = [(idx, line) for idx, item in enumerate(items) if isinstance(item, Block) for line in item.lines]
+        upright, upright_regions = deskew_reading_geometries(
+            [item.geometry for item in items] + [line.geometry for _, line in block_lines],
+            [region.geometry for region in page.layout],
+            page_shape=page.dimensions,
+            angle_geoms=[word.geometry for block in page.blocks for line in block.lines for word in line.words],
+        )
+        self.boxes = [_xyxy(geom) for geom in upright[: len(items)]]
+        self.line_boxes: dict[int, list[tuple[float, ...]]] = {}
+        for (owner, _), geom in zip(block_lines, upright[len(items) :]):
+            self.line_boxes.setdefault(owner, []).append(_xyxy(geom))
+        self.region_of = _covering_region_indices(
+            upright[: len(items)], upright_regions, region_labels=[region.type for region in page.layout]
+        )
+
+    def in_furniture(self, fig: int) -> bool:
+        """Whether a figure is read with the page furniture"""
+        from doctr.models.reading_order import layout_label_role
+        from doctr.models.reading_order.base import _FURNITURE_ROLES
+
+        return layout_label_role(self.labels[fig]) in _FURNITURE_ROLES
+
+    def without_furniture(self, figs: list[int]) -> tuple[list[int], set[int]]:
+        """Leave out the figures read with the page furniture
+
+        Returns:
+            the other figures, and the text of the figures left out
+        """
+        furniture = [fig for fig in figs if self.in_furniture(fig)]
+        return [fig for fig in figs if fig not in furniture], {text for fig in furniture for text in self.text_of(fig)}
+
+    def _inside(self, idx: int, fig: int) -> bool:
+        """Whether each line of a block lies in a figure, by at least half of its area"""
+        target = self.boxes[fig]
+
+        def _coverage(box: tuple[float, ...]) -> float:
+            inter = max(min(box[2], target[2]) - max(box[0], target[0]), 0.0) * max(
+                min(box[3], target[3]) - max(box[1], target[1]), 0.0
+            )
+            return inter / max((box[2] - box[0]) * (box[3] - box[1]), 1e-9)
+
+        return all(_coverage(box) >= 0.5 for box in self.line_boxes.get(idx, [self.boxes[idx]]))
+
+    def _is_block(self, idx: int) -> bool:
+        from doctr.io.elements import Block
+
+        return 0 <= idx < len(self.items) and isinstance(self.items[idx], Block)
+
+    def _is_caption(self, idx: int) -> bool:
+        from doctr.models.reading_order import normalize_layout_label
+
+        return self._is_block(idx) and normalize_layout_label(self.labels[idx]) == "caption"
+
+    def text_of(self, fig: int) -> set[int]:
+        """The blocks inside a figure and labeled as part of it (or as furniture, for a figure in furniture)"""
+        from doctr.models.reading_order import layout_label_role
+        from doctr.models.reading_order.base import _FURNITURE_ROLES
+
+        in_furniture = self.in_furniture(fig)
+        return {
+            idx
+            for idx in range(len(self.items))
+            if self._is_block(idx)
+            and (
+                is_picture_label(self.labels[idx])
+                or (in_furniture and layout_label_role(self.labels[idx]) in _FURNITURE_ROLES)
+            )
+            and self._inside(idx, fig)
+        }
+
+    def _caption_run(self, start: int) -> tuple[int, ...]:
+        """The caption blocks of the caption region of a block (a caption region can span several blocks)"""
+        if self.region_of[start] == -1:
+            return (start,)
+        return tuple(
+            idx
+            for idx in range(len(self.items))
+            if self._is_caption(idx) and self.region_of[idx] == self.region_of[start]
+        )
+
+    def _distance(self, run: tuple[int, ...], target: int) -> float:
+        from doctr.models.reading_order.base import _caption_distance
+
+        run_box = tuple(func(self.boxes[idx][k] for idx in run) for k, func in enumerate((min, min, max, max)))
+        return _caption_distance(run_box, self.boxes[target])
+
+    def _table_without_caption(self, idx: int, run: tuple[int, ...]) -> bool:
+        """Whether a table stands next to a caption run, without its own caption on its other side"""
+        from doctr.io.elements import Table
+
+        if not (0 <= idx < len(self.items) and isinstance(self.items[idx], Table)):
+            return False
+        return not self._is_caption(idx + 1 if idx > run[-1] else idx - 1)
+
+    def captions(self, figures: list[int]) -> dict[int, tuple[int, ...]]:
+        """Pair figures and captions: each caption read right before a figure, or right after the text inside it, goes
+        to its closest float (a table without caption competes for it), and each figure keeps its closest caption
+
+        Args:
+            figures: the figures to caption
+
+        Returns:
+            the caption blocks of each captioned figure
+        """
+        claims: dict[tuple[int, ...], list[int]] = {}
+        for fig in figures:
+            after = fig + 1
+            while self._is_block(after) and not self._is_caption(after) and self._inside(after, fig):
+                after += 1
+            for cap in (fig - 1, after):
+                if self._is_caption(cap):
+                    claims.setdefault(self._caption_run(cap), []).append(fig)
+        captions: dict[int, tuple[int, ...]] = {}
+        for run, candidates in claims.items():
+            tables = [idx for idx in (run[0] - 1, run[-1] + 1) if self._table_without_caption(idx, run)]
+            best = min([*candidates, *tables], key=lambda target: self._distance(run, target))
+            if best in tables or (
+                best in captions and self._distance(captions[best], best) <= self._distance(run, best)
+            ):
+                continue
+            captions[best] = run
+        return captions
 
 
 class _PageTextExporter:
@@ -489,135 +671,39 @@ class _PageTextExporter:
         Returns:
             the figure markup, the captions rendered with their figure and the text to leave out
         """
-        from doctr.io.elements import Block, LayoutElement, Table
-        from doctr.models.reading_order import deskew_reading_geometries, layout_label_role, normalize_layout_label
-        from doctr.models.reading_order.base import _FURNITURE_ROLES, _caption_distance
+        from doctr.io.elements import LayoutElement
 
         figure_idcs = [idx for idx, item in enumerate(items) if isinstance(item, LayoutElement)]
         render = self.supports_figures and encoder.enabled
         if not figure_idcs or not (render or not include_furniture):
             return _FigurePlan({}, set(), set())
 
-        # Same upright frame as the reading order (the lines of the blocks too)
-        line_owners = [idx for idx, item in enumerate(items) if isinstance(item, Block) for _ in item.lines]
-        upright, upright_regions = deskew_reading_geometries(
-            [item.geometry for item in items]
-            + [line.geometry for item in items if isinstance(item, Block) for line in item.lines],
-            [region.geometry for region in page.layout],
-            page_shape=page.dimensions,
-            angle_geoms=[word.geometry for block in page.blocks for line in block.lines for word in line.words],
-        )
-        boxes = [_xyxy(geom) for geom in upright[: len(items)]]
-        line_boxes: dict[int, list[tuple[float, ...]]] = {}
-        for owner, geom in zip(line_owners, upright[len(items) :]):
-            line_boxes.setdefault(owner, []).append(_xyxy(geom))
-
-        def _coverage(box: tuple[float, ...], target: tuple[float, ...]) -> float:
-            """Share of `box` covered by `target`"""
-            inter = max(min(box[2], target[2]) - max(box[0], target[0]), 0.0) * max(
-                min(box[3], target[3]) - max(box[1], target[1]), 0.0
-            )
-            return inter / max((box[2] - box[0]) * (box[3] - box[1]), 1e-9)
-
-        def _inside(idx: int, fig_idx: int) -> bool:
-            """Whether each line of a block lies in a figure"""
-            return all(_coverage(box, boxes[fig_idx]) >= 0.5 for box in line_boxes.get(idx, [boxes[idx]]))
-
-        def _figure_text(fig_idx: int) -> set[int]:
-            """Blocks covered by a figure and labeled as part of it (or as furniture, for a figure in furniture)"""
-            in_furniture = layout_label_role(labels[fig_idx]) in _FURNITURE_ROLES
-            return {
-                idx
-                for idx, item in enumerate(items)
-                if isinstance(item, Block)
-                and (
-                    is_picture_label(labels[idx])
-                    or (in_furniture and layout_label_role(labels[idx]) in _FURNITURE_ROLES)
-                )
-                and _inside(idx, fig_idx)
-            }
-
+        figures = _PageFigures(page, items, labels)
         hidden: set[int] = set()
         if not include_furniture:
-            # Figures read with the page furniture are left out with it
-            furniture = {idx for idx in figure_idcs if layout_label_role(labels[idx]) in _FURNITURE_ROLES}
-            for idx in furniture:
-                hidden |= _figure_text(idx)
-            figure_idcs = [idx for idx in figure_idcs if idx not in furniture]
+            # Figures read with the page furniture are left out with it, along with their text
+            figure_idcs, hidden = figures.without_furniture(figure_idcs)
         if not render or not figure_idcs:
             return _FigurePlan({}, set(), hidden)
 
         sources = {idx: encoder.source(page, items[idx], rank) for rank, idx in enumerate(figure_idcs, start=1)}
-        # Only a figure exported with its pixels makes its text redundant
-        for idx in figure_idcs:
-            if sources[idx] is not None:
-                hidden |= _figure_text(idx)
-        region_of = _covering_region_indices(
-            upright[: len(items)], upright_regions, region_labels=[r.type for r in page.layout]
-        )
-
-        def _is_caption(idx: int) -> bool:
-            return isinstance(items[idx], Block) and normalize_layout_label(labels[idx]) == "caption"
-
-        def _is_inner_text(idx: int, fig_idx: int) -> bool:
-            return isinstance(items[idx], Block) and not _is_caption(idx) and _inside(idx, fig_idx)
-
-        def _caption_run(start: int) -> tuple[int, ...]:
-            # A caption region can span several blocks
-            if region_of[start] == -1:
-                return (start,)
-            return tuple(idx for idx in range(len(items)) if _is_caption(idx) and region_of[idx] == region_of[start])
-
-        def _run_box(run: tuple[int, ...]) -> tuple[float, ...]:
-            return tuple(func(boxes[idx][k] for idx in run) for k, func in enumerate((min, min, max, max)))
-
-        # Candidate captions: right before the figure, or right after the text inside it
-        claims: dict[tuple[int, ...], list[int]] = {}
-        for idx in figure_idcs:
-            if sources[idx] is None:
-                continue
-            after = idx + 1
-            while after < len(items) and _is_inner_text(after, idx):
-                after += 1
-            for cap in (idx - 1, after):
-                if 0 <= cap < len(items) and _is_caption(cap):
-                    claims.setdefault(_caption_run(cap), []).append(idx)
-
-        def _table_without_caption(idx: int, run: tuple[int, ...]) -> bool:
-            # A table with its own caption on its other side does not compete for this one
-            if not (0 <= idx < len(items) and isinstance(items[idx], Table)):
-                return False
-            far = idx + 1 if idx > run[-1] else idx - 1
-            return not (0 <= far < len(items) and _is_caption(far))
-
-        # Each caption goes to its closest float, and each figure keeps its closest caption
-        captions: dict[int, tuple[int, ...]] = {}
-        for run, candidates in claims.items():
-            cap_box = _run_box(run)
-            tables = [idx for idx in (run[0] - 1, run[-1] + 1) if _table_without_caption(idx, run)]
-            best = min([*candidates, *tables], key=lambda elt: _caption_distance(cap_box, boxes[elt]))
-            if best in tables:
-                continue
-            dist = _caption_distance(cap_box, boxes[best])
-            if best in captions and _caption_distance(_run_box(captions[best]), boxes[best]) <= dist:
-                continue
-            captions[best] = run
-
+        # Only a figure exported with its pixels makes its text redundant, and takes a caption as alternative text
+        shown = [idx for idx in figure_idcs if sources[idx] is not None]
+        hidden |= {text for idx in shown for text in figures.text_of(idx)}
+        captions = figures.captions(shown)
         markup: dict[int, str] = {}
         consumed: set[int] = set()
         for idx in figure_idcs:
-            caption = None
-            if idx in captions:
-                lines = [
-                    line
-                    for cap_idx in captions[idx]
-                    for line in self._block_lines(items[cap_idx], direction, False, auto)
-                ]
-                caption = _join_caption_lines(lines) or None
-                if caption is not None:
-                    consumed.update(captions[idx])
+            caption = self._caption_text([items[cap] for cap in captions.get(idx, ())], direction, auto)
+            if caption is not None:
+                consumed.update(captions[idx])
             markup[idx] = self.render_figure(sources[idx], caption, escape=escape)
         return _FigurePlan(markup, consumed, hidden)
+
+    def _caption_text(self, blocks: list[Any], direction: str, auto: bool) -> str | None:
+        """Join the lines of the caption blocks of a figure into one caption (None without any text)"""
+        lines = [line for block in blocks for line in self._block_lines(block, direction, False, auto)]
+        return _join_caption_lines(lines) or None
 
     def export_page(
         self,

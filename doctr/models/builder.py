@@ -131,52 +131,31 @@ class DocumentBuilder(NestedObject):
             A list of (sub-)lines computed from the original line (words)
         """
         break_dist = self.paragraph_break if break_dist is None else break_dist
-        lines = []
-        # Sort words horizontally
-        word_idcs = [word_idcs[idx] for idx in boxes[word_idcs, 0].argsort().tolist()]
-
-        # Eventually split line horizontally
-        if len(word_idcs) < 2:
-            lines.append(word_idcs)
-        else:
-            sub_line = [word_idcs[0]]
-            right = boxes[word_idcs[0], 2]  # a box can be nested in an earlier one: keep the max right edge
-            groups, coverage = word_regions if word_regions is not None else (None, None)
-            region = -1 if groups is None else int(groups[word_idcs[0]])  # region of the sub-line
-            prev = word_idcs[0]
-            for i in word_idcs[1:]:
-                horiz_break = True
-
-                # Compute distance between the sub-line and the box
-                dist = boxes[i, 0] - right
-                # If the distance is lower than the break distance, same sub-line
-                if dist < break_dist:
-                    horiz_break = False
-                # Unless the box and the sub-line lie in distinct regions (e.g. columns separated by a narrow gutter)
-                box_region = -1 if groups is None else int(groups[i])
-                if (
+        groups, coverage = word_regions if word_regions is not None else (None, None)
+        lines: list[list[int]] = []
+        right, region, prev = 0.0, -1, -1  # right edge, region and last word of the current sub-line
+        for idx in [word_idcs[i] for i in boxes[word_idcs, 0].argsort().tolist()]:
+            box_region = -1 if groups is None else int(groups[idx])
+            # A new sub-line after a gap of at least `break_dist` from the sub-line (a box can be nested in an earlier
+            # one: its max right edge is used), or between two distinct regions (e.g. columns with a narrow gutter)
+            if (
+                not lines
+                or not boxes[idx, 0] - right < break_dist
+                or (
                     coverage is not None
                     and box_region >= 0
                     and region >= 0
                     and box_region != region
-                    and coverage[i, region] < 0.5
+                    and coverage[idx, region] < 0.5
                     and coverage[prev, box_region] < 0.5
-                ):
-                    horiz_break = True
-
-                if horiz_break:
-                    lines.append(sub_line)
-                    sub_line = []
-                    right = boxes[i, 2]
-                    region = -1
-
-                sub_line.append(i)
-                right = max(right, boxes[i, 2])
-                if region < 0:
-                    region = box_region
-                prev = i
-            lines.append(sub_line)
-
+                )
+            ):
+                lines.append([])
+                right, region = boxes[idx, 2], -1
+            lines[-1].append(idx)
+            right = max(right, boxes[idx, 2])
+            region = box_region if region < 0 else region
+            prev = idx
         return lines
 
     @staticmethod
@@ -198,7 +177,9 @@ class DocumentBuilder(NestedObject):
             the region group of each box (-1 for none) and the coverage of each box by each group, None without regions
         """
         from doctr.models.reading_order.base import (
+            _box_areas,
             _covering_regions,
+            _pairwise_overlaps,
             _region_groups,
             _to_boxes,
             deskew_reading_geometries,
@@ -214,19 +195,15 @@ class DocumentBuilder(NestedObject):
         regions, words = _to_boxes(region_geoms), _to_boxes(word_geoms)
         groups = np.asarray(_region_groups(regions, region_labels))
         covering = np.asarray(_covering_regions(words, regions, 0.5, region_labels))
-        inter_w = np.minimum(words[:, None, 2], regions[None, :, 2]) - np.maximum(
-            words[:, None, 0], regions[None, :, 0]
-        )
-        inter_h = np.minimum(words[:, None, 3], regions[None, :, 3]) - np.maximum(
-            words[:, None, 1], regions[None, :, 1]
-        )
-        x_cov = np.clip(inter_w, 0, None) / np.clip(words[:, 2:3] - words[:, 0:1], 1e-9, None)
-        y_cov = np.clip(inter_h, 0, None) / np.clip(words[:, 3:4] - words[:, 1:2], 1e-9, None)
+        inter_w, inter_h = _pairwise_overlaps(words, regions)
+        x_cov = inter_w / np.clip(words[:, 2:3] - words[:, 0:1], 1e-9, None)
+        y_cov = inter_h / np.clip(words[:, 3:4] - words[:, 1:2], 1e-9, None)
         uncovered = np.flatnonzero(covering < 0)
-        if uncovered.size > 0:  # e.g. a word sticking out of a region slightly too short
-            areas = (regions[:, 2] - regions[:, 0]) * (regions[:, 3] - regions[:, 1])
+        if (
+            uncovered.size > 0
+        ):  # e.g. a word sticking out of a region slightly too short: the smallest region holding it
             holding = (x_cov[uncovered] >= 0.9) & (y_cov[uncovered] >= 0.3)
-            smallest = np.where(holding, areas[None, :], np.inf).argmin(axis=1)
+            smallest = np.where(holding, _box_areas(regions)[None, :], np.inf).argmin(axis=1)
             covering[uncovered] = np.where(holding.any(axis=1), smallest, -1)
         coverage = np.zeros((words.shape[0], regions.shape[0]))
         np.maximum.at(coverage.T, groups, (x_cov * y_cov).T)
@@ -582,6 +559,88 @@ class DocumentBuilder(NestedObject):
             norm.append(nc)
         return norm, max_row + 1, max_col + 1
 
+    @classmethod
+    def _table_grids(
+        cls, page_table: dict[str, Any] | list[dict[str, Any]] | None
+    ) -> list[tuple[list[dict[str, Any]], int, int]]:
+        """Normalize the table structure prediction(s) of a page to non-empty grids with local logical coordinates
+
+        Args:
+            page_table: a single grid, a list of grids or None (cf. `_build_tables`)
+
+        Returns:
+            the cells, number of rows and number of columns of each non-empty grid
+        """
+        raw_tables = [] if page_table is None else [page_table] if isinstance(page_table, dict) else list(page_table)
+        return [cls._localize_logic(raw["cells"]) for raw in raw_tables if raw and len(raw.get("cells", [])) > 0]
+
+    @classmethod
+    def _assign_cell_words(cls, centers: np.ndarray, polys: np.ndarray, consumed: np.ndarray) -> list[list[int]]:
+        """Assign each word not yet consumed to at most one cell of a table, and flag it as consumed
+
+        A word goes to the first cell containing its center. A word landing just outside every cell but inside the
+        table goes to the nearest cell, within half a median cell diagonal, so table text is not dropped into the body.
+
+        Args:
+            centers: the (N, 2) word centers
+            polys: the (C, 4, 2) cell polygons, vertices ordered TL, TR, BR, BL
+            consumed: the (N,) mask of the words already assigned to a table, updated in place
+
+        Returns:
+            the word indices of each cell
+        """
+        cell_words: list[list[int]] = [[] for _ in polys]
+        free = np.flatnonzero(~consumed)
+        if free.size == 0:
+            return cell_words
+        inside = cls._points_in_polygons(centers[free], polys)  # (F, C)
+        assigned = inside.any(axis=1)
+        for w_idx, c_idx in zip(free[assigned], inside[assigned].argmax(axis=1)):
+            cell_words[c_idx].append(int(w_idx))
+            consumed[w_idx] = True
+        leftover = free[~assigned]
+        if leftover.size > 0:
+            (tx0, ty0), (tx1, ty1) = polys.reshape(-1, 2).min(axis=0), polys.reshape(-1, 2).max(axis=0)
+            cell_centers = polys.mean(axis=1)  # (C, 2)
+            max_dist = 0.5 * float(np.median(np.linalg.norm(polys[:, 2] - polys[:, 0], axis=1)))  # TL->BR diagonal
+            in_table = (
+                (centers[leftover, 0] >= tx0)
+                & (centers[leftover, 0] <= tx1)
+                & (centers[leftover, 1] >= ty0)
+                & (centers[leftover, 1] <= ty1)
+            )
+            for w_idx in leftover[in_table]:
+                dists = np.linalg.norm(cell_centers - centers[w_idx], axis=1)
+                nearest = int(dists.argmin())
+                if dists[nearest] <= max_dist:
+                    cell_words[nearest].append(int(w_idx))
+                    consumed[w_idx] = True
+        return cell_words
+
+    @staticmethod
+    def _deskew_centers(centers: np.ndarray, polys: np.ndarray) -> np.ndarray:
+        """Rotate word centers by the angle of a table, to order the words along its own axes
+
+        Args:
+            centers: the (N, 2) word centers
+            polys: the (C, 4, 2) cell polygons, vertices ordered TL, TR, BR, BL
+
+        Returns:
+            the (N, 2) de-skewed centers
+        """
+        top_edges = polys[:, 1] - polys[:, 0]  # TR - TL
+        angle = float(np.median(np.arctan2(top_edges[:, 1], top_edges[:, 0])))
+        cos_a, sin_a = np.cos(-angle), np.sin(-angle)
+        pivot = centers.mean(axis=0)
+        shifted = centers - pivot
+        return np.stack(
+            [
+                pivot[0] + shifted[:, 0] * cos_a - shifted[:, 1] * sin_a,
+                pivot[1] + shifted[:, 0] * sin_a + shifted[:, 1] * cos_a,
+            ],
+            axis=1,
+        )
+
     def _build_tables(
         self,
         boxes: np.ndarray,
@@ -601,117 +660,37 @@ class DocumentBuilder(NestedObject):
             a tuple with the list of `Table` objects of the page (one per provided table) and a boolean mask of
             shape (N,) that is True for words assigned to a table (to be removed from `blocks`)
         """
-        num_words = boxes.shape[0]
-        consumed = np.zeros(num_words, dtype=bool)
-        if page_table is None:
+        consumed = np.zeros(boxes.shape[0], dtype=bool)
+        grids = self._table_grids(page_table)
+        if len(grids) == 0:
             return [], consumed
-
-        # Normalize the prediction(s) to a list of per-table grids with local 0-based logical coordinates
-        raw_tables = [page_table] if isinstance(page_table, dict) else list(page_table)
-        table_dicts: list[dict[str, Any]] = []
-        for raw in raw_tables:
-            if not raw or len(raw.get("cells", [])) == 0:
-                continue
-            cells, n_rows, n_cols = self._localize_logic(raw["cells"])
-            table_dicts.append({"cells": cells, "num_rows": n_rows, "num_cols": n_cols})
-        if len(table_dicts) == 0:
-            return [], consumed
-
-        centers = self._word_centers(boxes) if num_words > 0 else np.empty((0, 2))
-        # Geometry format follows the page's word geometry: straight 2-point boxes when the word boxes are
-        # (N, 4), 4-point polygons when they are (N, 4, 2).
+        # The geometries follow the page's word geometry: straight 2-point boxes for (N, 4) word boxes, 4-point polygons
+        # for (N, 4, 2) ones. Word heights are rotation-invariant (left edge length for polygons).
         straight = boxes.ndim != 3
-        # Rotation-invariant word heights (left edge length for polygons), used to cluster cell words into rows
-        if num_words == 0:
-            word_heights = np.empty(0)
-        elif straight:
-            word_heights = boxes[:, 3] - boxes[:, 1]
+        centers = self._word_centers(boxes) if boxes.shape[0] > 0 else np.empty((0, 2))
+        if boxes.shape[0] == 0:
+            heights = np.empty(0)
         else:
-            word_heights = np.linalg.norm(boxes[:, 3] - boxes[:, 0], axis=1)
+            heights = boxes[:, 3] - boxes[:, 1] if straight else np.linalg.norm(boxes[:, 3] - boxes[:, 0], axis=1)
 
-        tables_out: list[Table] = []
-        for table_dict in table_dicts:
-            cells = table_dict["cells"]
-            if len(cells) == 0:
-                continue
-            cell_polys = [self._as_cell_polygon(cell["geometry"]) for cell in cells]
-            polys_arr = np.stack(cell_polys)  # (C, 4, 2), vertices ordered TL, TR, BR, BL
-
-            # Order along the table's own axes instead by de-skewing the centers with the table angle
-            order_centers = centers
-            if not straight and centers.shape[0] > 0:
-                top_edges = polys_arr[:, 1] - polys_arr[:, 0]  # TR - TL
-                angle = float(np.median(np.arctan2(top_edges[:, 1], top_edges[:, 0])))
-                cos_a, sin_a = np.cos(-angle), np.sin(-angle)
-                pivot = centers.mean(axis=0)
-                shifted = centers - pivot
-                order_centers = np.stack(
-                    [
-                        pivot[0] + shifted[:, 0] * cos_a - shifted[:, 1] * sin_a,
-                        pivot[1] + shifted[:, 0] * sin_a + shifted[:, 1] * cos_a,
-                    ],
-                    axis=1,
-                )
-
-            # Assign each (still unassigned) word to at most one cell of this table
-            cell_word_idcs: list[list[int]] = [[] for _ in cells]
-            free_idcs = np.flatnonzero(~consumed)
-            if free_idcs.size > 0:
-                # The first cell (in cell order) whose polygon contains the word center
-                inside = self._points_in_polygons(centers[free_idcs], polys_arr)  # (F, C)
-                assigned = inside.any(axis=1)
-                first_cell = np.where(assigned, inside.argmax(axis=1), -1)
-                for w_idx, c_idx in zip(free_idcs, first_cell):
-                    if c_idx >= 0:
-                        cell_word_idcs[c_idx].append(int(w_idx))
-                        consumed[w_idx] = True
-
-                # Words that landed just outside every cell but still inside the table region are attached
-                # to the nearest cell, so table text is not dropped into the body.
-                # The capture radius is bounded by the cell size to avoid pulling in body words.
-                leftover = free_idcs[~assigned]
-                if leftover.size > 0:
-                    tx0, ty0 = polys_arr[..., 0].min(), polys_arr[..., 1].min()
-                    tx1, ty1 = polys_arr[..., 0].max(), polys_arr[..., 1].max()
-                    cell_centers = polys_arr.mean(axis=1)  # (C, 2)
-                    cell_sizes = np.linalg.norm(polys_arr[:, 2] - polys_arr[:, 0], axis=1)  # TL->BR diagonal
-                    max_dist = 0.5 * float(np.median(cell_sizes))
-                    in_region = (
-                        (centers[leftover, 0] >= tx0)
-                        & (centers[leftover, 0] <= tx1)
-                        & (centers[leftover, 1] >= ty0)
-                        & (centers[leftover, 1] <= ty1)
-                    )
-                    for w_idx in leftover[in_region]:
-                        dists = np.linalg.norm(cell_centers - centers[w_idx], axis=1)
-                        nearest = int(dists.argmin())
-                        if dists[nearest] <= max_dist:
-                            cell_word_idcs[nearest].append(int(w_idx))
-                            consumed[w_idx] = True
-
-            # Build the cells
-            table_cells: list[TableCell] = []
-            for cell, poly, w_idcs in zip(cells, cell_polys, cell_word_idcs):
+        tables: list[Table] = []
+        for cells, num_rows, num_cols in grids:
+            polys = np.stack([self._as_cell_polygon(cell["geometry"]) for cell in cells])  # (C, 4, 2)
+            order_centers = centers if straight or centers.shape[0] == 0 else self._deskew_centers(centers, polys)
+            table_cells = []
+            for cell, poly, w_idcs in zip(cells, polys, self._assign_cell_words(centers, polys, consumed)):
                 if len(w_idcs) > 0:
                     # Reading order inside the cell: rows top to bottom, words left to right (table axes)
-                    ordered = self._order_cell_words(w_idcs, order_centers, word_heights)
+                    ordered = self._order_cell_words(w_idcs, order_centers, heights)
                     value = " ".join(word_preds[i][0] for i in ordered)
                     confidence = float(np.mean([word_preds[i][1] for i in ordered]))
                 else:
                     value, confidence = "", float(cell["score"])
-                if straight:
-                    xs, ys = poly[:, 0], poly[:, 1]
-                    geometry: Any = (
-                        (float(xs.min()), float(ys.min())),
-                        (float(xs.max()), float(ys.max())),
-                    )
-                else:
-                    geometry = tuple(tuple(float(c) for c in pt) for pt in poly.tolist())
                 table_cells.append(
                     TableCell(
                         value=value,
                         confidence=confidence,
-                        geometry=geometry,
+                        geometry=self._export_geometry(poly, straight),
                         row_start=int(cell["row_start"]),
                         row_end=int(cell["row_end"]),
                         col_start=int(cell["col_start"]),
@@ -719,27 +698,29 @@ class DocumentBuilder(NestedObject):
                         objectness_score=float(cell["score"]),
                     )
                 )
-
             # Enclosing geometry of the whole table
-            all_pts = np.concatenate(cell_polys, axis=0)
-            xmin, ymin = float(all_pts[:, 0].min()), float(all_pts[:, 1].min())
-            xmax, ymax = float(all_pts[:, 0].max()), float(all_pts[:, 1].max())
-            table_geometry: Any = (
-                ((xmin, ymin), (xmax, ymax)) if straight else ((xmin, ymin), (xmax, ymin), (xmax, ymax), (xmin, ymax))
-            )
-            table_confidence = float(np.mean([float(cell["score"]) for cell in cells]))
-
-            tables_out.append(
+            (xmin, ymin), (xmax, ymax) = polys.reshape(-1, 2).min(axis=0), polys.reshape(-1, 2).max(axis=0)
+            corners = np.asarray([[xmin, ymin], [xmax, ymin], [xmax, ymax], [xmin, ymax]])
+            tables.append(
                 Table(
                     cells=table_cells,
-                    num_rows=int(table_dict["num_rows"]),
-                    num_cols=int(table_dict["num_cols"]),
-                    geometry=table_geometry,
-                    confidence=table_confidence,
+                    num_rows=num_rows,
+                    num_cols=num_cols,
+                    geometry=self._export_geometry(corners, straight),
+                    confidence=float(np.mean([float(cell["score"]) for cell in cells])),
                 )
             )
+        return tables, consumed
 
-        return tables_out, consumed
+    @staticmethod
+    def _export_geometry(poly: np.ndarray, straight: bool) -> Any:
+        """Export a (4, 2) polygon as a straight 2-point box or as a 4-point polygon, with Python floats"""
+        if straight:
+            return (
+                (float(poly[:, 0].min()), float(poly[:, 1].min())),
+                (float(poly[:, 0].max()), float(poly[:, 1].max())),
+            )
+        return tuple(tuple(float(c) for c in pt) for pt in poly.tolist())
 
     def _build_blocks(
         self,
@@ -771,49 +752,32 @@ class DocumentBuilder(NestedObject):
         if boxes.shape[0] == 0:
             return []
 
-        # Decide whether we try to form lines
-        _boxes = boxes
-        if self.resolve_lines:
+        straight_or_rotated = boxes if boxes.ndim == 3 else boxes[:, :4]
+        if not self.resolve_lines:
+            # One line for all boxes, one block for the line
+            lines = [self._sort_boxes(straight_or_rotated, shape)[0].tolist()]
+        else:
             word_regions = (
-                self._word_regions(_boxes, [elt.geometry for elt in layout], [elt.type for elt in layout], shape)
+                self._word_regions(boxes, [elt.geometry for elt in layout], [elt.type for elt in layout], shape)
                 if layout
                 else None
             )
-            lines = self._resolve_lines(_boxes if _boxes.ndim == 3 else _boxes[:, :4], shape, word_regions)
-            # Decide whether we try to form blocks
-            if self.resolve_blocks and len(lines) > 1:
-                _blocks = self._resolve_blocks(_boxes if _boxes.ndim == 3 else _boxes[:, :4], lines)
-            else:
-                _blocks = [lines]
-        else:
-            # Sort bounding boxes, one line for all boxes, one block for the line
-            lines = [self._sort_boxes(_boxes if _boxes.ndim == 3 else _boxes[:, :4], shape)[0]]  # type: ignore[list-item]
-            _blocks = [lines]
+            lines = self._resolve_lines(straight_or_rotated, shape, word_regions)
+        blocks = (
+            self._resolve_blocks(straight_or_rotated, lines)
+            if self.resolve_lines and self.resolve_blocks and len(lines) > 1
+            else [lines]
+        )
 
-        blocks = [
-            Block([
-                Line([
-                    Word(
-                        *word_preds[idx],
-                        tuple(tuple(pt) for pt in boxes[idx].tolist()),  # type: ignore[arg-type]
-                        float(objectness_scores[idx]),
-                        crop_orientations[idx],
-                    )
-                    if boxes.ndim == 3
-                    else Word(
-                        *word_preds[idx],
-                        ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3])),
-                        float(objectness_scores[idx]),
-                        crop_orientations[idx],
-                    )
-                    for idx in line
-                ])
-                for line in lines
-            ])
-            for lines in _blocks
-        ]
+        def _word(idx: int) -> Word:
+            geometry = (
+                tuple(tuple(pt) for pt in boxes[idx].tolist())
+                if boxes.ndim == 3
+                else ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3]))
+            )
+            return Word(*word_preds[idx], geometry, float(objectness_scores[idx]), crop_orientations[idx])  # type: ignore[arg-type]
 
-        return blocks
+        return [Block([Line([_word(idx) for idx in line]) for line in block]) for block in blocks]
 
     @staticmethod
     def _words_to_boxes(words: list[Word]) -> np.ndarray:
