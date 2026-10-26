@@ -77,6 +77,16 @@ def test_read_img_as_numpy(tmpdir_factory, mock_pdf):
     resized_page = io.read_img_as_numpy(tmp_path, target_size)
     assert resized_page.shape[:2] == target_size
 
+    # Transparency: placed on a white background, not on the color stored under the transparent pixels
+    rgba = np.zeros((40, 60, 4), dtype=np.uint8)
+    rgba[10:30, 20:40] = (255, 0, 0, 255)  # opaque red square on a transparent black background
+    png_stream = BytesIO()
+    Image.fromarray(rgba, "RGBA").save(png_stream, format="PNG")
+    page = io.read_img_as_numpy(png_stream.getvalue())
+    assert page.shape == (40, 60, 3)
+    assert np.all(page[0, 0] == 255) and np.all(page[20, 30] == (255, 0, 0))
+    assert np.all(io.read_img_as_numpy(png_stream.getvalue(), rgb_output=False)[20, 30] == (0, 0, 255))
+
 
 def test_read_html():
     url = "https://www.google.com"
@@ -112,3 +122,8 @@ def test_read_img_as_numpy_exif_orientation(tmpdir_factory):
     assert io.read_img_as_numpy(path).shape == (60, 40, 3)
     with open(path, "rb") as f:
         assert io.read_img_as_numpy(f.read()).shape == (60, 40, 3)
+
+    # Same for an image with transparency
+    path = str(folder.join("exif_o6.png"))
+    Image.fromarray(np.zeros((40, 60, 4), dtype=np.uint8), "RGBA").save(path, format="PNG", exif=exif)
+    assert io.read_img_as_numpy(path).shape == (60, 40, 3)

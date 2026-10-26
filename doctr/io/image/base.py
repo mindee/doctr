@@ -3,14 +3,31 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+from io import BytesIO
 from pathlib import Path
 
 import cv2
 import numpy as np
+from PIL import Image, ImageOps
 
 from doctr.utils.common_types import AbstractFile
 
 __all__ = ["read_img_as_numpy"]
+
+
+def _decode_transparent_img(content: bytes) -> np.ndarray | None:
+    """Decode an image with transparency over a white background, in BGR order (None if it has no transparency)"""
+    try:
+        with Image.open(BytesIO(content)) as pil_img:
+            if not pil_img.has_transparency_data:
+                return None
+            # Apply the EXIF orientation, like `cv2.imdecode` does
+            rgba = ImageOps.exif_transpose(pil_img).convert("RGBA")
+    except (OSError, ValueError, Image.DecompressionBombError):  # left to OpenCV
+        return None
+    # Dropping the alpha channel would reveal the color stored under the transparent pixels (often black)
+    background = Image.new("RGBA", rgba.size, (255, 255, 255, 255))
+    return cv2.cvtColor(np.asarray(Image.alpha_composite(background, rgba).convert("RGB")), cv2.COLOR_RGB2BGR)
 
 
 def read_img_as_numpy(
@@ -29,18 +46,20 @@ def read_img_as_numpy(
         rgb_output: whether the output ndarray channel order should be RGB instead of BGR.
 
     Returns:
-        the page decoded as numpy ndarray of shape H x W x 3
+        the page decoded as numpy ndarray of shape H x W x 3, transparent images are placed on a white background
     """
     if isinstance(file, (str, Path)):
         if not Path(file).is_file():
             raise FileNotFoundError(f"unable to access {file}")
-        _file: np.ndarray = np.frombuffer(Path(file).read_bytes(), np.uint8)
-        img = cv2.imdecode(_file, cv2.IMREAD_COLOR)
+        content = Path(file).read_bytes()
     elif isinstance(file, bytes):
-        _file = np.frombuffer(file, np.uint8)
-        img = cv2.imdecode(_file, cv2.IMREAD_COLOR)
+        content = file
     else:
         raise TypeError("unsupported object type for argument 'file'")
+
+    img = _decode_transparent_img(content)
+    if img is None:
+        img = cv2.imdecode(np.frombuffer(content, np.uint8), cv2.IMREAD_COLOR)
 
     # Validity check
     if img is None:
