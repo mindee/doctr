@@ -302,20 +302,28 @@ def _covering_regions(
 
 
 def _region_groups(regions: np.ndarray, labels: Sequence[str | None], min_overlap: float = 0.1) -> list[int]:
-    """Return the group of each (R, 4) layout region (the index of its first member), grouping the regions of the same
-    label which overlap by more than `min_overlap` of the smaller one (e.g. two regions for a paragraph around a figure)
+    """Return the group of each (R, 4) layout region (the index of one of its members), grouping the regions of the
+    same label which overlap by more than `min_overlap` of the smaller one (e.g. two regions for a paragraph around a
+    figure)
     """
-    if regions.shape[0] == 0:
-        return []
-    norm = np.asarray([normalize_layout_label(label) for label in labels])
-    inter_w, inter_h = _pairwise_overlaps(regions, regions)
+    norm = [normalize_layout_label(label) for label in labels]
     areas = _box_areas(regions)
-    linked = (inter_w * inter_h > min_overlap * np.minimum(areas[:, None], areas[None, :])) & (
-        norm[:, None] == norm[None, :]
-    )
-    component = connected_components(csr_matrix(linked), directed=False)[1]
-    first: dict[int, int] = {}
-    return [first.setdefault(int(comp), idx) for idx, comp in enumerate(component)]
+    parent = list(range(regions.shape[0]))
+
+    def _find(idx: int) -> int:
+        while parent[idx] != idx:
+            parent[idx] = parent[parent[idx]]
+            idx = parent[idx]
+        return idx
+
+    # Pairwise with scalar min / max, as the comparisons of degenerate (NaN) boxes depend on the argument order
+    for i, j in ((i, j) for i in range(len(parent)) for j in range(i + 1, len(parent)) if norm[i] == norm[j]):
+        inter = max(min(regions[i, 2], regions[j, 2]) - max(regions[i, 0], regions[j, 0]), 0.0) * max(
+            min(regions[i, 3], regions[j, 3]) - max(regions[i, 1], regions[j, 1]), 0.0
+        )
+        if inter > min_overlap * min(areas[i], areas[j]):
+            parent[_find(i)] = _find(j)
+    return [_find(idx) for idx in range(len(parent))]
 
 
 def assign_layout_labels(
@@ -575,9 +583,11 @@ def _stands_beside(boxes: np.ndarray, run: list[int], region: list[int]) -> bool
     rx0, ry0 = boxes[run, 0].min(), boxes[run, 1].min()
     rx1, ry1 = boxes[run, 2].max(), boxes[run, 3].max()
     for x0, y0, x1, y1 in boxes[region]:
-        level = min(y1, ry1) - max(y0, ry0) >= 0.5 * max(y1 - y0, 1e-9)  # at least half of the element height
-        beside = min(x1, rx1) - max(x0, rx0) <= 0.1 * max(min(x1 - x0, rx1 - rx0), 1e-9)  # at most 10% overlap
-        if level and beside:
+        # Level with the run: at least half of the element height
+        if min(y1, ry1) - max(y0, ry0) < 0.5 * max(y1 - y0, 1e-9):
+            continue
+        # Beside the run: horizontal overlap of at most 10% of the narrower width
+        if min(x1, rx1) - max(x0, rx0) <= 0.1 * max(min(x1 - x0, rx1 - rx0), 1e-9):
             return True
     return False
 
