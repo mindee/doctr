@@ -47,6 +47,14 @@ _FURNITURE_ROLES = ("header", "footer", "footnote")
 # Normalized labels of the text lying in a float region without float element (e.g. a table without structure)
 _FLOAT_TEXT_LABELS = {f"{label}_text" for label in _FLOAT_LABELS}
 
+# Key-value rows (receipts, invoices, forms): a "column" of short values, each level with the text it belongs to and
+# far from it, is not a text column. Below this number of column voters, such a split does not make a multi-column page
+_KEY_VALUE_MAX_VOTERS = 60
+# Maximum median aspect ratio (width / height) of the values: a number or a short label, not a line of running text
+_KEY_VALUE_MAX_ASPECT = 8.0
+# Minimum median gap between a value and the text level with it, in median element heights (a gutter is narrower)
+_KEY_VALUE_MIN_GAP = 4.0
+
 
 def normalize_layout_label(label: str | None) -> str:
     """Normalize a layout label to lower snake case (e.g. 'Page-header' -> 'page_header')
@@ -187,6 +195,52 @@ def _strict_rank(primary: np.ndarray, secondary: np.ndarray) -> np.ndarray:
     return ranks
 
 
+def _key_value_rows(
+    boxes: np.ndarray, voters: np.ndarray, split: float, y_overlap: np.ndarray, y_overlap_threshold: float, span: float
+) -> bool:
+    """Check whether the voters on the right of a column split are the values of key-value rows rather than a column
+
+    On a receipt or an invoice, the amounts form a narrow right-aligned "column": each amount is level with the item
+    it belongs to, far from it, and the rows must be read one after the other. In a text column, the lines are long
+    and the gutter separating them from the lines of the previous column is narrow.
+
+    Args:
+        boxes: the (N, 4) boxes in canonical LTR space
+        voters: the mask of the boxes used to detect the columns
+        split: the abscissa of the column split
+        y_overlap: the (N, N) vertical overlap ratios of the boxes
+        y_overlap_threshold: the vertical overlap above which two boxes lie on the same row
+        span: the horizontal extent of the voters
+
+    Returns:
+        whether the split separates the keys from the values of key-value rows
+    """
+    num_voters = int(np.count_nonzero(voters))
+    if num_voters > _KEY_VALUE_MAX_VOTERS:
+        return False
+    x0, y0, x1, y1 = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]
+    left_side = voters & ((x0 + x1) / 2 <= split)
+    right = np.flatnonzero(voters & ~left_side)
+    left = np.flatnonzero(left_side)
+    if right.size == 0 or left.size == 0:
+        return False
+    height = float(np.median(y1[voters] - y0[voters]))
+    if not height > 0:
+        return False
+    aspect = float(np.median((x1[right] - x0[right]) / np.maximum(y1[right] - y0[right], 1e-9)))
+    if aspect >= _KEY_VALUE_MAX_ASPECT:
+        return False
+    # Gap between each value and the text level with it on its left
+    level = y_overlap[np.ix_(right, left)] > y_overlap_threshold
+    level &= x1[left][None, :] <= x0[right][:, None] + 0.02 * span
+    paired = level.any(axis=1)
+    if np.count_nonzero(paired) < 0.5 * right.size:
+        return False
+    ends = np.where(level, x1[left][None, :], -np.inf).max(axis=1)
+    gaps = (x0[right][paired] - ends[paired]) / height
+    return float(np.median(gaps)) >= _KEY_VALUE_MIN_GAP
+
+
 def _topological_order(
     boxes: np.ndarray, x_overlap_threshold: float, y_overlap_threshold: float, voters: np.ndarray | None = None
 ) -> list[int]:
@@ -201,7 +255,9 @@ def _topological_order(
     The relations are resolved with Kahn's algorithm; among the available elements, the traversal favors the
     continuation of the current column (the closest element below the last emitted one with a horizontal
     overlap), which keeps multi-column bodies intact even for non-Manhattan layouts where recursive XY-cuts
-    fail to find a valid split. `voters` optionally restricts the boxes used to detect a multi-column page.
+    fail to find a valid split. `voters` optionally restricts the boxes used to detect a multi-column page. A split
+    separating the values of key-value rows from their keys (e.g. the amounts of a receipt, cf. `_key_value_rows`)
+    does not make the page multi-column.
     """
     num_boxes = boxes.shape[0]
     if num_boxes <= 1:
@@ -262,6 +318,8 @@ def _topological_order(
             crossing = int(np.count_nonzero(np.minimum(vx1 - split, split - vx0) > 0.02 * span))
             left = int(np.count_nonzero(centers <= split))
             if crossing <= tolerance and left >= 0.25 * num_voters and num_voters - left >= 0.25 * num_voters:
+                if _key_value_rows(boxes, voters, float(split), y_overlap, y_overlap_threshold, span):
+                    break  # rows of keys and values (e.g. a receipt): read row after row
                 multi_column = True
                 bridging |= np.minimum(x1 - split, split - x0) > 0.02 * span
                 break

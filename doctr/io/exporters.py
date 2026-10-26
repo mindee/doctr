@@ -216,12 +216,20 @@ def page_reading_order(
             elt_labels[idx] = "Table"
         elif not isinstance(elt, LayoutElement) and elt_regions[idx] in furniture_labels:
             elt_labels[idx] = furniture_labels[elt_regions[idx]]
-    # Page-wide figures and tables do not vote in the multi-column detection
+    # Page-wide figures and tables do not vote in the multi-column detection, nor do the text lines of a page-wide table
+    # region: its cells (e.g. the amounts of a receipt detected as a table) would read as columns
     boxes = _to_boxes(elt_geoms)
     span = float(boxes[:, 2].max() - boxes[:, 0].min()) or 1.0
+    region_boxes = _to_boxes(region_geoms) if len(region_geoms) > 0 else np.zeros((0, 4))
+    wide_tables = {
+        reg
+        for reg, (label, box) in enumerate(zip(region_labels, region_boxes))
+        if normalize_layout_label(label) == "table" and box[2] - box[0] > 0.5 * span
+    }
     column_voters = [
         not (isinstance(elt, (LayoutElement, Table)) and box[2] - box[0] > 0.5 * span)
-        for elt, box in zip(elements, boxes)
+        and (isinstance(elt, (LayoutElement, Table)) or reg not in wide_tables)
+        for elt, box, reg in zip(elements, boxes, elt_regions)
     ]
     # A text line in a table or figure region keeps its label, but is grouped into paragraphs like regular text
     order_labels = [

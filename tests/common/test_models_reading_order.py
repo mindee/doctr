@@ -412,6 +412,38 @@ def test_sort_reading_order_keeps_key_value_rows_together():
     assert sort_reading_order(row + [((100, 140), (200, 160)), ((300, 140), (400, 160))]) == [0, 1, 2, 3, 4]
 
 
+def test_sort_reading_order_receipt_amounts_are_not_a_column():
+    # Lines of a real receipt (CORD): the right-aligned amounts are level with their item, far from it. Once the item
+    # fragments are merged into lines, the amounts are a quarter of the elements, but they are not a text column
+    geoms = [
+        ((0.096, 0.409), (0.478, 0.439)),  # 0: Enting2 Dua Bandeng Ori
+        ((0.650, 0.407), (0.753, 0.431)),  # 1: 31.000
+        ((0.094, 0.444), (0.178, 0.467)),  # 2: 01069
+        ((0.243, 0.440), (0.411, 0.469)),  # 3: 1 31.000
+        ((0.094, 0.471), (0.561, 0.500)),  # 4: TAHU BAKSO Grg Ayam VC [biji
+        ((0.651, 0.470), (0.754, 0.492)),  # 5: 68.000
+        ((0.091, 0.506), (0.174, 0.529)),  # 6: 07165
+        ((0.243, 0.504), (0.411, 0.529)),  # 7: 10 6.800
+        ((0.087, 0.564), (0.430, 0.593)),  # 8: QTY 11 ITEMS 2
+        ((0.088, 0.599), (0.170, 0.622)),  # 9: TOTAL
+        ((0.635, 0.597), (0.741, 0.619)),  # 10: 99.000
+        ((0.086, 0.629), (0.172, 0.655)),  # 11: KARTU
+        ((0.637, 0.629), (0.742, 0.652)),  # 12: 99.000
+    ]
+    assert sort_reading_order(geoms) == list(range(13))
+    # Right-to-left receipts: the amounts stand on the left of the items
+    mirrored = [((1 - x1, y0), (1 - x0, y1)) for (x0, y0), (x1, y1) in geoms]
+    assert sort_reading_order(mirrored, direction="rtl") == list(range(13))
+    # Text columns with the same gutter are still read column after column: their lines are long
+    geoms = [((0.05, 0.10 + 0.03 * i), (0.40, 0.12 + 0.03 * i)) for i in range(4)]
+    geoms += [((0.55, 0.10 + 0.03 * i), (0.90, 0.12 + 0.03 * i)) for i in range(4)]
+    assert sort_reading_order(geoms) == list(range(8))
+    # So is a column of short lines on a page with many lines (e.g. a list beside a text column)
+    geoms = [((0.05, 0.02 + 0.012 * i), (0.40, 0.03 + 0.012 * i)) for i in range(40)]
+    geoms += [((0.55, 0.02 + 0.012 * i), (0.60, 0.03 + 0.012 * i)) for i in range(40)]
+    assert sort_reading_order(geoms) == list(range(80))
+
+
 def test_sort_reading_order_follows_columns_when_a_gutter_exists():
     geoms = [
         _box(0.05, 0.02, 0.95, 0.06),  # 0 full-width header

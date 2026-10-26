@@ -225,6 +225,37 @@ def test_page_export_with_tables():
     assert {label for item, label in zip(_texts(items), labels) if item[0].startswith("Row")} == {"Table"}
 
 
+def test_page_reading_order_page_wide_table_region():
+    # A receipt detected as one page-wide table under its header: the cells left over by a small recognized table are
+    # rows of that table, not two text columns, whether or not the page-wide table element votes in the column detection
+    lines = [
+        _line_at("Corner Shop", 0.05, 0.010, 0.25, 0.030),
+        _line_at("12 Main Street, Springfield", 0.05, 0.032, 0.40, 0.052),
+        _line_at("2026-10-26 09:13", 0.05, 0.054, 0.30, 0.074),
+    ]
+    for i in range(8):
+        lines.append(_line_at(f"Item {i} description", 0.05, 0.20 + 0.05 * i, 0.40, 0.23 + 0.05 * i))
+        lines.append(_line_at(f"Remark for item {i} written out", 0.55, 0.20 + 0.05 * i, 0.90, 0.23 + 0.05 * i))
+    layout = [elements.LayoutElement("Table", 0.9, ((0.03, 0.09), (0.97, 0.95)))]
+    cells = [
+        elements.TableCell("Header", 0.9, ((0.04, 0.10), (0.96, 0.13)), 0, 0, 0, 0),
+        elements.TableCell("Subheader", 0.9, ((0.04, 0.13), (0.96, 0.16)), 1, 1, 0, 0),
+    ]
+    expected = [text for i in range(8) for text in (f"Item {i} description", f"Remark for item {i} written out")]
+    for tables in ([], [elements.Table(cells, 2, 1, ((0.04, 0.10), (0.96, 0.16)), 0.9)]):
+        page = elements.Page(
+            np.zeros((10, 10, 3), dtype=np.uint8),
+            [elements.Block(lines=lines)],
+            0,
+            (1000, 800),
+            layout=layout,
+            tables=tables,
+        )
+        items, _, _ = page_reading_order(page)
+        texts = [text for item in _texts(item for item in items if isinstance(item, elements.Block)) for text in item]
+        assert texts == ["Corner Shop", "12 Main Street, Springfield", "2026-10-26 09:13", *expected]
+
+
 def test_page_export_as_asciidoc():
     page = _reading_order_page()
     asciidoc = page.export_as_asciidoc()
