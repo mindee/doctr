@@ -1,5 +1,6 @@
 import json
 import re
+from xml.etree import ElementTree as ET
 
 import cv2
 import numpy as np
@@ -9,20 +10,27 @@ from doctr.file_utils import CLASS_NAME
 from doctr.io import elements
 from doctr.io.exporters import (
     AsciiDocExporter,
+    DocumentExportsMixin,
     HTMLExporter,
+    KIEPageExportsMixin,
     MarkdownExporter,
+    PageExportsMixin,
     TextExporter,
     XMLExporter,
+    _covering_region_indices,
     _join_caption_lines,
+    _PageTextExporter,
     ordered_line_words,
     page_reading_order,
     to_json_safe,
 )
 from doctr.io.figures import FigureEncoder
 
+_ORIENTATION = {"value": 0, "confidence": None}
+
 
 def _word_at(text, x0, y0, x1, y1):
-    return elements.Word(text, 0.95, ((x0, y0), (x1, y1)), 0.9, {"value": 0, "confidence": None})
+    return elements.Word(text, 0.95, ((x0, y0), (x1, y1)), 0.9, _ORIENTATION)
 
 
 def _line_at(text, x0, y0, x1, y1, rtl=False):
@@ -35,8 +43,29 @@ def _line_at(text, x0, y0, x1, y1, rtl=False):
     ])
 
 
+def _page(lines, image=None, dims=(1000, 800), **kwargs):
+    """A page whose lines form a single block, as in the default builder configuration"""
+    image = np.zeros((10, 10, 3), dtype=np.uint8) if image is None else image
+    return elements.Page(image, [elements.Block(lines=lines)], 0, dims, **kwargs)
+
+
 def _texts(items):
     return [[" ".join(word.value for word in line.words) for line in item.lines] for item in items]
+
+
+def _flat_texts(items):
+    return [text for item in _texts(items) for text in item]
+
+
+def _prediction(value, y0, y1):
+    return elements.Prediction(value, 0.9, ((0.1, y0), (0.9, y1)), 0.9, _ORIENTATION)
+
+
+def _kie_page(predictions=None):
+    """A KIE page whose predictions are stored bottom-first"""
+    if predictions is None:
+        predictions = {CLASS_NAME: [_prediction("second", 0.5, 0.6), _prediction("first", 0.1, 0.2)]}
+    return elements.KIEPage(np.zeros((10, 10, 3), dtype=np.uint8), predictions, 0, (1000, 800))
 
 
 def _reading_order_page():
@@ -54,12 +83,53 @@ def _reading_order_page():
         elements.LayoutElement("List-item", 0.97, ((0.06, 0.38), (0.48, 0.45))),
         elements.LayoutElement("Page-footer", 0.97, ((0.35, 0.94), (0.65, 0.98))),
     ]
-    return elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8), [elements.Block(lines=lines)], 0, (1000, 800), layout=layout
-    )
+    return _page(lines, layout=layout)
 
 
-def test_page_items_in_reading_order():
+def _order_cells():
+    return [
+        elements.TableCell("Name", 0.9, ((0.1, 0.55), (0.4, 0.6)), 0, 0, 0, 0),
+        elements.TableCell("Qty", 0.9, ((0.4, 0.55), (0.7, 0.6)), 0, 0, 1, 1),
+        elements.TableCell("Bolt", 0.9, ((0.1, 0.6), (0.4, 0.65)), 1, 1, 0, 0),
+        elements.TableCell("12|3", 0.9, ((0.4, 0.6), (0.7, 0.65)), 1, 1, 1, 1),
+    ]
+
+
+def _table_page(num_rows=2, num_cols=1, rotated=False):
+    """A page with an intro line and one recognized table"""
+    geo = ((0.1, 0.6), (0.4, 0.66), (0.4, 0.71), (0.1, 0.71)) if rotated else ((0.1, 0.6), (0.4, 0.71))
+    cells = [
+        elements.TableCell("head", 0.9, ((0.1, 0.6), (0.4, 0.65)), 0, 0, 0, 0),
+        elements.TableCell("body", 0.9, ((0.1, 0.66), (0.4, 0.71)), 1, 1, 0, 0),
+    ]
+    table = elements.Table(cells=cells, num_rows=num_rows, num_cols=num_cols, geometry=geo)
+    return _page([_line_at("intro line", 0.1, 0.1, 0.9, 0.15)], tables=[table])
+
+
+def _rotated_line(text, x0, y0, x1, y1, deg, height, width):
+    """A line rotated by `deg` degrees around the center of a page of the given size (in pixels)"""
+    angle = np.deg2rad(deg)
+    rot = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
+    center = np.array([width / 2, height / 2])
+    tokens = text.split()
+    step = (x1 - x0) / len(tokens)
+    words = []
+    for idx, token in enumerate(tokens):
+        pts = np.array([
+            [(x0 + idx * step) * width, y0 * height],
+            [(x0 + (idx + 0.9) * step) * width, y0 * height],
+            [(x0 + (idx + 0.9) * step) * width, y1 * height],
+            [(x0 + idx * step) * width, y1 * height],
+        ])
+        pts = ((pts - center) @ rot.T + center) / [width, height]
+        words.append(elements.Word(token, 0.9, tuple(tuple(pt) for pt in pts), 0.9, _ORIENTATION))
+    return elements.Line(words)
+
+
+# --- Reading order ---------------------------------------------------------------------------------------------------
+
+
+def test_page_reading_order():
     page = _reading_order_page()
     items = page.items_in_reading_order()
     assert all(isinstance(item, elements.Block) for item in items)
@@ -69,25 +139,280 @@ def test_page_items_in_reading_order():
     assert rendered.index("left line 0 left line 1 left line 2") < rendered.index(
         "right line 0 right line 1 right line 2"
     )
+    # The JSON export follows the reading order too...
+    exported = [
+        " ".join(word["value"] for line in block["lines"] for word in line["words"])
+        for block in page.export()["blocks"]
+    ]
+    assert exported[0] == "A Two Column Study"
+    assert exported[-1] == "Page 3 of 12"
+    assert exported.index("left line 0 left line 1 left line 2") < exported.index(
+        "right line 0 right line 1 right line 2"
+    )
+    # ... which can be opted out of
+    raw = page.export(reading_order=False)["blocks"]
+    assert len(raw) == 1 and len(raw[0]["lines"]) == 9
+    # render() too, with the page furniture that can be dropped, exactly like in the Markdown / HTML exports
+    assert page.render().splitlines()[0] == "A Two Column Study"
+    assert "Page 3 of 12" in page.render()
+    assert "Page 3 of 12" not in page.render(include_furniture=False)
+
     # Multi-block pages are ordered at the block level
     top = elements.Block([_line_at("first words", 0.1, 0.1, 0.9, 0.15)])
     bottom = elements.Block([_line_at("last words", 0.1, 0.5, 0.9, 0.55)])
     page = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [bottom, top], 0, (1000, 800))
     assert [block.render() for block in page.items_in_reading_order()] == ["first words", "last words"]
+    # The blocks are stored right-first, but render() linearizes them like the other exporters
+    left = elements.Block(
+        lines=[_line_at("left top", 0.08, 0.1, 0.45, 0.13), _line_at("left low", 0.08, 0.2, 0.45, 0.23)]
+    )
+    right = elements.Block(
+        lines=[_line_at("right top", 0.55, 0.1, 0.92, 0.13), _line_at("right low", 0.55, 0.2, 0.92, 0.23)]
+    )
+    page = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [right, left], 0, (1000, 800))
+    assert page.render() == "left top\n\nleft low\n\nright top\n\nright low"
+    assert page.render(block_break=" | ") == "left top | left low | right top | right low"
+    # Single-block and empty pages
+    single = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [left], 0, (1000, 800))
+    assert single.render(block_break=" | ") == "left top | left low"
+    assert elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [], 0, (1000, 800)).render() == ""
     # Degenerate page dimensions
     lines = [_line_at("first line here", 0.1, 0.1, 0.5, 0.13), _line_at("second part", 0.6, 0.1, 0.9, 0.13)]
     for dims in [(0, 0), (0, 100), (100, 0)]:
-        page = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [elements.Block(lines=lines)], 0, dims)
-        assert [text for item in _texts(page_reading_order(page)[0]) for text in item] == [
-            "first line here",
-            "second part",
-        ]
+        assert _flat_texts(page_reading_order(_page(lines, dims=dims))[0]) == ["first line here", "second part"]
+
+    # Artefacts survive the regrouping
+    artefact = elements.Artefact("qr_code", 0.9, ((0.1, 0.8), (0.2, 0.9)))
+    page = elements.Page(
+        np.zeros((10, 10, 3), dtype=np.uint8),
+        [elements.Block(lines=[_line_at("a line", 0.1, 0.1, 0.9, 0.15)], artefacts=[artefact])],
+        0,
+        (1000, 800),
+    )
+    assert page.export()["blocks"][0]["artefacts"] == [artefact.export()]
+    # ... also those of a block without any line
+    artefact = elements.Artefact("qr_code", 0.9, ((0.7, 0.7), (0.9, 0.9)))
+    orphan = elements.Block(lines=[], artefacts=[artefact], geometry=((0.7, 0.7), (0.9, 0.9)), objectness_score=0.9)
+    text = elements.Block(lines=[_line_at("some text", 0.1, 0.1, 0.9, 0.15)])
+    page = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [orphan, text], 0, (1000, 800))
+    items = page.items_in_reading_order()
+    assert [artefact.export() for artefact in items[-1].artefacts] == [artefact.export()]
+    assert page.export()["blocks"][-1]["artefacts"] == [artefact.export()]
+
+
+@pytest.mark.parametrize(
+    "height, width, lines, degrees",
+    [
+        (
+            1000,
+            800,
+            [
+                ("big page title", 0.1, 0.05, 0.9, 0.09),
+                ("left one", 0.1, 0.15, 0.45, 0.19),
+                ("left two", 0.1, 0.21, 0.45, 0.25),
+                ("left three", 0.1, 0.27, 0.45, 0.31),
+                ("right one", 0.55, 0.15, 0.9, 0.19),
+                ("right two", 0.55, 0.21, 0.9, 0.25),
+                ("right three", 0.55, 0.27, 0.9, 0.31),
+            ],
+            (15, 25),
+        ),
+        (
+            800,
+            1200,
+            [
+                ("big page title", 0.1, 0.05, 0.9, 0.09),
+                ("left one", 0.1, 0.15, 0.45, 0.19),
+                ("left two", 0.1, 0.21, 0.45, 0.25),
+                ("right one", 0.55, 0.15, 0.9, 0.19),
+                ("right two", 0.55, 0.21, 0.9, 0.25),
+            ],
+            (-35, 35),
+        ),
+    ],
+    ids=["portrait", "landscape"],
+)
+def test_page_reading_order_rotated(height, width, lines, degrees):
+    # A rotated page is read like the same page without rotation
+    def _rotated_page(deg):
+        return _page([_rotated_line(*line, deg, height, width) for line in lines], dims=(height, width))
+
+    expected = _rotated_page(0).export_as_markdown()
+    assert expected.split()[:3] == ["big", "page", "title"]
+    for deg in degrees:
+        assert _rotated_page(deg).export_as_markdown().split() == expected.split()
+
+
+def test_page_reading_order_with_tables():
+    # A page-wide table does not prevent the columns above and below it from being detected
+    lines = [_line_at("A title over both columns", 0.2, 0.02, 0.8, 0.06)]
+    for col, x in (("left", 0.05), ("right", 0.55)):
+        lines += [_line_at(f"{col} {i}", x, 0.1 + 0.05 * i, x + 0.4, 0.13 + 0.05 * i) for i in range(3)]
+        lines += [_line_at(f"{col} {i}", x, 0.3 + 0.05 * i, x + 0.4, 0.33 + 0.05 * i) for i in range(3, 6)]
+    page = _page(lines, tables=[elements.Table(_order_cells(), 2, 2, ((0.05, 0.25), (0.95, 0.28)), 0.95)])
+    blocks = [item for item in page.items_in_reading_order() if isinstance(item, elements.Block)]
+    # Each section is read column after column
+    sections = [[f"{col} {i}" for col in ("left", "right") for i in idcs] for idcs in (range(3), range(3, 6))]
+    assert _flat_texts(blocks) == ["A title over both columns", *sections[0], *sections[1]]
+
+    # A table region from the layout model, without table structure (`detect_tables=False`): its lines keep the
+    # region label, but they are not floats themselves, so they are neither nested into each other nor isolated
+    lines = [
+        _line_at("Pos Datum Einzelpreis Gesamt", 0.10, 0.40, 0.90, 0.44),  # header line merged across the cells
+        _line_at("pro UE", 0.55, 0.425, 0.75, 0.46),  # second header row, under "Einzelpreis"
+        _line_at("EUR", 0.80, 0.42, 0.88, 0.45),  # second header row, under "Gesamt": mostly inside the first line
+        _line_at("1 Deutsch 22,50 22,50", 0.10, 0.48, 0.90, 0.52),
+    ]
+    page = _page(lines, layout=[elements.LayoutElement("Table", 0.9, ((0.08, 0.38), (0.92, 0.54)))])
+    items, labels, _ = page_reading_order(page)
+    texts = _flat_texts(items)
+    assert texts == ["Pos Datum Einzelpreis Gesamt", "pro UE", "EUR", "1 Deutsch 22,50 22,50"]
+    assert labels == ["Table"] * len(items)
+    assert len(items) < len(lines)
+    # Rendered like the rows of a table: one paragraph per line
+    assert page.export_as_markdown().split("\n\n") == texts
+
+    # The rows of a table region level with the paragraph beside it are read after that paragraph
+    lines = [_line_at(f"intro line {i} of the body", 0.08, 0.05 + 0.04 * i, 0.92, 0.08 + 0.04 * i) for i in range(6)]
+    lines += [
+        _line_at(f"para line {i} beside the table", 0.08, 0.30 + 0.04 * i, 0.55, 0.33 + 0.04 * i) for i in range(4)
+    ]
+    lines += [_line_at(f"Row{i} {i}0", 0.62, 0.30 + 0.04 * i, 0.92, 0.33 + 0.04 * i) for i in range(4)]
+    lines += [_line_at(f"outro line {i} of the body", 0.08, 0.50 + 0.04 * i, 0.92, 0.53 + 0.04 * i) for i in range(6)]
+    layout = [
+        elements.LayoutElement("Text", 0.9, ((0.06, 0.04), (0.94, 0.28))),
+        elements.LayoutElement("Text", 0.9, ((0.06, 0.29), (0.57, 0.46))),
+        elements.LayoutElement("Table", 0.9, ((0.60, 0.29), (0.94, 0.46))),
+        elements.LayoutElement("Text", 0.9, ((0.06, 0.49), (0.94, 0.74))),
+    ]
+    items, labels, _ = page_reading_order(_page(lines, layout=layout))
+    texts = _flat_texts(items)
+    paragraph = [texts.index(f"para line {i} beside the table") for i in range(4)]
+    rows = [texts.index(f"Row{i} {i}0") for i in range(4)]
+    assert paragraph == list(range(paragraph[0], paragraph[0] + 4))
+    assert rows == list(range(paragraph[-1] + 1, paragraph[-1] + 5))
+    assert {label for item, label in zip(_texts(items), labels) if item[0].startswith("Row")} == {"Table"}
+
+    # A receipt detected as one page-wide table under its header: the cells left over by a small recognized table are
+    # rows of that table, not two text columns, whether or not the page-wide table element votes in the column detection
+    lines = [
+        _line_at("Corner Shop", 0.05, 0.010, 0.25, 0.030),
+        _line_at("12 Main Street, Springfield", 0.05, 0.032, 0.40, 0.052),
+        _line_at("2026-10-26 09:13", 0.05, 0.054, 0.30, 0.074),
+    ]
+    for i in range(8):
+        lines.append(_line_at(f"Item {i} description", 0.05, 0.20 + 0.05 * i, 0.40, 0.23 + 0.05 * i))
+        lines.append(_line_at(f"Remark for item {i} written out", 0.55, 0.20 + 0.05 * i, 0.90, 0.23 + 0.05 * i))
+    layout = [elements.LayoutElement("Table", 0.9, ((0.03, 0.09), (0.97, 0.95)))]
+    cells = [
+        elements.TableCell("Header", 0.9, ((0.04, 0.10), (0.96, 0.13)), 0, 0, 0, 0),
+        elements.TableCell("Subheader", 0.9, ((0.04, 0.13), (0.96, 0.16)), 1, 1, 0, 0),
+    ]
+    expected = [text for i in range(8) for text in (f"Item {i} description", f"Remark for item {i} written out")]
+    for tables in ([], [elements.Table(cells, 2, 1, ((0.04, 0.10), (0.96, 0.16)), 0.9)]):
+        items, _, _ = page_reading_order(_page(lines, layout=layout, tables=tables))
+        texts = _flat_texts(item for item in items if isinstance(item, elements.Block))
+        assert texts == ["Corner Shop", "12 Main Street, Springfield", "2026-10-26 09:13", *expected]
+
+
+def test_reading_direction():
+    # Two columns of Arabic text: the right column is read first, and the words of each line are emitted
+    # from the rightmost to the leftmost one
+    lines = [
+        _line_at("النص في العمود الأيمن", 0.54, 0.1, 0.92, 0.14, rtl=True),
+        _line_at("النص في العمود الأيسر", 0.08, 0.1, 0.46, 0.14, rtl=True),
+    ]
+    page = _page(lines)
+    assert page.export_as_markdown() == "النص في العمود الأيمن\n\nالنص في العمود الأيسر"
+    # An explicit direction takes precedence over the detection
+    assert page.export_as_markdown(direction="ltr").startswith("الأيسر")
+
+    line = _line_at("one two three", 0.1, 0.1, 0.7, 0.15)
+    assert [word.render() for word in ordered_line_words(line, "ltr")] == ["one", "two", "three"]
+    assert [word.render() for word in ordered_line_words(line, "rtl")] == ["three", "two", "one"]
+    # Vertical pages read their words top to bottom
+    stacked = elements.Line([_word_at(value, 0.1, 0.1 * idx, 0.2, 0.1 * idx + 0.05) for idx, value in enumerate("abc")])
+    assert [word.render() for word in ordered_line_words(stacked, "ttb-rtl")] == ["a", "b", "c"]
+    assert [word.render() for word in ordered_line_words(stacked, "ttb-ltr")] == ["a", "b", "c"]
+    # A single-word line short-circuits the per-line detection
+    single = elements.Line([_word_at("solo", 0.1, 0.1, 0.2, 0.15)])
+    assert [word.render() for word in ordered_line_words(single, "auto", auto=True)] == ["solo"]
+
+    # A vertical direction reaches every exporter
+    page = _reading_order_page()
+    for export in (page.render, page.export_as_markdown, page.export_as_asciidoc, page.export_as_html):
+        assert isinstance(export(direction="ttb-ltr"), str)
+    assert isinstance(page.export_as_xml(direction="ttb-rtl")[0], bytes)
+
+
+def test_document_forwards_reading_order_options():
+    left = elements.Block(lines=[_line_at("left col", 0.08, 0.2, 0.45, 0.23)])
+    right = elements.Block(lines=[_line_at("right col", 0.55, 0.2, 0.92, 0.23)])
+    footer = elements.Block(lines=[_line_at("Page 1 of 2", 0.4, 0.95, 0.6, 0.97)])
+    layout = [
+        elements.LayoutElement("Text", 0.98, ((0.06, 0.18), (0.48, 0.26))),
+        elements.LayoutElement("Text", 0.98, ((0.52, 0.18), (0.94, 0.26))),
+        elements.LayoutElement("Page-footer", 0.97, ((0.35, 0.94), (0.65, 0.98))),
+    ]
+    page = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [right, left, footer], 0, (1000, 800), layout=layout)
+    doc = elements.Document([page, page])
+    assert (
+        doc.render(page_break=" || ") == "left col\n\nright col\n\nPage 1 of 2 || left col\n\nright col\n\nPage 1 of 2"
+    )
+    assert "Page 1 of 2" not in doc.render(include_furniture=False)
+    assert doc.render(block_break=" ", page_break=" || ").startswith("left col right col")
+    assert doc.export_as("text", include_furniture=False) == doc.render(include_furniture=False)
+    ordered = doc.export()["pages"][0]["blocks"]
+    assert [block["lines"][0]["words"][0]["value"] for block in ordered] == ["left", "right", "Page"]
+    raw = doc.export(reading_order=False)["pages"][0]["blocks"]
+    assert [block["lines"][0]["words"][0]["value"] for block in raw] == ["right", "left", "Page"]
+    assert doc.export_as("json", reading_order=False) == doc.export(reading_order=False)
+    json.dumps(doc.export(reading_order=False))
+
+    # KIE documents
+    doc = elements.KIEDocument([_kie_page()])
+    assert doc.render() == f"{CLASS_NAME}: first\n\n{CLASS_NAME}: second"
+    # The reading direction reaches KIEPage.render through the document
+    assert doc.render(direction="ttb-ltr") == f"{CLASS_NAME}: first\n\n{CLASS_NAME}: second"
+    assert [p["value"] for p in doc.export()["pages"][0]["predictions"][CLASS_NAME]] == ["first", "second"]
+    raw = doc.export(reading_order=False)["pages"][0]["predictions"][CLASS_NAME]
+    assert [p["value"] for p in raw] == ["second", "first"]
+    json.dumps(doc.export(reading_order=False))
+
+
+def test_kie_page_exports():
+    page = _kie_page()
+    # Predictions are exported in reading order
+    assert page.render() == f"{CLASS_NAME}: first\n\n{CLASS_NAME}: second"
+    assert page.export_as_markdown() == f"**{CLASS_NAME}**\n\n- first\n- second"
+    assert page.export_as_asciidoc() == f"*{CLASS_NAME}*\n\n* first\n* second"
+    assert page.export_as("md") == page.export_as_markdown()
+    with pytest.raises(ValueError):
+        page.export_as("yaml")
+    assert elements.KIEDocument([page]).export_as_markdown() == page.export_as_markdown()
+    assert [p["value"] for p in page.export()["predictions"][CLASS_NAME]] == ["first", "second"]
+    assert [p["value"] for p in page.export(reading_order=False)["predictions"][CLASS_NAME]] == ["second", "first"]
+    xml = page.export_as_xml()[0].decode()
+    assert xml.index(">first<") < xml.index(">second<")
+
+    # Classes without any prediction are skipped by every text exporter
+    kie = _kie_page({CLASS_NAME: [_prediction("second", 0.5, 0.6), _prediction("first", 0.1, 0.2)], "empty": []})
+    assert TextExporter().export_kie_page(kie) == f"{CLASS_NAME}:\n\nfirst\nsecond"
+    assert "empty" not in MarkdownExporter().export_kie_page(kie)
+    assert "empty" not in AsciiDocExporter().export_kie_page(kie)
+    assert "empty" not in HTMLExporter().export_kie_page(kie)
+    # export_document dispatches on the page type and uses the format-specific page break
+    mixed = elements.Document([_page([_line_at("a page", 0.1, 0.1, 0.9, 0.15)]), kie])
+    assert TextExporter().export_document(mixed) == f"a page\n\n\n\n{CLASS_NAME}:\n\nfirst\nsecond"
+    assert TextExporter().export_document(mixed, page_break=" // ").startswith("a page // ")
+
+
+# --- Text formats ----------------------------------------------------------------------------------------------------
 
 
 def test_page_export_as_markdown():
     page = _reading_order_page()
-    markdown = page.export_as_markdown()
-    parts = markdown.split("\n\n")
+    parts = page.export_as_markdown().split("\n\n")
     assert parts[0] == "# A Two Column Study"
     assert parts[1] == "left line 0\nleft line 1\nleft line 2"
     # The list item belongs to the left column, hence it is read before the right column
@@ -96,13 +421,13 @@ def test_page_export_as_markdown():
     assert parts[4] == "Page 3 of 12"
     # Page furniture can be dropped
     assert "Page 3 of 12" not in page.export_as_markdown(include_furniture=False)
+    # AsciiDoc follows the same structure
+    parts = page.export_as_asciidoc().split("\n\n")
+    assert parts[0] == "== A Two Column Study"
+    assert parts[2] == "* {empty}- item one"
+    assert "Page 3 of 12" not in page.export_as_asciidoc(include_furniture=False)
     # Markdown structural characters are escaped by default
-    page = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8),
-        [elements.Block([_line_at("*bold* #tag [link]", 0.1, 0.1, 0.9, 0.15)])],
-        0,
-        (1000, 800),
-    )
+    page = _page([_line_at("*bold* #tag [link]", 0.1, 0.1, 0.9, 0.15)])
     assert page.export_as_markdown() == "\\*bold\\* \\#tag \\[link\\]"
     assert page.export_as_markdown(escape=False) == "*bold* #tag [link]"
     # Empty pages export to an empty string
@@ -126,215 +451,25 @@ def test_markdown_finalize_line(line, expected):
     assert MarkdownExporter().finalize_line(line) == expected
 
 
-def test_page_export_as_markdown_rtl():
-    # Two columns of Arabic text: the right column is read first, and the words of each line are emitted
-    # from the rightmost to the leftmost one
-    lines = [
-        _line_at("النص في العمود الأيمن", 0.54, 0.1, 0.92, 0.14, rtl=True),
-        _line_at("النص في العمود الأيسر", 0.08, 0.1, 0.46, 0.14, rtl=True),
-    ]
-    page = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [elements.Block(lines=lines)], 0, (1000, 800))
-    markdown = page.export_as_markdown()
-    assert markdown == "النص في العمود الأيمن\n\nالنص في العمود الأيسر"
-    # An explicit direction takes precedence over the detection
-    assert page.export_as_markdown(direction="ltr").startswith("الأيسر")
-
-
-def test_page_export_with_tables():
-    cells = [
-        elements.TableCell("Name", 0.9, ((0.1, 0.55), (0.4, 0.6)), 0, 0, 0, 0),
-        elements.TableCell("Qty", 0.9, ((0.4, 0.55), (0.7, 0.6)), 0, 0, 1, 1),
-        elements.TableCell("Bolt", 0.9, ((0.1, 0.6), (0.4, 0.65)), 1, 1, 0, 0),
-        elements.TableCell("12|3", 0.9, ((0.4, 0.6), (0.7, 0.65)), 1, 1, 1, 1),
-    ]
-    table = elements.Table(cells, 2, 2, ((0.1, 0.55), (0.7, 0.65)), 0.95)
-    lines = [
-        _line_at("before the table", 0.1, 0.1, 0.9, 0.14),
-        _line_at("after the table", 0.1, 0.7, 0.9, 0.74),
-    ]
-    page = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8), [elements.Block(lines=lines)], 0, (1000, 800), tables=[table]
-    )
-    markdown = page.export_as_markdown()
-    assert markdown.split("\n\n") == [
-        "before the table",
-        "| Name | Qty |\n| --- | --- |\n| Bolt | 12\\|3 |",
-        "after the table",
-    ]
-    asciidoc = page.export_as_asciidoc()
-    assert "|===\n|Name |Qty\n\n|Bolt |12\\|3\n|===" in asciidoc
-    assert asciidoc.index("before the table") < asciidoc.index("|===") < asciidoc.index("after the table")
-    # A page-wide table does not prevent the columns above and below it from being detected
-    lines = [_line_at("A title over both columns", 0.2, 0.02, 0.8, 0.06)]
-    for col, x in (("left", 0.05), ("right", 0.55)):
-        lines += [_line_at(f"{col} {i}", x, 0.1 + 0.05 * i, x + 0.4, 0.13 + 0.05 * i) for i in range(3)]
-        lines += [_line_at(f"{col} {i}", x, 0.3 + 0.05 * i, x + 0.4, 0.33 + 0.05 * i) for i in range(3, 6)]
-    table = elements.Table(cells, 2, 2, ((0.05, 0.25), (0.95, 0.28)), 0.95)
-    page = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8), [elements.Block(lines=lines)], 0, (1000, 800), tables=[table]
-    )
-    blocks = [item for item in page.items_in_reading_order() if isinstance(item, elements.Block)]
-    texts = [text for item in _texts(blocks) for text in item]
-    # Each section is read column after column
-    sections = [[f"{col} {i}" for col in ("left", "right") for i in idcs] for idcs in (range(3), range(3, 6))]
-    assert texts == ["A title over both columns", *sections[0], *sections[1]]
-    # A table region from the layout model, without table structure (`detect_tables=False`): its lines keep the
-    # region label, but they are not floats themselves, so they are neither nested into each other nor isolated
-    lines = [
-        _line_at("Pos Datum Einzelpreis Gesamt", 0.10, 0.40, 0.90, 0.44),  # header line merged across the cells
-        _line_at("pro UE", 0.55, 0.425, 0.75, 0.46),  # second header row, under "Einzelpreis"
-        _line_at("EUR", 0.80, 0.42, 0.88, 0.45),  # second header row, under "Gesamt": mostly inside the first line
-        _line_at("1 Deutsch 22,50 22,50", 0.10, 0.48, 0.90, 0.52),
-    ]
-    page = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8),
-        [elements.Block(lines=lines)],
-        0,
-        (1000, 800),
-        layout=[elements.LayoutElement("Table", 0.9, ((0.08, 0.38), (0.92, 0.54)))],
-    )
-    items, labels, _ = page_reading_order(page)
-    texts = [text for item in _texts(items) for text in item]
-    assert texts == ["Pos Datum Einzelpreis Gesamt", "pro UE", "EUR", "1 Deutsch 22,50 22,50"]
-    assert labels == ["Table"] * len(items)
-    assert len(items) < len(lines)
-    # Rendered like the rows of a table: one paragraph per line
-    assert page.export_as_markdown().split("\n\n") == texts
-    # The rows of a table region level with the paragraph beside it are read after that paragraph
-    lines = [_line_at(f"intro line {i} of the body", 0.08, 0.05 + 0.04 * i, 0.92, 0.08 + 0.04 * i) for i in range(6)]
-    lines += [
-        _line_at(f"para line {i} beside the table", 0.08, 0.30 + 0.04 * i, 0.55, 0.33 + 0.04 * i) for i in range(4)
-    ]
-    lines += [_line_at(f"Row{i} {i}0", 0.62, 0.30 + 0.04 * i, 0.92, 0.33 + 0.04 * i) for i in range(4)]
-    lines += [_line_at(f"outro line {i} of the body", 0.08, 0.50 + 0.04 * i, 0.92, 0.53 + 0.04 * i) for i in range(6)]
-    layout = [
-        elements.LayoutElement("Text", 0.9, ((0.06, 0.04), (0.94, 0.28))),
-        elements.LayoutElement("Text", 0.9, ((0.06, 0.29), (0.57, 0.46))),
-        elements.LayoutElement("Table", 0.9, ((0.60, 0.29), (0.94, 0.46))),
-        elements.LayoutElement("Text", 0.9, ((0.06, 0.49), (0.94, 0.74))),
-    ]
-    page = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8), [elements.Block(lines=lines)], 0, (1000, 800), layout=layout
-    )
-    items, labels, _ = page_reading_order(page)
-    texts = [text for item in _texts(items) for text in item]
-    paragraph = [texts.index(f"para line {i} beside the table") for i in range(4)]
-    rows = [texts.index(f"Row{i} {i}0") for i in range(4)]
-    assert paragraph == list(range(paragraph[0], paragraph[0] + 4))
-    assert rows == list(range(paragraph[-1] + 1, paragraph[-1] + 5))
-    assert {label for item, label in zip(_texts(items), labels) if item[0].startswith("Row")} == {"Table"}
-
-
-def test_page_reading_order_page_wide_table_region():
-    # A receipt detected as one page-wide table under its header: the cells left over by a small recognized table are
-    # rows of that table, not two text columns, whether or not the page-wide table element votes in the column detection
-    lines = [
-        _line_at("Corner Shop", 0.05, 0.010, 0.25, 0.030),
-        _line_at("12 Main Street, Springfield", 0.05, 0.032, 0.40, 0.052),
-        _line_at("2026-10-26 09:13", 0.05, 0.054, 0.30, 0.074),
-    ]
-    for i in range(8):
-        lines.append(_line_at(f"Item {i} description", 0.05, 0.20 + 0.05 * i, 0.40, 0.23 + 0.05 * i))
-        lines.append(_line_at(f"Remark for item {i} written out", 0.55, 0.20 + 0.05 * i, 0.90, 0.23 + 0.05 * i))
-    layout = [elements.LayoutElement("Table", 0.9, ((0.03, 0.09), (0.97, 0.95)))]
-    cells = [
-        elements.TableCell("Header", 0.9, ((0.04, 0.10), (0.96, 0.13)), 0, 0, 0, 0),
-        elements.TableCell("Subheader", 0.9, ((0.04, 0.13), (0.96, 0.16)), 1, 1, 0, 0),
-    ]
-    expected = [text for i in range(8) for text in (f"Item {i} description", f"Remark for item {i} written out")]
-    for tables in ([], [elements.Table(cells, 2, 1, ((0.04, 0.10), (0.96, 0.16)), 0.9)]):
-        page = elements.Page(
-            np.zeros((10, 10, 3), dtype=np.uint8),
-            [elements.Block(lines=lines)],
-            0,
-            (1000, 800),
-            layout=layout,
-            tables=tables,
-        )
-        items, _, _ = page_reading_order(page)
-        texts = [text for item in _texts(item for item in items if isinstance(item, elements.Block)) for text in item]
-        assert texts == ["Corner Shop", "12 Main Street, Springfield", "2026-10-26 09:13", *expected]
-
-
-def test_page_export_as_asciidoc():
-    page = _reading_order_page()
-    asciidoc = page.export_as_asciidoc()
-    parts = asciidoc.split("\n\n")
-    assert parts[0] == "== A Two Column Study"
-    assert parts[2] == "* {empty}- item one"
-    assert "Page 3 of 12" not in page.export_as_asciidoc(include_furniture=False)
-
-
-def test_page_export_as():
-    page = _reading_order_page()
-    assert page.export_as("markdown") == page.export_as("md") == page.export_as_markdown()
-    assert page.export_as("adoc") == page.export_as_asciidoc()
-    assert page.export_as("text") == page.render()
-    assert page.export_as("json") == page.export()
-    assert isinstance(page.export_as("xml")[0], bytes)
-    assert page.export_as("markdown", include_furniture=False) == page.export_as_markdown(include_furniture=False)
-    with pytest.raises(ValueError):
-        page.export_as("yaml")
-
-
-def test_document_export_as_markdown():
-    pages = [
-        elements.Page(
-            np.zeros((10, 10, 3), dtype=np.uint8),
-            [elements.Block([_line_at(f"page {idx} content", 0.1, 0.1, 0.9, 0.15)])],
-            idx,
-            (1000, 800),
-        )
-        for idx in range(2)
-    ]
-    doc = elements.Document(pages)
-    assert doc.export_as_markdown() == "page 0 content\n\n---\n\npage 1 content"
-    assert doc.export_as_asciidoc() == "page 0 content\n\n<<<\n\npage 1 content"
-    assert doc.export_as_markdown(page_break="\n\n") == "page 0 content\n\npage 1 content"
-    assert doc.export_as("markdown") == doc.export_as_markdown()
-    assert doc.export_as("text") == doc.render()
-    assert doc.export_as("json") == doc.export()
-    assert len(doc.export_as("xml")) == 2
-    with pytest.raises(ValueError):
-        doc.export_as("pdf")
-
-
-def test_kie_page_export_as_markdown():
-    predictions = {
-        CLASS_NAME: [
-            elements.Prediction("second", 0.9, ((0.1, 0.5), (0.9, 0.6)), 0.9, {"value": 0, "confidence": None}),
-            elements.Prediction("first", 0.9, ((0.1, 0.1), (0.9, 0.2)), 0.9, {"value": 0, "confidence": None}),
-        ]
-    }
-    page = elements.KIEPage(np.zeros((10, 10, 3), dtype=np.uint8), predictions, 0, (1000, 800))
-    assert page.export_as_markdown() == f"**{CLASS_NAME}**\n\n- first\n- second"
-    assert page.export_as_asciidoc() == f"*{CLASS_NAME}*\n\n* first\n* second"
-    assert page.export_as("md") == page.export_as_markdown()
-    with pytest.raises(ValueError):
-        page.export_as("yaml")
-    doc = elements.KIEDocument([page])
-    assert doc.export_as_markdown() == page.export_as_markdown()
-
-
-def test_page_export_as_markdown_list_items():
+def test_page_export_list_items():
     # Three separate single-line list items, each covered by its own List-item region -> three bullets
     lines = [_line_at(f"item number {idx}", 0.1, 0.1 + 0.1 * idx, 0.5, 0.13 + 0.1 * idx) for idx in range(3)]
     layout = [
         elements.LayoutElement("List-item", 0.9, ((0.08, 0.09 + 0.1 * idx), (0.52, 0.14 + 0.1 * idx)))
         for idx in range(3)
     ]
-    page = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8), [elements.Block(lines=lines)], 0, (1000, 800), layout=layout
-    )
+    page = _page(lines, layout=layout)
     assert page.export_as_markdown() == "- item number 0\n- item number 1\n- item number 2"
     assert page.export_as_asciidoc() == "* item number 0\n* item number 1\n* item number 2"
     # each list item is its own block in reading order
     items = page.items_in_reading_order()
     assert len(items) == 3
     assert all(len(item.lines) == 1 for item in items)
+    # list items render as one <li> per item in HTML
+    lines = [_line_at(f"item {idx} <x>", 0.1, 0.1 + 0.1 * idx, 0.5, 0.13 + 0.1 * idx) for idx in range(2)]
+    page = _page(lines, layout=layout[:2])
+    assert page.export_as_html() == "<ul>\n<li>item 0 &lt;x&gt;</li>\n<li>item 1 &lt;x&gt;</li>\n</ul>"
 
-
-def test_page_export_as_markdown_wrapped_list_item():
     # A single list item wrapped over three visual lines (one region) must render as ONE bullet, while a
     # second item (another region) is a second bullet.
     lines = [
@@ -347,128 +482,13 @@ def test_page_export_as_markdown_wrapped_list_item():
         elements.LayoutElement("List-item", 0.9, ((0.08, 0.09), (0.92, 0.22))),
         elements.LayoutElement("List-item", 0.9, ((0.08, 0.25), (0.52, 0.30))),
     ]
-    page = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8), [elements.Block(lines=lines)], 0, (1000, 800), layout=layout
-    )
+    page = _page(lines, layout=layout)
     assert page.export_as_markdown() == (
         "- first item wrapping over several visual lines here until it finally ends\n- second short item"
     )
     items = page.items_in_reading_order()
     assert len(items) == 2
     assert len(items[0].lines) == 3 and len(items[1].lines) == 1
-
-
-def test_page_export_as_markdown_rotated_page():
-    height, width = 1000, 800
-
-    def _rot_line(text, x0, y0, x1, y1, deg):
-        angle = np.deg2rad(deg)
-        rot = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
-        center = np.array([width / 2, height / 2])
-        tokens = text.split()
-        step = (x1 - x0) / len(tokens)
-        words = []
-        for idx, token in enumerate(tokens):
-            pts = np.array([
-                [(x0 + idx * step) * width, y0 * height],
-                [(x0 + (idx + 0.9) * step) * width, y0 * height],
-                [(x0 + (idx + 0.9) * step) * width, y1 * height],
-                [(x0 + idx * step) * width, y1 * height],
-            ])
-            pts = ((pts - center) @ rot.T + center) / [width, height]
-            words.append(
-                elements.Word(token, 0.9, tuple(tuple(pt) for pt in pts), 0.9, {"value": 0, "confidence": None})
-            )
-        return elements.Line(words)
-
-    layout = [
-        ("big page title", 0.1, 0.05, 0.9, 0.09),
-        ("left one", 0.1, 0.15, 0.45, 0.19),
-        ("left two", 0.1, 0.21, 0.45, 0.25),
-        ("left three", 0.1, 0.27, 0.45, 0.31),
-        ("right one", 0.55, 0.15, 0.9, 0.19),
-        ("right two", 0.55, 0.21, 0.9, 0.25),
-        ("right three", 0.55, 0.27, 0.9, 0.31),
-    ]
-    expected = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8),
-        [elements.Block(lines=[_rot_line(*args, 0) for args in layout])],
-        0,
-        (height, width),
-    ).export_as_markdown()
-    assert expected.split()[:3] == ["big", "page", "title"]
-    for deg in (15, 25):
-        page = elements.Page(
-            np.zeros((10, 10, 3), dtype=np.uint8),
-            [elements.Block(lines=[_rot_line(*args, deg) for args in layout])],
-            0,
-            (height, width),
-        )
-        assert page.export_as_markdown().split() == expected.split()
-
-
-def test_page_export_as_markdown_rotated_landscape_page():
-    height, width = 800, 1200
-
-    def _rot_line(text, x0, y0, x1, y1, deg):
-        angle = np.deg2rad(deg)
-        rot = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
-        center = np.array([width / 2, height / 2])
-        tokens = text.split()
-        step = (x1 - x0) / len(tokens)
-        words = []
-        for idx, token in enumerate(tokens):
-            pts = np.array([
-                [(x0 + idx * step) * width, y0 * height],
-                [(x0 + (idx + 0.9) * step) * width, y0 * height],
-                [(x0 + (idx + 0.9) * step) * width, y1 * height],
-                [(x0 + idx * step) * width, y1 * height],
-            ])
-            pts = ((pts - center) @ rot.T + center) / [width, height]
-            words.append(
-                elements.Word(token, 0.9, tuple(tuple(pt) for pt in pts), 0.9, {"value": 0, "confidence": None})
-            )
-        return elements.Line(words)
-
-    layout = [
-        ("big page title", 0.1, 0.05, 0.9, 0.09),
-        ("left one", 0.1, 0.15, 0.45, 0.19),
-        ("left two", 0.1, 0.21, 0.45, 0.25),
-        ("right one", 0.55, 0.15, 0.9, 0.19),
-        ("right two", 0.55, 0.21, 0.9, 0.25),
-    ]
-    expected = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8),
-        [elements.Block(lines=[_rot_line(*args, 0) for args in layout])],
-        0,
-        (height, width),
-    ).export_as_markdown()
-    for deg in (-35, 35):
-        page = elements.Page(
-            np.zeros((10, 10, 3), dtype=np.uint8),
-            [elements.Block(lines=[_rot_line(*args, deg) for args in layout])],
-            0,
-            (height, width),
-        )
-        assert page.export_as_markdown().split() == expected.split()
-
-
-def test_exporter_classes_direct_use():
-    # The exporter classes are usable directly, and export_document dispatches per page type
-    page = _reading_order_page()
-    md = MarkdownExporter()
-    adoc = AsciiDocExporter()
-    assert md.export_page(page) == page.export_as_markdown()
-    assert adoc.export_page(page) == page.export_as_asciidoc()
-
-    class _Doc:
-        pages = [page, page]
-
-    assert md.export_document(_Doc()) == "\n\n---\n\n".join([page.export_as_markdown()] * 2)
-    assert adoc.export_document(_Doc(), page_break="\n\n") == "\n\n".join([page.export_as_asciidoc()] * 2)
-    # page_reading_order returns (items, labels, direction)
-    items, labels, direction = page_reading_order(page)
-    assert len(items) == len(labels) and direction == "ltr"
 
 
 def test_page_export_as_html():
@@ -478,22 +498,29 @@ def test_page_export_as_html():
     assert html.startswith("<h1>")
     assert page.export_as("html") == html
     assert HTMLExporter().export_page(page) == html
-    # list items render as one <li> per item
-    lines = [_line_at(f"item {idx} <x>", 0.1, 0.1 + 0.1 * idx, 0.5, 0.13 + 0.1 * idx) for idx in range(2)]
-    layout = [
-        elements.LayoutElement("List-item", 0.9, ((0.08, 0.09 + 0.1 * idx), (0.52, 0.14 + 0.1 * idx)))
-        for idx in range(2)
-    ]
-    lp = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8), [elements.Block(lines=lines)], 0, (1000, 800), layout=layout
-    )
-    assert lp.export_as_html() == "<ul>\n<li>item 0 &lt;x&gt;</li>\n<li>item 1 &lt;x&gt;</li>\n</ul>"
+    # Page furniture can be dropped from the HTML export too
+    assert "Page 3 of 12" in html
+    assert "Page 3 of 12" not in page.export_as_html(include_furniture=False)
+    # Words recognized as empty strings must not produce an empty paragraph / list item
+    blank = elements.Block(lines=[elements.Line([_word_at("", 0.1, 0.1, 0.4, 0.15)])])
+    text = elements.Block(lines=[_line_at("real text", 0.1, 0.5, 0.9, 0.55)])
+    page = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [blank, text], 0, (1000, 800))
+    assert page.render() == "real text"
+    assert page.export_as_markdown() == "real text"
+    assert page.export_as_html() == "<p>real text</p>"
 
 
-def test_export_mixins_carry_full_api():
+def test_export_as_dispatch():
+    page = _reading_order_page()
+    assert page.export_as("markdown") == page.export_as("md") == page.export_as_markdown()
+    assert page.export_as("adoc") == page.export_as_asciidoc()
+    assert page.export_as("text") == page.render()
+    assert page.export_as("json") == page.export()
+    assert isinstance(page.export_as("xml")[0], bytes)
+    assert page.export_as("markdown", include_furniture=False) == page.export_as_markdown(include_furniture=False)
+    with pytest.raises(ValueError):
+        page.export_as("yaml")
     # The element export surface comes from the mixins in doctr.io.exporters, with the API unchanged
-    from doctr.io.exporters import DocumentExportsMixin, KIEPageExportsMixin, PageExportsMixin
-
     for method in (
         "render",
         "export_as_xml",
@@ -506,56 +533,148 @@ def test_export_mixins_carry_full_api():
         assert getattr(elements.KIEPage, method) is getattr(KIEPageExportsMixin, method)
         assert getattr(elements.Document, method) is getattr(DocumentExportsMixin, method)
     assert elements.Page.items_in_reading_order is PageExportsMixin.items_in_reading_order
-    page = _reading_order_page()
-    # dispatcher covers every format
-    for fmt in ("markdown", "md", "asciidoc", "adoc", "html", "text", "txt", "json", "dict", "xml", "hocr"):
-        page.export_as(fmt)
+    # The dispatcher covers every format, for every element
+    page = _page([_line_at("page text", 0.1, 0.1, 0.9, 0.15)])
+    kie_page = _kie_page({CLASS_NAME: [_prediction("value", 0.1, 0.2)]})
+    formats = ("markdown", "md", "asciidoc", "adoc", "html", "text", "txt", "json", "dict", "xml", "hocr")
+    for element in (page, kie_page, elements.Document([page]), elements.KIEDocument([kie_page])):
+        for fmt in formats:
+            assert element.export_as(fmt) is not None
+        with pytest.raises(ValueError, match="unsupported export format"):
+            element.export_as("pptx")
+
+    # The document-level named methods carry the page break of their format
+    doc = elements.Document([page, page])
+    assert doc.export_as_html() == "<p>page text</p><hr><p>page text</p>"
+    assert doc.export_as_html(page_break="\n") == "<p>page text</p>\n<p>page text</p>"
+    assert doc.export_as_markdown() == "page text\n\n---\n\npage text"
+    assert doc.export_as_asciidoc() == "page text\n\n<<<\n\npage text"
+    assert doc.export_as_markdown(page_break="\n\n") == "page text\n\npage text"
+    assert doc.export_as("markdown") == doc.export_as_markdown()
+    assert doc.export_as("text") == doc.render()
+    assert doc.export_as("json") == doc.export()
+    assert len(doc.export_as("xml")) == 2 and len(doc.export_as_xml()) == 2
     with pytest.raises(ValueError):
-        page.export_as("pptx")
+        doc.export_as("pdf")
+    kie_doc = elements.KIEDocument([kie_page, kie_page])
+    kie_html = f"<h3>{CLASS_NAME}</h3>\n<ul>\n<li>value</li>\n</ul>"
+    assert kie_doc.export_as_html() == f"{kie_html}<hr>{kie_html}"
+    assert kie_page.export_as_html() == kie_html
+    assert kie_page.export_as_html(direction="rtl") == kie_page.export_as_html()
 
 
-def test_page_render():
-    left = elements.Block(
-        lines=[_line_at("left top", 0.08, 0.1, 0.45, 0.13), _line_at("left low", 0.08, 0.2, 0.45, 0.23)]
-    )
-    right = elements.Block(
-        lines=[_line_at("right top", 0.55, 0.1, 0.92, 0.13), _line_at("right low", 0.55, 0.2, 0.92, 0.23)]
-    )
-    # The blocks are stored right-first, but render() linearizes them like the other exporters
-    page = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [right, left], 0, (1000, 800))
-    assert page.render() == "left top\n\nleft low\n\nright top\n\nright low"
-    assert page.render(block_break=" | ") == "left top | left low | right top | right low"
-    # Single-block and empty pages
-    single = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [left], 0, (1000, 800))
-    assert single.render(block_break=" | ") == "left top | left low"
-    assert elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [], 0, (1000, 800)).render() == ""
-
-
-def test_page_render_includes_tables_and_furniture_flag():
+def test_exporter_classes():
+    # The exporter classes are usable directly, and export_document dispatches per page type
     page = _reading_order_page()
-    assert page.render().splitlines()[0] == "A Two Column Study"
-    assert "Page 3 of 12" in page.render()
-    # Page furniture can be dropped, exactly like in the Markdown / HTML exports
-    assert "Page 3 of 12" not in page.render(include_furniture=False)
-    # Recognized tables are part of the plain text render
-    cells = [
-        elements.TableCell("head", 0.9, ((0.1, 0.6), (0.4, 0.65)), 0, 0, 0, 0),
-        elements.TableCell("body", 0.9, ((0.1, 0.66), (0.4, 0.71)), 1, 1, 0, 0),
-    ]
-    table = elements.Table(cells=cells, num_rows=2, num_cols=1, geometry=((0.1, 0.6), (0.4, 0.71)))
-    page = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8),
-        [elements.Block(lines=[_line_at("intro line", 0.1, 0.1, 0.9, 0.15)])],
-        0,
-        (1000, 800),
-        tables=[table],
+    md, adoc = MarkdownExporter(), AsciiDocExporter()
+    assert md.export_page(page) == page.export_as_markdown()
+    assert adoc.export_page(page) == page.export_as_asciidoc()
+
+    class _Doc:
+        pages = [page, page]
+
+    assert md.export_document(_Doc()) == "\n\n---\n\n".join([page.export_as_markdown()] * 2)
+    assert adoc.export_document(_Doc(), page_break="\n\n") == "\n\n".join([page.export_as_asciidoc()] * 2)
+    # page_reading_order returns (items, labels, direction)
+    items, labels, direction = page_reading_order(page)
+    assert len(items) == len(labels) and direction == "ltr"
+    # The base text exporter is abstract
+    table = elements.Table(cells=[], num_rows=0, num_cols=0, geometry=((0.0, 0.0), (0.0, 0.0)))
+    with pytest.raises(NotImplementedError):
+        _PageTextExporter().render_table(table)
+    with pytest.raises(NotImplementedError):
+        _PageTextExporter().class_header("cls")
+
+
+def test_table_exports():
+    page = _page(
+        [_line_at("before the table", 0.1, 0.1, 0.9, 0.14), _line_at("after the table", 0.1, 0.7, 0.9, 0.74)],
+        tables=[elements.Table(_order_cells(), 2, 2, ((0.1, 0.55), (0.7, 0.65)), 0.95)],
     )
+    assert page.export_as_markdown().split("\n\n") == [
+        "before the table",
+        "| Name | Qty |\n| --- | --- |\n| Bolt | 12\\|3 |",
+        "after the table",
+    ]
+    asciidoc = page.export_as_asciidoc()
+    assert "|===\n|Name |Qty\n\n|Bolt |12\\|3\n|===" in asciidoc
+    assert asciidoc.index("before the table") < asciidoc.index("|===") < asciidoc.index("after the table")
+    # Recognized tables are part of the plain text render and of the HTML export
+    page = _table_page()
     assert page.render() == "intro line\n\nhead\nbody"
+    html = page.export_as_html()
+    assert "<table>" in html and "<th>head</th>" in html and "<td>body</td>" in html
+    assert html.index("<p>intro line</p>") < html.index("<table>")
+    # A single-row table has a header but no body
+    single = elements.Table(
+        cells=[elements.TableCell("only", 0.9, ((0.1, 0.6), (0.4, 0.65)), 0, 0, 0, 0)],
+        num_rows=1,
+        num_cols=1,
+        geometry=((0.1, 0.6), (0.4, 0.65)),
+    )
+    assert HTMLExporter().render_table(single) == "<table>\n<tr><th>only</th></tr>\n</table>"
+    # An empty table contributes nothing to the page export
+    empty = elements.Table(cells=[], num_rows=0, num_cols=0, geometry=((0.0, 0.0), (0.0, 0.0)))
+    for exporter in (MarkdownExporter(), AsciiDocExporter(), HTMLExporter(), TextExporter()):
+        assert exporter.render_table(empty) == ""
+    page = _page([_line_at("only text", 0.1, 0.1, 0.9, 0.15)], tables=[empty])
+    assert page.export_as_markdown() == "only text"
+    assert page.export_as_html() == "<p>only text</p>"
 
 
-def test_export_is_json_serializable():
-    import json
+# --- XML / JSON ------------------------------------------------------------------------------------------------------
 
+
+def test_xml_export():
+    page = _reading_order_page()
+    xml = page.export_as_xml()[0].decode()
+    words = re.findall(r'class="ocrx_word"[^>]*>([^<]*)<', xml)
+    assert words[:4] == ["A", "Two", "Column", "Study"]
+    assert words[-4:] == ["Page", "3", "of", "12"]
+    assert words.index("left") < words.index("right")
+    # The mixin method delegates to the exporter class, so the output is identical
+    xml_bytes, tree = XMLExporter().export_page(page)
+    assert isinstance(xml_bytes, bytes) and isinstance(tree, ET.ElementTree)
+    assert page.export_as_xml()[0] == xml_bytes
+    assert page.export_as("xml")[0] == xml_bytes
+    kie = _kie_page({CLASS_NAME: [_prediction("hi", 0.1, 0.2)]})
+    assert kie.export_as_xml()[0] == XMLExporter().export_kie_page(kie)[0]
+    doc = elements.Document([page, page])
+    doc_xml = XMLExporter().export_document(doc)
+    assert len(doc_xml) == 2 and doc.export_as_xml()[0][0] == doc_xml[0][0]
+
+    # Recognized tables are serialized as an hOCR text area (they used to be dropped)
+    xml = _table_page().export_as_xml()[0].decode()
+    assert 'id="table_1"' in xml and ">head<" in xml and ">body<" in xml
+    # The linearization can be opted out of: blocks first, then tables, in their stored order
+    xml = _table_page().export_as_xml(reading_order=False)[0].decode()
+    assert xml.index("intro") < xml.index(">head<")
+
+    # x_size (text height in pixels) and x_fsize (font size in points) are estimated from the
+    # element box height; the dpi kwarg scales the pixel-to-point conversion (default 72)
+    page = _page([_line_at("one two", 0.1, 0.1, 0.9, 0.2)])
+    xml = page.export_as_xml()[0].decode()
+    # the line spans y=0.1..0.2 of a 1000px-high page -> 100px text height, 100pt at 72 dpi
+    assert "x_size 100; x_fsize 100;" in xml
+    assert "x_size 0;" not in xml
+    assert "x_size 100; x_fsize 50;" in page.export_as_xml(dpi=144)[0].decode()
+    # table rows and KIE predictions carry the estimated sizes as well
+    # row 0 spans y=0.6..0.65 -> 50px, row 1 spans y=0.66..0.71 -> 50px
+    assert "x_size 50; x_fsize 50;" in _table_page().export_as_xml()[0].decode()
+    assert "x_size 100; x_fsize 100;" in kie.export_as_xml()[0].decode()
+
+    assert _covering_region_indices([], [((0.0, 0.0), (1.0, 1.0))]) == []
+    # Rotated geometries are rejected with an explicit error, for blocks, tables and KIE predictions alike
+    poly = np.asarray([[0.1, 0.1], [0.4, 0.1], [0.4, 0.2], [0.1, 0.2]], dtype=np.float32)
+    with pytest.raises(TypeError):
+        _page([elements.Line([elements.Word("rot", 0.9, poly, 0.9, _ORIENTATION)])]).export_as_xml()
+    with pytest.raises(TypeError):
+        XMLExporter().export_page(_table_page(rotated=True))
+    with pytest.raises(TypeError):
+        _kie_page({CLASS_NAME: [elements.Prediction("rot", 0.9, poly, 0.9, _ORIENTATION)]}).export_as_xml()
+
+
+def test_json_export():
     # Straight boxes built from a detection array carry np.float32 coordinates
     page = elements.Page(
         np.zeros((10, 10, 3), dtype=np.uint8),
@@ -589,13 +708,7 @@ def test_export_is_json_serializable():
     assert exported["dimensions"] == (1000, 800) and all(type(dim) is int for dim in exported["dimensions"])
     # Rotated lines / blocks expose their geometry as a numpy array, exported as nested tuples
     poly = np.asarray([[0.1, 0.1], [0.4, 0.1], [0.4, 0.2], [0.1, 0.2]], dtype=np.float32)
-    rot_word = elements.Word("rot", 0.9, poly, 0.8, {"value": 0, "confidence": None})
-    rot_page = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8),
-        [elements.Block(lines=[elements.Line([rot_word])])],
-        0,
-        (1000, 800),
-    )
+    rot_page = _page([elements.Line([elements.Word("rot", 0.9, poly, 0.8, _ORIENTATION)])])
     assert isinstance(rot_page.blocks[0].geometry, np.ndarray)  # untouched in memory
     rot_export = rot_page.export()
     assert isinstance(rot_export["blocks"][0]["geometry"], tuple)
@@ -604,163 +717,6 @@ def test_export_is_json_serializable():
     doc = elements.Document([page, rot_page])
     assert elements.Document.from_dict(json.loads(json.dumps(doc.export()))) is not None
 
-
-def test_export():
-    page = _reading_order_page()
-    rendered = [
-        " ".join(word["value"] for line in block["lines"] for word in line["words"])
-        for block in page.export()["blocks"]
-    ]
-    assert rendered[0] == "A Two Column Study"
-    assert rendered[-1] == "Page 3 of 12"
-    assert rendered.index("left line 0 left line 1 left line 2") < rendered.index(
-        "right line 0 right line 1 right line 2"
-    )
-    # The linearization can be opted out of
-    raw = page.export(reading_order=False)["blocks"]
-    assert len(raw) == 1 and len(raw[0]["lines"]) == 9
-    # Artefacts survive the regrouping
-    artefact = elements.Artefact("qr_code", 0.9, ((0.1, 0.8), (0.2, 0.9)))
-    page = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8),
-        [elements.Block(lines=[_line_at("a line", 0.1, 0.1, 0.9, 0.15)], artefacts=[artefact])],
-        0,
-        (1000, 800),
-    )
-    assert page.export()["blocks"][0]["artefacts"] == [artefact.export()]
-
-
-def test_xml_export():
-    import re
-
-    page = _reading_order_page()
-    xml = page.export_as_xml()[0].decode()
-    words = re.findall(r'class="ocrx_word"[^>]*>([^<]*)<', xml)
-    assert words[:4] == ["A", "Two", "Column", "Study"]
-    assert words[-4:] == ["Page", "3", "of", "12"]
-    assert words.index("left") < words.index("right")
-    # Recognized tables are serialized as an hOCR text area (they used to be dropped)
-    cells = [
-        elements.TableCell("head", 0.9, ((0.1, 0.6), (0.4, 0.65)), 0, 0, 0, 0),
-        elements.TableCell("body", 0.9, ((0.1, 0.66), (0.4, 0.71)), 1, 1, 0, 0),
-    ]
-    table = elements.Table(cells=cells, num_rows=2, num_cols=1, geometry=((0.1, 0.6), (0.4, 0.71)))
-    page = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8),
-        [elements.Block(lines=[_line_at("intro line", 0.1, 0.1, 0.9, 0.15)])],
-        0,
-        (1000, 800),
-        tables=[table],
-    )
-    xml = page.export_as_xml()[0].decode()
-    assert 'id="table_1"' in xml and ">head<" in xml and ">body<" in xml
-
-
-def test_kie_page_export():
-    predictions = {
-        CLASS_NAME: [
-            elements.Prediction("second", 0.9, ((0.1, 0.5), (0.9, 0.6)), 0.9, {"value": 0, "confidence": None}),
-            elements.Prediction("first", 0.9, ((0.1, 0.1), (0.9, 0.2)), 0.9, {"value": 0, "confidence": None}),
-        ]
-    }
-    page = elements.KIEPage(np.zeros((10, 10, 3), dtype=np.uint8), predictions, 0, (1000, 800))
-    assert [p["value"] for p in page.export()["predictions"][CLASS_NAME]] == ["first", "second"]
-    assert [p["value"] for p in page.export(reading_order=False)["predictions"][CLASS_NAME]] == ["second", "first"]
-    xml = page.export_as_xml()[0].decode()
-    assert xml.index(">first<") < xml.index(">second<")
-
-
-def test_kie_page_render_keeps_reading_order():
-    predictions = {
-        CLASS_NAME: [
-            elements.Prediction("second", 0.9, ((0.1, 0.5), (0.9, 0.6)), 0.9, {"value": 0, "confidence": None}),
-            elements.Prediction("first", 0.9, ((0.1, 0.1), (0.9, 0.2)), 0.9, {"value": 0, "confidence": None}),
-        ]
-    }
-    page = elements.KIEPage(np.zeros((10, 10, 3), dtype=np.uint8), predictions, 0, (1000, 800))
-    assert page.render() == f"{CLASS_NAME}: first\n\n{CLASS_NAME}: second"
-
-
-def test_xml_exporter_class():
-    from xml.etree import ElementTree as ET
-
-    page = _reading_order_page()
-    xml_bytes, tree = XMLExporter().export_page(page)
-    assert isinstance(xml_bytes, bytes) and isinstance(tree, ET.ElementTree)
-    # The mixin method delegates to the exporter class, so the output is identical
-    assert page.export_as_xml()[0] == xml_bytes
-    assert page.export_as("xml")[0] == xml_bytes
-
-    predictions = {
-        CLASS_NAME: [elements.Prediction("hi", 0.9, ((0.1, 0.1), (0.9, 0.2)), 0.9, {"value": 0, "confidence": None})]
-    }
-    kie = elements.KIEPage(np.zeros((10, 10, 3), dtype=np.uint8), predictions, 0, (1000, 800))
-    assert kie.export_as_xml()[0] == XMLExporter().export_kie_page(kie)[0]
-
-    doc = elements.Document([page, page])
-    doc_xml = XMLExporter().export_document(doc)
-    assert len(doc_xml) == 2 and doc.export_as_xml()[0][0] == doc_xml[0][0]
-
-
-def test_xml_export_text_size():
-    # x_size (text height in pixels) and x_fsize (font size in points) are estimated from the
-    # element box height; the dpi kwarg scales the pixel-to-point conversion (default 72)
-    page = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8),
-        [elements.Block(lines=[_line_at("one two", 0.1, 0.1, 0.9, 0.2)])],
-        0,
-        (1000, 800),
-    )
-    xml = page.export_as_xml()[0].decode()
-    # the line spans y=0.1..0.2 of a 1000px-high page -> 100px text height, 100pt at 72 dpi
-    assert "x_size 100; x_fsize 100;" in xml
-    assert "x_size 0;" not in xml
-    xml = page.export_as_xml(dpi=144)[0].decode()
-    assert "x_size 100; x_fsize 50;" in xml
-
-    # table rows and KIE predictions carry the estimated sizes as well
-    cells = [
-        elements.TableCell("head", 0.9, ((0.1, 0.6), (0.4, 0.65)), 0, 0, 0, 0),
-        elements.TableCell("body", 0.9, ((0.1, 0.66), (0.4, 0.71)), 1, 1, 0, 0),
-    ]
-    table = elements.Table(cells=cells, num_rows=2, num_cols=1, geometry=((0.1, 0.6), (0.4, 0.71)))
-    page = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8),
-        [elements.Block(lines=[_line_at("intro line", 0.1, 0.1, 0.9, 0.15)])],
-        0,
-        (1000, 800),
-        tables=[table],
-    )
-    xml = page.export_as_xml()[0].decode()
-    # row 0 spans y=0.6..0.65 -> 50px, row 1 spans y=0.66..0.71 -> 50px
-    assert "x_size 50; x_fsize 50;" in xml
-
-    predictions = {
-        CLASS_NAME: [elements.Prediction("hi", 0.9, ((0.1, 0.1), (0.9, 0.2)), 0.9, {"value": 0, "confidence": None})]
-    }
-    kie = elements.KIEPage(np.zeros((10, 10, 3), dtype=np.uint8), predictions, 0, (1000, 800))
-    xml = kie.export_as_xml()[0].decode()
-    assert "x_size 100; x_fsize 100;" in xml
-
-
-def _table_page(num_rows=2, num_cols=1, rotated=False):
-    """A page with an intro line and one recognized table"""
-    geo = ((0.1, 0.6), (0.4, 0.66), (0.4, 0.71), (0.1, 0.71)) if rotated else ((0.1, 0.6), (0.4, 0.71))
-    cells = [
-        elements.TableCell("head", 0.9, ((0.1, 0.6), (0.4, 0.65)), 0, 0, 0, 0),
-        elements.TableCell("body", 0.9, ((0.1, 0.66), (0.4, 0.71)), 1, 1, 0, 0),
-    ]
-    table = elements.Table(cells=cells, num_rows=num_rows, num_cols=num_cols, geometry=geo)
-    return elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8),
-        [elements.Block(lines=[_line_at("intro line", 0.1, 0.1, 0.9, 0.15)])],
-        0,
-        (1000, 800),
-        tables=[table],
-    )
-
-
-def test_to_json_safe_covers_every_container():
     # 0-d arrays and numpy scalars collapse to their Python equivalent
     assert to_json_safe(np.array(3.5)) == 3.5 and type(to_json_safe(np.array(3.5))) is float
     assert to_json_safe(np.int64(7)) == 7 and type(to_json_safe(np.int64(7))) is int
@@ -776,226 +732,7 @@ def test_to_json_safe_covers_every_container():
     json.dumps(to_json_safe({"a": [np.float32(0.1)], "b": np.arange(3)}))
 
 
-def test_page_artefacts():
-    artefact = elements.Artefact("qr_code", 0.9, ((0.7, 0.7), (0.9, 0.9)))
-    orphan = elements.Block(lines=[], artefacts=[artefact], geometry=((0.7, 0.7), (0.9, 0.9)), objectness_score=0.9)
-    text = elements.Block(lines=[_line_at("some text", 0.1, 0.1, 0.9, 0.15)])
-    page = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [orphan, text], 0, (1000, 800))
-    items = page.items_in_reading_order()
-    assert [artefact.export() for artefact in items[-1].artefacts] == [artefact.export()]
-    assert page.export()["blocks"][-1]["artefacts"] == [artefact.export()]
-
-
-def test_ordered_line_words_directions():
-    line = _line_at("one two three", 0.1, 0.1, 0.7, 0.15)
-    assert [word.render() for word in ordered_line_words(line, "ltr")] == ["one", "two", "three"]
-    assert [word.render() for word in ordered_line_words(line, "rtl")] == ["three", "two", "one"]
-    # Vertical pages read their words top to bottom
-    stacked = elements.Line([_word_at(value, 0.1, 0.1 * idx, 0.2, 0.1 * idx + 0.05) for idx, value in enumerate("abc")])
-    assert [word.render() for word in ordered_line_words(stacked, "ttb-rtl")] == ["a", "b", "c"]
-    assert [word.render() for word in ordered_line_words(stacked, "ttb-ltr")] == ["a", "b", "c"]
-    # A single-word line short-circuits the per-line detection
-    single = elements.Line([_word_at("solo", 0.1, 0.1, 0.2, 0.15)])
-    assert [word.render() for word in ordered_line_words(single, "auto", auto=True)] == ["solo"]
-
-
-def test_vertical_direction_reaches_every_exporter():
-    page = _reading_order_page()
-    for export in (page.render, page.export_as_markdown, page.export_as_asciidoc, page.export_as_html):
-        assert isinstance(export(direction="ttb-ltr"), str)
-    assert isinstance(page.export_as_xml(direction="ttb-rtl")[0], bytes)
-
-
-def test_html_export_with_tables_and_furniture():
-    page = _table_page()
-    html = page.export_as_html()
-    assert "<table>" in html and "<th>head</th>" in html and "<td>body</td>" in html
-    assert html.index("<p>intro line</p>") < html.index("<table>")
-    # A single-row table has a header but no body
-    single = elements.Table(
-        cells=[elements.TableCell("only", 0.9, ((0.1, 0.6), (0.4, 0.65)), 0, 0, 0, 0)],
-        num_rows=1,
-        num_cols=1,
-        geometry=((0.1, 0.6), (0.4, 0.65)),
-    )
-    assert HTMLExporter().render_table(single) == "<table>\n<tr><th>only</th></tr>\n</table>"
-    # Page furniture can be dropped from the HTML export too
-    assert "Page 3 of 12" in _reading_order_page().export_as_html()
-    assert "Page 3 of 12" not in _reading_order_page().export_as_html(include_furniture=False)
-
-
-def test_render_table_with_empty_grid():
-    empty = elements.Table(cells=[], num_rows=0, num_cols=0, geometry=((0.0, 0.0), (0.0, 0.0)))
-    for exporter in (MarkdownExporter(), AsciiDocExporter(), HTMLExporter(), TextExporter()):
-        assert exporter.render_table(empty) == ""
-    # An empty table contributes nothing to the page export
-    page = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8),
-        [elements.Block(lines=[_line_at("only text", 0.1, 0.1, 0.9, 0.15)])],
-        0,
-        (1000, 800),
-        tables=[empty],
-    )
-    assert page.export_as_markdown() == "only text"
-    assert page.export_as_html() == "<p>only text</p>"
-
-
-def test_text_exporter_kie_and_document():
-    predictions = {
-        CLASS_NAME: [
-            elements.Prediction("second", 0.9, ((0.1, 0.5), (0.9, 0.6)), 0.9, {"value": 0, "confidence": None}),
-            elements.Prediction("first", 0.9, ((0.1, 0.1), (0.9, 0.2)), 0.9, {"value": 0, "confidence": None}),
-        ],
-        "empty": [],
-    }
-    kie = elements.KIEPage(np.zeros((10, 10, 3), dtype=np.uint8), predictions, 0, (1000, 800))
-    # Classes without any prediction are skipped by every text exporter
-    assert TextExporter().export_kie_page(kie) == f"{CLASS_NAME}:\n\nfirst\nsecond"
-    assert "empty" not in MarkdownExporter().export_kie_page(kie)
-    assert "empty" not in AsciiDocExporter().export_kie_page(kie)
-    assert "empty" not in HTMLExporter().export_kie_page(kie)
-    # export_document dispatches on the page type and uses the format-specific page break
-    page = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8),
-        [elements.Block(lines=[_line_at("a page", 0.1, 0.1, 0.9, 0.15)])],
-        0,
-        (1000, 800),
-    )
-    mixed = elements.Document([page, kie])
-    assert TextExporter().export_document(mixed) == f"a page\n\n\n\n{CLASS_NAME}:\n\nfirst\nsecond"
-    assert TextExporter().export_document(mixed, page_break=" // ").startswith("a page // ")
-
-
-def test_base_text_exporter_is_abstract():
-    from doctr.io.exporters import _PageTextExporter
-
-    table = elements.Table(cells=[], num_rows=0, num_cols=0, geometry=((0.0, 0.0), (0.0, 0.0)))
-    with pytest.raises(NotImplementedError):
-        _PageTextExporter().render_table(table)
-    with pytest.raises(NotImplementedError):
-        _PageTextExporter().class_header("cls")
-
-
-def test_blank_lines_are_skipped():
-    # Words recognized as empty strings must not produce an empty paragraph / list item
-    blank = elements.Block(lines=[elements.Line([_word_at("", 0.1, 0.1, 0.4, 0.15)])])
-    text = elements.Block(lines=[_line_at("real text", 0.1, 0.5, 0.9, 0.55)])
-    page = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [blank, text], 0, (1000, 800))
-    assert page.render() == "real text"
-    assert page.export_as_markdown() == "real text"
-    assert page.export_as_html() == "<p>real text</p>"
-
-
-def test_xml_export_edge_cases():
-    from doctr.io.exporters import _covering_region_indices
-
-    assert _covering_region_indices([], [((0.0, 0.0), (1.0, 1.0))]) == []
-    # Rotated geometries are rejected with an explicit error, for blocks, tables and KIE predictions alike
-    poly = np.asarray([[0.1, 0.1], [0.4, 0.1], [0.4, 0.2], [0.1, 0.2]], dtype=np.float32)
-    rot_page = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8),
-        [
-            elements.Block(
-                lines=[elements.Line([elements.Word("rot", 0.9, poly, 0.9, {"value": 0, "confidence": None})])]
-            )
-        ],
-        0,
-        (1000, 800),
-    )
-    with pytest.raises(TypeError):
-        rot_page.export_as_xml()
-    with pytest.raises(TypeError):
-        XMLExporter().export_page(_table_page(rotated=True))
-    rot_kie = elements.KIEPage(
-        np.zeros((10, 10, 3), dtype=np.uint8),
-        {CLASS_NAME: [elements.Prediction("rot", 0.9, poly, 0.9, {"value": 0, "confidence": None})]},
-        0,
-        (1000, 800),
-    )
-    with pytest.raises(TypeError):
-        rot_kie.export_as_xml()
-    # The linearization can be opted out of: blocks first, then tables, in their stored order
-    xml = _table_page().export_as_xml(reading_order=False)[0].decode()
-    assert xml.index("intro") < xml.index(">head<")
-
-
-def test_document_forwards_reading_order_options():
-    left = elements.Block(lines=[_line_at("left col", 0.08, 0.2, 0.45, 0.23)])
-    right = elements.Block(lines=[_line_at("right col", 0.55, 0.2, 0.92, 0.23)])
-    footer = elements.Block(lines=[_line_at("Page 1 of 2", 0.4, 0.95, 0.6, 0.97)])
-    layout = [
-        elements.LayoutElement("Text", 0.98, ((0.06, 0.18), (0.48, 0.26))),
-        elements.LayoutElement("Text", 0.98, ((0.52, 0.18), (0.94, 0.26))),
-        elements.LayoutElement("Page-footer", 0.97, ((0.35, 0.94), (0.65, 0.98))),
-    ]
-    page = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [right, left, footer], 0, (1000, 800), layout=layout)
-    doc = elements.Document([page, page])
-
-    assert (
-        doc.render(page_break=" || ") == "left col\n\nright col\n\nPage 1 of 2 || left col\n\nright col\n\nPage 1 of 2"
-    )
-    assert "Page 1 of 2" not in doc.render(include_furniture=False)
-    assert doc.render(block_break=" ", page_break=" || ").startswith("left col right col")
-    assert doc.export_as("text", include_furniture=False) == doc.render(include_furniture=False)
-
-    ordered = doc.export()["pages"][0]["blocks"]
-    assert [block["lines"][0]["words"][0]["value"] for block in ordered] == ["left", "right", "Page"]
-    raw = doc.export(reading_order=False)["pages"][0]["blocks"]
-    assert [block["lines"][0]["words"][0]["value"] for block in raw] == ["right", "left", "Page"]
-    assert doc.export_as("json", reading_order=False) == doc.export(reading_order=False)
-    json.dumps(doc.export(reading_order=False))
-
-
-def test_kie_document_forwards_reading_order_options():
-    predictions = {
-        CLASS_NAME: [
-            elements.Prediction("second", 0.9, ((0.1, 0.5), (0.9, 0.6)), 0.9, {"value": 0, "confidence": None}),
-            elements.Prediction("first", 0.9, ((0.1, 0.1), (0.9, 0.2)), 0.9, {"value": 0, "confidence": None}),
-        ]
-    }
-    page = elements.KIEPage(np.zeros((10, 10, 3), dtype=np.uint8), predictions, 0, (1000, 800))
-    doc = elements.KIEDocument([page])
-    assert doc.render() == f"{CLASS_NAME}: first\n\n{CLASS_NAME}: second"
-    # The reading direction reaches KIEPage.render through the document
-    assert doc.render(direction="ttb-ltr") == f"{CLASS_NAME}: first\n\n{CLASS_NAME}: second"
-    assert [p["value"] for p in doc.export()["pages"][0]["predictions"][CLASS_NAME]] == ["first", "second"]
-    raw = doc.export(reading_order=False)["pages"][0]["predictions"][CLASS_NAME]
-    assert [p["value"] for p in raw] == ["second", "first"]
-    json.dumps(doc.export(reading_order=False))
-
-
-def test_every_format_is_reachable_from_a_document():
-    page = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8),
-        [elements.Block(lines=[_line_at("page text", 0.1, 0.1, 0.9, 0.15)])],
-        0,
-        (1000, 800),
-    )
-    predictions = {
-        CLASS_NAME: [elements.Prediction("value", 0.9, ((0.1, 0.1), (0.9, 0.2)), 0.9, {"value": 0, "confidence": None})]
-    }
-    kie_page = elements.KIEPage(np.zeros((10, 10, 3), dtype=np.uint8), predictions, 0, (1000, 800))
-    formats = ("markdown", "md", "asciidoc", "adoc", "html", "text", "txt", "json", "dict", "xml", "hocr")
-
-    for element in (page, kie_page, elements.Document([page]), elements.KIEDocument([kie_page])):
-        for fmt in formats:
-            assert element.export_as(fmt) is not None
-        with pytest.raises(ValueError, match="unsupported export format"):
-            element.export_as("pptx")
-
-    # The document-level named methods carry the page break of their format
-    doc = elements.Document([page, page])
-    assert doc.export_as_html() == "<p>page text</p><hr><p>page text</p>"
-    assert doc.export_as_html(page_break="\n") == "<p>page text</p>\n<p>page text</p>"
-    assert doc.export_as_markdown().count("\n\n---\n\n") == 1
-    assert doc.export_as_asciidoc().count("\n\n<<<\n\n") == 1
-    assert len(doc.export_as_xml()) == 2
-
-    kie_doc = elements.KIEDocument([kie_page, kie_page])
-    kie_html = f"<h3>{CLASS_NAME}</h3>\n<ul>\n<li>value</li>\n</ul>"
-    assert kie_doc.export_as_html() == f"{kie_html}<hr>{kie_html}"
-    assert kie_page.export_as_html() == f"<h3>{CLASS_NAME}</h3>\n<ul>\n<li>value</li>\n</ul>"
-    assert kie_page.export_as_html(direction="rtl") == kie_page.export_as_html()
+# --- Figures ---------------------------------------------------------------------------------------------------------
 
 
 def _figure_page(caption="Figure 1 quarterly revenue", picture=((0.12, 0.30), (0.88, 0.60))):
@@ -1017,7 +754,7 @@ def _figure_page(caption="Figure 1 quarterly revenue", picture=((0.12, 0.30), (0
     if caption is not None:
         lines.append(_line_at(caption, 0.2, 0.63, 0.8, 0.66))
         layout.append(elements.LayoutElement("Caption", 0.96, ((0.18, 0.62), (0.82, 0.67))))
-    return elements.Page(image, [elements.Block(lines=lines)], 0, (1000, 800), layout=layout)
+    return _page(lines, image=image, layout=layout)
 
 
 def test_page_reading_order_with_figures():
@@ -1043,7 +780,7 @@ def test_page_reading_order_with_figures():
     assert all(isinstance(item, elements.Block) for item in plain.items_in_reading_order(include_figures=True))
 
 
-def test_page_export_markdown_images():
+def test_page_export_images(tmp_path):
     page = _figure_page()
     # Placeholder by default, the text is kept
     markdown = page.export_as_markdown()
@@ -1051,44 +788,37 @@ def test_page_export_markdown_images():
     assert markdown.index("Revenue grew steadily") < markdown.index("<!-- image -->")
     assert markdown.index("<!-- image -->") < markdown.index("Figure 1 quarterly revenue")
     assert "axis label" in markdown
-
-    assert "<!-- image -->" not in page.export_as_markdown(images="none")
-    assert "Figure 1 quarterly revenue" in page.export_as_markdown(images="none")
+    assert "// image" in page.export_as_asciidoc()
+    assert "<!-- image -->" in page.export_as_html()
+    # No image at all, but the text is kept
+    for fmt in ("markdown", "asciidoc", "html"):
+        exported = getattr(page, f"export_as_{fmt}")(images="none")
+        assert "image" not in exported and "base64" not in exported
+        assert "axis label" in exported
+        assert "Figure 1 quarterly revenue" in exported
 
     # Embedded: the caption becomes the alt text and the inner text is dropped
     embedded = page.export_as_markdown(images="embedded")
     assert "![Figure 1 quarterly revenue](data:image/png;base64," in embedded
     assert "axis label" not in embedded
     # The caption is also a visible italic line under the image
-    assert "](data:image/png;base64," in embedded
     assert embedded.count("Figure 1 quarterly revenue") == 2
     assert re.search(
         r"!\[Figure 1 quarterly revenue\]\(data:image/png;base64,[^)]+\)\n\n\*Figure 1 quarterly revenue\*", embedded
     )
     jpeg = FigureEncoder("embedded", image_format="jpeg")
     assert "data:image/jpeg;base64," in page.export_as_markdown(images=jpeg)
-    # Also when each line lies in the figure, but not the box of the block they form
-    lines = [
-        _line_at("Body text above the chart spanning the page", 0.05, 0.05, 0.95, 0.09),
-        _line_at("AXIS", 0.30, 0.185, 0.40, 0.225),
-        _line_at("LABEL", 0.45, 0.20, 0.45 + 0.299 / 0.9, 0.24),
-        _line_at("Body text below the chart spanning the page", 0.05, 0.70, 0.95, 0.74),
-    ]
-    page = elements.Page(
-        np.full((100, 80, 3), 200, dtype=np.uint8),
-        [elements.Block(lines=lines)],
-        0,
-        (1000, 800),
-        layout=[elements.LayoutElement("Picture", 0.9, ((0.20, 0.20), (0.60, 0.60)))],
-    )
-    markdown = page.export_as_markdown(images="embedded")
-    assert "![" in markdown
-    assert "AXIS" not in markdown and "LABEL" not in markdown
+    asciidoc = page.export_as_asciidoc(images="embedded")
+    assert ".Figure 1 quarterly revenue\nimage::data:image/png;base64," in asciidoc
+    html = page.export_as_html(images="embedded")
+    assert '<figure><img src="data:image/png;base64,' in html
+    assert "<figcaption>Figure 1 quarterly revenue</figcaption></figure>" in html
+    assert 'alt="Figure 1 quarterly revenue"' in html
 
-
-def test_page_export_referenced_images(tmp_path):
-    page = _figure_page()
-    encoder = FigureEncoder("referenced", image_dir=tmp_path, path_prefix="assets/")
+    # Referenced: the crops are written to disk
+    with pytest.raises(ValueError, match="image_dir"):
+        page.export_as_markdown(images="referenced")
+    encoder = FigureEncoder("referenced", image_dir=tmp_path / "page", path_prefix="assets/")
     markdown = page.export_as_markdown(images=encoder)
     assert re.search(r"!\[Figure 1 quarterly revenue\]\(assets/page1_figure1-[0-9a-f]{8}\.png\)", markdown)
     assert len(encoder.written) == 1 and encoder.written[0].name.startswith("page1_figure1-")
@@ -1096,24 +826,67 @@ def test_page_export_referenced_images(tmp_path):
     assert crop.shape[0] < page.dimensions[0] and crop.shape[1] < page.dimensions[1]
     assert crop[..., 2].mean() > 200  # OpenCV reads BGR
 
-
-def test_page_export_asciidoc_and_html_images():
-    page = _figure_page()
-    assert "// image" in page.export_as_asciidoc()
-    assert "<!-- image -->" in page.export_as_html()
-
-    asciidoc = page.export_as_asciidoc(images="embedded")
-    assert ".Figure 1 quarterly revenue\nimage::data:image/png;base64," in asciidoc
-
-    html = page.export_as_html(images="embedded")
-    assert '<figure><img src="data:image/png;base64,' in html
-    assert "<figcaption>Figure 1 quarterly revenue</figcaption></figure>" in html
-    assert 'alt="Figure 1 quarterly revenue"' in html
+    # Documents pass the image options through to their pages
+    second = _figure_page()
+    second.page_idx = 1
+    doc = elements.Document([page, second])
+    assert doc.export_as_markdown().count("<!-- image -->") == 2
+    assert doc.export_as_markdown(images="none").count("<!-- image -->") == 0
+    encoder = FigureEncoder("referenced", image_dir=tmp_path / "doc")
+    doc.export_as_html(images=encoder)
+    assert len(encoder.written) == 2
 
     # Without a caption, the alt text is empty
     page.layout = [region for region in page.layout if region.type != "Caption"]
     page._reading_order_cache = None
     assert 'alt=""' in page.export_as_html(images="embedded")
+
+    # The inner text is also dropped when each line lies in the figure, but not the box of the block they form
+    lines = [
+        _line_at("Body text above the chart spanning the page", 0.05, 0.05, 0.95, 0.09),
+        _line_at("AXIS", 0.30, 0.185, 0.40, 0.225),
+        _line_at("LABEL", 0.45, 0.20, 0.45 + 0.299 / 0.9, 0.24),
+        _line_at("Body text below the chart spanning the page", 0.05, 0.70, 0.95, 0.74),
+    ]
+    page = _page(
+        lines,
+        image=np.full((100, 80, 3), 200, dtype=np.uint8),
+        layout=[elements.LayoutElement("Picture", 0.9, ((0.20, 0.20), (0.60, 0.60)))],
+    )
+    markdown = page.export_as_markdown(images="embedded")
+    assert "![" in markdown
+    assert "AXIS" not in markdown and "LABEL" not in markdown
+
+
+def test_page_export_images_fallbacks():
+    # A page restored from JSON has no pixels: placeholders, and the inner text is kept
+    restored = elements.Page.from_dict(_figure_page().export())
+    markdown = restored.export_as_markdown(images="embedded")
+    assert "<!-- image -->" in markdown
+    assert "axis label" in markdown
+    assert "Figure 1 quarterly revenue" in markdown
+
+    # A figure without pixels falls back to a placeholder and keeps its text and caption
+    class SkippingEncoder(FigureEncoder):
+        def source(self, page, region, index):
+            return None
+
+    page = _figure_page()
+    markdown = page.export_as_markdown(images=SkippingEncoder("embedded"))
+    assert "<!-- image -->" in markdown
+    assert "axis label" in markdown
+    assert "Figure 1 quarterly revenue" in markdown
+    # With its pixels, the inner text is dropped
+    assert "axis label" not in page.export_as_markdown(images="embedded")
+
+    # The plain text and JSON exports ignore the figures
+    assert "image" not in page.render()
+    assert page.render().startswith("Annual Report")
+    assert TextExporter().export_page(page, images="embedded") == page.render()
+    exported = page.export()
+    assert len(exported["blocks"]) == 5
+    assert len(exported["layout"]) == 5
+    json.dumps(exported)
 
 
 @pytest.mark.parametrize(
@@ -1140,6 +913,57 @@ def test_page_export_asciidoc_and_html_images():
 def test_page_export_figure_captions(exporter, escape, caption, expected):
     exported = exporter().export_page(_figure_page(caption=caption), escape=escape, images="embedded")
     assert all(part in exported for part in expected)
+
+
+def test_page_export_caption_formatting():
+    # The caption is a separate paragraph under the image, escaped like the other text
+    for escape, caption, expected in (
+        (True, "Figure 1: *bold* claim", "\n\n*Figure 1: \\*bold\\* claim*"),
+        (False, "Figure 1: plain", "\n\n*Figure 1: plain*"),
+    ):
+        page = _figure_page(caption=caption)
+        markdown = page.export_as_markdown(images="embedded", escape=escape)
+        image_end = markdown.index(")", markdown.index("](data:image/png;base64,"))
+        assert markdown[image_end + 1 :].startswith(expected)
+        # No caption line without pixels
+        assert "<!-- image -->\n\n*" not in page.export_as_markdown(images="placeholder", escape=escape)
+    # No caption line without a caption
+    assert "\n\n*" not in _figure_page(caption=None).export_as_markdown(images="embedded")
+
+    # AsciiDoc: the caption is the block title (without the automatic "Figure N." prefix) and the alt text
+    page = _figure_page(caption="Figure 1: {author} revenue")
+    asciidoc = page.export_as_asciidoc(images="embedded")
+    assert '[caption=""]\n.Figure 1: \\{author\\} revenue\nimage::data:image/png;base64,' in asciidoc
+    assert '["Figure 1: \\{author\\} revenue"]' in asciidoc
+    raw = page.export_as_asciidoc(images="embedded", escape=False)
+    assert '[caption=""]\n.Figure 1: {author} revenue\n' in raw and '["Figure 1: {author} revenue"]' in raw
+    assert "[caption=" not in _figure_page(caption=None).export_as_asciidoc(images="embedded")
+
+    # A caption hyphenated over two lines is joined back
+    page = _figure_page(caption=None)
+    caption_lines = [_line_at("Figure 1: quarterly rev-", 0.2, 0.63, 0.8, 0.66), _line_at("enue", 0.2, 0.67, 0.4, 0.7)]
+    page.blocks = [*page.blocks, elements.Block(lines=caption_lines)]
+    page.layout = [*page.layout, elements.LayoutElement("Caption", 0.96, ((0.18, 0.62), (0.82, 0.705)))]
+    assert "![Figure 1: quarterly revenue](data:image/png;base64," in page.export_as_markdown(images="embedded")
+    assert "<figcaption>Figure 1: quarterly revenue</figcaption>" in page.export_as_html(images="embedded")
+
+
+@pytest.mark.parametrize(
+    "lines, expected",
+    [
+        (["Figure 1: examples across dif-", "ferent categories"], "Figure 1: examples across different categories"),
+        (["the Encoder pro-", "duces features"], "the Encoder produces features"),
+        (["models trained on DocLayNet-", "trained data"], "models trained on DocLayNet-trained data"),
+        (["a state-of-the-", "art model"], "a state-of-the-art model"),
+        (["ends with a dash -", "then more"], "ends with a dash -then more"),
+        (["Section 2-", "Results"], "Section 2- Results"),
+        (["one line"], "one line"),
+        (["", "  padded  ", ""], "padded"),
+        ([], ""),
+    ],
+)
+def test_join_caption_lines(lines, expected):
+    assert _join_caption_lines(lines) == expected
 
 
 @pytest.mark.parametrize(
@@ -1288,130 +1112,103 @@ def test_page_export_figure_caption_pairing(lines, layout, expected, angle):
             elements.TableCell("B", 0.9, _geom((((x0 + x1) / 2, y0), (x1, y1))), 0, 0, 1, 1),
         ]
         tables.append(elements.Table(cells, 1, 2, _geom(((x0, y0), (x1, y1))), 0.9))
-    page = elements.Page(
-        np.full((1000, 800, 3), 255, dtype=np.uint8),
-        [elements.Block(lines=lines)],
-        0,
-        (1000, 800),
+    page = _page(
+        lines,
+        image=np.full((1000, 800, 3), 255, dtype=np.uint8),
         layout=[elements.LayoutElement(label, 0.9, _geom(geometry)) for label, geometry in layout],
         tables=tables,
     )
     assert re.sub(r"\(data:[^)]+\)", "(...)", page.export_as_markdown(images="embedded")) == expected
 
 
-def test_page_export_images_without_page_image():
-    # A page restored from JSON has no pixels: placeholders, and the inner text is kept
-    restored = elements.Page.from_dict(_figure_page().export())
-    markdown = restored.export_as_markdown(images="embedded")
-    assert "<!-- image -->" in markdown
-    assert "axis label" in markdown
-    assert "Figure 1 quarterly revenue" in markdown
+def test_page_export_figure_placement():
+    # A figure beside a paragraph is exported after its last line
+    lines = [_line_at("Wide title spanning the page", 0.1, 0.05, 0.9, 0.09)]
+    # A 3-column author grid across the gutter: not detected as multi-column
+    for row in range(4):
+        y = 0.14 + row * 0.03
+        lines += [_line_at(f"author{row}{col}", x, y, x + 0.18, y + 0.014) for col, x in enumerate((0.15, 0.41, 0.68))]
+    ys = np.linspace(0.3, 0.64, 12)
+    lines += [_line_at(f"body line {idx}", 0.08, y, 0.48, y + 0.014) for idx, y in enumerate(ys)]
+    lines.append(_line_at("last line of the paragraph", 0.08, 0.662, 0.35, 0.676))
+    lines.append(_line_at("Next section", 0.08, 0.70, 0.30, 0.712))
+    layout = [
+        elements.LayoutElement("Title", 0.9, ((0.09, 0.04), (0.91, 0.10))),
+        elements.LayoutElement("Text", 0.9, ((0.07, 0.29), (0.49, 0.68))),
+        elements.LayoutElement("Picture", 0.9, ((0.52, 0.31), (0.91, 0.667))),
+        elements.LayoutElement("Section-header", 0.9, ((0.07, 0.695), (0.31, 0.715))),
+    ]
+    image = np.zeros((1000, 800, 3), dtype=np.uint8)
+    image[310:667, 416:728] = 255
+    markdown = _page(lines, image=image, layout=layout).export_as_markdown(images="embedded")
+    assert (
+        markdown.index("last line of the paragraph")
+        < markdown.index("![](data:image/png")
+        < markdown.index("Next section")
+    )
+    assert "body line 11\nlast line of the paragraph" in markdown
+    # A second, overlapping region over the lines wrapping around the figure does not split the paragraph
+    lines = [
+        _line_at("one two three four five six", 0.05, 0.10, 0.90, 0.13),
+        _line_at("seven eight nine ten eleven", 0.05, 0.14, 0.90, 0.17),
+        _line_at("twelve thirteen fourteen fifteen", 0.05, 0.18, 0.90, 0.21),
+        _line_at("sixteen seventeen", 0.05, 0.22, 0.50, 0.25),
+        _line_at("eighteen nineteen", 0.05, 0.26, 0.50, 0.29),
+        _line_at("twenty end.", 0.05, 0.30, 0.50, 0.33),
+    ]
+    layout = [
+        elements.LayoutElement("Text", 0.90, ((0.04, 0.09), (0.91, 0.215))),
+        elements.LayoutElement("Text", 0.59, ((0.04, 0.16), (0.51, 0.34))),
+        elements.LayoutElement("Picture", 0.86, ((0.55, 0.22), (0.90, 0.34))),
+    ]
+    items, _, _ = page_reading_order(_page(lines, dims=(1810, 1280), layout=layout))
+    assert len(items) == 1 and len(items[0].lines) == 6
 
+    # A loose text region enclosing a figure does not push the figure after its last line
+    lines = [_line_at(f"above {idx}", 0.1, 0.1 + idx * 0.04, 0.9, 0.13 + idx * 0.04) for idx in range(3)]
+    lines += [_line_at(f"below {idx}", 0.1, 0.7 + idx * 0.04, 0.9, 0.73 + idx * 0.04) for idx in range(3)]
+    layout = [
+        elements.LayoutElement("Text", 0.9, ((0.08, 0.09), (0.92, 0.83))),
+        elements.LayoutElement("Picture", 0.9, ((0.2, 0.3), (0.8, 0.6))),
+    ]
+    markdown = _page(lines, image=np.zeros((1000, 800, 3), dtype=np.uint8), layout=layout).export_as_markdown()
+    assert markdown.index("above 2") < markdown.index("<!-- image -->") < markdown.index("below 0")
 
-def test_text_and_json_exports_ignore_figures():
-    page = _figure_page()
-    assert "image" not in page.render()
-    assert page.render().startswith("Annual Report")
-    assert TextExporter().export_page(page, images="embedded") == page.render()
-    # Figures do not leak into the JSON blocks
-    exported = page.export()
-    assert len(exported["blocks"]) == 5
-    assert len(exported["layout"]) == 5
-    json.dumps(exported)
-
-
-@pytest.mark.parametrize(
-    "picture",
-    [
-        ((0.12, 0.30), (0.88, 0.60)),
-        ((0.12, 0.30), (0.88, 0.30), (0.88, 0.60), (0.12, 0.60)),
-    ],
-)
-def test_page_export_as_xml_figures(picture):
-    page = _figure_page(picture=picture)
-    xml_bytes, _ = page.export_as_xml()
-    xml = xml_bytes.decode()
-    assert 'class="ocr_photo" id="figure_1"' in xml
-    assert 'title="bbox 96 300 704 600"' in xml
-    assert "ocr_photo" in xml.split('name="ocr-capabilities" content="')[1].split('"')[0]
-    # The raw order also carries the figures
-    assert 'class="ocr_photo"' in page.export_as_xml(reading_order=False)[0].decode()
-
-
-def test_document_export_passes_images_through(tmp_path):
-    first, second = _figure_page(), _figure_page()
-    second.page_idx = 1
-    doc = elements.Document([first, second])
-    assert doc.export_as_markdown().count("<!-- image -->") == 2
-    assert doc.export_as_markdown(images="none").count("<!-- image -->") == 0
-    encoder = FigureEncoder("referenced", image_dir=tmp_path)
-    doc.export_as_html(images=encoder)
-    assert len(encoder.written) == 2
-
-
-def test_asciidoc_figure_title_and_attributes():
-    page = _figure_page(caption="Figure 1: {author} revenue")
-    asciidoc = page.export_as_asciidoc(images="embedded")
-    assert '[caption=""]\n.Figure 1: \\{author\\} revenue\nimage::data:image/png;base64,' in asciidoc
-    assert '["Figure 1: \\{author\\} revenue"]' in asciidoc
-    raw = page.export_as_asciidoc(images="embedded", escape=False)
-    assert '[caption=""]\n.Figure 1: {author} revenue\n' in raw and '["Figure 1: {author} revenue"]' in raw
-    assert "[caption=" not in _figure_page(caption=None).export_as_asciidoc(images="embedded")
-
-
-@pytest.mark.parametrize(
-    "lines, expected",
-    [
-        (["Figure 1: examples across dif-", "ferent categories"], "Figure 1: examples across different categories"),
-        (["the Encoder pro-", "duces features"], "the Encoder produces features"),
-        (["models trained on DocLayNet-", "trained data"], "models trained on DocLayNet-trained data"),
-        (["a state-of-the-", "art model"], "a state-of-the-art model"),
-        (["ends with a dash -", "then more"], "ends with a dash -then more"),
-        (["Section 2-", "Results"], "Section 2- Results"),
-        (["one line"], "one line"),
-        (["", "  padded  ", ""], "padded"),
-        ([], ""),
-    ],
-)
-def test_join_caption_lines(lines, expected):
-    assert _join_caption_lines(lines) == expected
-
-
-def test_figure_caption_hyphenation():
-    page = _figure_page(caption=None)
-    caption_lines = [_line_at("Figure 1: quarterly rev-", 0.2, 0.63, 0.8, 0.66), _line_at("enue", 0.2, 0.67, 0.4, 0.7)]
-    page.blocks = [*page.blocks, elements.Block(lines=caption_lines)]
-    page.layout = [*page.layout, elements.LayoutElement("Caption", 0.96, ((0.18, 0.62), (0.82, 0.705)))]
-    assert "![Figure 1: quarterly revenue](data:image/png;base64," in page.export_as_markdown(images="embedded")
-    assert "<figcaption>Figure 1: quarterly revenue</figcaption>" in page.export_as_html(images="embedded")
-
-
-@pytest.mark.parametrize("fmt", ["markdown", "asciidoc", "html"])
-def test_page_export_images_none(fmt):
-    page = _figure_page()
-    exported = getattr(page, f"export_as_{fmt}")(images="none")
-    assert "image" not in exported and "base64" not in exported
-    assert "axis label" in exported
-    assert "Figure 1 quarterly revenue" in exported
-
-
-def test_page_export_unresolved_figure_keeps_its_text():
-    # A figure without pixels falls back to a placeholder and keeps its text and caption
-    class SkippingEncoder(FigureEncoder):
-        def source(self, page, region, index):
-            return None
-
-    page = _figure_page()
-    markdown = page.export_as_markdown(images=SkippingEncoder("embedded"))
-    assert "<!-- image -->" in markdown
-    assert "axis label" in markdown
-    assert "Figure 1 quarterly revenue" in markdown
-    # With its pixels, the inner text is dropped
-    markdown = page.export_as_markdown(images="embedded")
-    assert "axis label" not in markdown
+    # A caption whose last line is closer to the table of the other column than to its own figure
+    image = np.full((1000, 800, 3), 255, dtype=np.uint8)
+    image[115:330, 420:720] = (0, 0, 255)
+    lines = [
+        _line_at("Figure 5: Prediction performance of a", 0.52, 0.352, 0.91, 0.366),
+        _line_at("network trained on increasing fractions", 0.52, 0.37, 0.91, 0.384),
+        _line_at("significantly better predictions.", 0.52, 0.419, 0.73, 0.434),
+        _line_at("Body text of the left column", 0.08, 0.47, 0.48, 0.49),
+    ]
+    cells = [
+        elements.TableCell("A", 0.9, ((0.102, 0.248), (0.29, 0.443)), 0, 0, 0, 0),
+        elements.TableCell("B", 0.9, ((0.29, 0.248), (0.477, 0.443)), 0, 0, 1, 1),
+    ]
+    layout = [
+        elements.LayoutElement("Picture", 0.9, ((0.526, 0.115), (0.903, 0.33))),
+        elements.LayoutElement("Caption", 0.9, ((0.515, 0.348), (0.918, 0.438))),
+        elements.LayoutElement("Table", 0.9, ((0.1, 0.245), (0.48, 0.445))),
+        elements.LayoutElement("Text", 0.9, ((0.07, 0.465), (0.49, 0.495))),
+    ]
+    page = _page(
+        lines, image=image, layout=layout, tables=[elements.Table(cells, 1, 2, ((0.102, 0.248), (0.477, 0.443)), 0.9)]
+    )
+    caption = (
+        "Figure 5: Prediction performance of a network trained on increasing fractions "
+        "significantly better predictions."
+    )
+    assert f"<figcaption>{caption}</figcaption>" in page.export_as_html(images="embedded")
+    # The whole caption is read right after its figure
+    markdown = page.export_as_markdown(images="placeholder")
+    figure, table = markdown.index("<!-- image -->"), markdown.index("| A | B |")
+    assert figure < markdown.index("Figure 5") < markdown.index("significantly better") < table
 
 
 def test_page_export_figures_in_page_furniture():
+    # A logo in the page header is read with it, and its text is labeled as page furniture
     page = _figure_page()
     page.page[10:40, 20:120] = (0, 0, 255)
     page.blocks[0].lines.append(_line_at("ACME", 0.04, 0.015, 0.12, 0.035))
@@ -1433,129 +1230,7 @@ def test_page_export_figures_in_page_furniture():
     assert page.export_as_markdown(images="embedded", include_furniture=False).count("![") == 1
     assert page.export_as_markdown(images="placeholder", include_furniture=False).count("<!-- image -->") == 1
 
-
-def test_page_export_caption_split_across_columns():
-    # The last caption line is closer to the table of the other column than to its own figure
-    image = np.full((1000, 800, 3), 255, dtype=np.uint8)
-    image[115:330, 420:720] = (0, 0, 255)
-    lines = [
-        _line_at("Figure 5: Prediction performance of a", 0.52, 0.352, 0.91, 0.366),
-        _line_at("network trained on increasing fractions", 0.52, 0.37, 0.91, 0.384),
-        _line_at("significantly better predictions.", 0.52, 0.419, 0.73, 0.434),
-        _line_at("Body text of the left column", 0.08, 0.47, 0.48, 0.49),
-    ]
-    cells = [
-        elements.TableCell("A", 0.9, ((0.102, 0.248), (0.29, 0.443)), 0, 0, 0, 0),
-        elements.TableCell("B", 0.9, ((0.29, 0.248), (0.477, 0.443)), 0, 0, 1, 1),
-    ]
-    page = elements.Page(
-        image,
-        [elements.Block(lines=lines)],
-        0,
-        (1000, 800),
-        layout=[
-            elements.LayoutElement("Picture", 0.9, ((0.526, 0.115), (0.903, 0.33))),
-            elements.LayoutElement("Caption", 0.9, ((0.515, 0.348), (0.918, 0.438))),
-            elements.LayoutElement("Table", 0.9, ((0.1, 0.245), (0.48, 0.445))),
-            elements.LayoutElement("Text", 0.9, ((0.07, 0.465), (0.49, 0.495))),
-        ],
-        tables=[elements.Table(cells, 1, 2, ((0.102, 0.248), (0.477, 0.443)), 0.9)],
-    )
-    caption = (
-        "Figure 5: Prediction performance of a network trained on increasing fractions "
-        "significantly better predictions."
-    )
-    html = page.export_as_html(images="embedded")
-    assert f"<figcaption>{caption}</figcaption>" in html
-    # The whole caption is read right after its figure
-    markdown = page.export_as_markdown(images="placeholder")
-    figure, table = markdown.index("<!-- image -->"), markdown.index("| A | B |")
-    assert figure < markdown.index("Figure 5") < markdown.index("significantly better") < table
-
-
-def test_page_export_figure_does_not_split_a_paragraph():
-    """A figure beside a paragraph is exported after its last line"""
-    lines = [_line_at("Wide title spanning the page", 0.1, 0.05, 0.9, 0.09)]
-    # A 3-column author grid across the gutter: not detected as multi-column
-    for row in range(4):
-        y = 0.14 + row * 0.03
-        lines += [_line_at(f"author{row}{col}", x, y, x + 0.18, y + 0.014) for col, x in enumerate((0.15, 0.41, 0.68))]
-    ys = np.linspace(0.3, 0.64, 12)
-    lines += [_line_at(f"body line {idx}", 0.08, y, 0.48, y + 0.014) for idx, y in enumerate(ys)]
-    lines.append(_line_at("last line of the paragraph", 0.08, 0.662, 0.35, 0.676))
-    lines.append(_line_at("Next section", 0.08, 0.70, 0.30, 0.712))
-    layout = [
-        elements.LayoutElement("Title", 0.9, ((0.09, 0.04), (0.91, 0.10))),
-        elements.LayoutElement("Text", 0.9, ((0.07, 0.29), (0.49, 0.68))),
-        elements.LayoutElement("Picture", 0.9, ((0.52, 0.31), (0.91, 0.667))),
-        elements.LayoutElement("Section-header", 0.9, ((0.07, 0.695), (0.31, 0.715))),
-    ]
-    image = np.zeros((1000, 800, 3), dtype=np.uint8)
-    image[310:667, 416:728] = 255
-    page = elements.Page(image, [elements.Block(lines=lines)], 0, (1000, 800), layout=layout)
-    markdown = page.export_as_markdown(images="embedded")
-    assert (
-        markdown.index("last line of the paragraph")
-        < markdown.index("![](data:image/png")
-        < markdown.index("Next section")
-    )
-    assert "body line 11\nlast line of the paragraph" in markdown
-    # A second, overlapping region over the lines wrapping around the figure does not split the paragraph
-    lines = [
-        _line_at("one two three four five six", 0.05, 0.10, 0.90, 0.13),
-        _line_at("seven eight nine ten eleven", 0.05, 0.14, 0.90, 0.17),
-        _line_at("twelve thirteen fourteen fifteen", 0.05, 0.18, 0.90, 0.21),
-        _line_at("sixteen seventeen", 0.05, 0.22, 0.50, 0.25),
-        _line_at("eighteen nineteen", 0.05, 0.26, 0.50, 0.29),
-        _line_at("twenty end.", 0.05, 0.30, 0.50, 0.33),
-    ]
-    layout = [
-        elements.LayoutElement("Text", 0.90, ((0.04, 0.09), (0.91, 0.215))),
-        elements.LayoutElement("Text", 0.59, ((0.04, 0.16), (0.51, 0.34))),
-        elements.LayoutElement("Picture", 0.86, ((0.55, 0.22), (0.90, 0.34))),
-    ]
-    page = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8), [elements.Block(lines=lines)], 0, (1810, 1280), layout=layout
-    )
-    items, _, _ = page_reading_order(page)
-    assert len(items) == 1 and len(items[0].lines) == 6
-
-
-def test_page_export_figure_stacked_in_a_loose_region():
-    """A loose text region enclosing a figure does not push the figure after its last line"""
-    lines = [_line_at(f"above {idx}", 0.1, 0.1 + idx * 0.04, 0.9, 0.13 + idx * 0.04) for idx in range(3)]
-    lines += [_line_at(f"below {idx}", 0.1, 0.7 + idx * 0.04, 0.9, 0.73 + idx * 0.04) for idx in range(3)]
-    layout = [
-        elements.LayoutElement("Text", 0.9, ((0.08, 0.09), (0.92, 0.83))),
-        elements.LayoutElement("Picture", 0.9, ((0.2, 0.3), (0.8, 0.6))),
-    ]
-    page = elements.Page(
-        np.zeros((1000, 800, 3), dtype=np.uint8), [elements.Block(lines=lines)], 0, (1000, 800), layout=layout
-    )
-    markdown = page.export_as_markdown()
-    assert markdown.index("above 2") < markdown.index("<!-- image -->") < markdown.index("below 0")
-
-
-@pytest.mark.parametrize(
-    "escape, caption, expected",
-    [
-        (True, "Figure 1: *bold* claim", "\n\n*Figure 1: \\*bold\\* claim*"),
-        (False, "Figure 1: plain", "\n\n*Figure 1: plain*"),
-    ],
-)
-def test_page_export_markdown_caption_paragraph(escape, caption, expected):
-    page = _figure_page(caption=caption)
-    markdown = page.export_as_markdown(images="embedded", escape=escape)
-    image_end = markdown.index(")", markdown.index("](data:image/png;base64,"))
-    assert markdown[image_end + 1 :].startswith(expected)
-    # No caption line without a caption or without pixels
-    assert "\n\n*" not in _figure_page(caption=None).export_as_markdown(images="embedded")
-    placeholder = page.export_as_markdown(images="placeholder", escape=escape)
-    assert "<!-- image -->\n\n*" not in placeholder
-
-
-def test_page_reading_order_logo_in_page_header():
-    """A logo in the page header is read with it, and its text is labeled as page furniture"""
+    # Same with a page header spanning the page, with more text beside the logo
     page = _figure_page()
     page.page[10:40, 20:120] = (0, 0, 255)
     page.blocks[0].lines.append(_line_at("ACME", 0.04, 0.015, 0.12, 0.035))
@@ -1614,7 +1289,18 @@ def test_page_export_figure_partly_in_page_furniture(bottom, in_furniture):
         assert ("tick" in exported) is (images == "placeholder" and not in_furniture)
 
 
-def test_page_export_referenced_mode_needs_an_encoder():
-    page = _figure_page()
-    with pytest.raises(ValueError, match="image_dir"):
-        page.export_as_markdown(images="referenced")
+@pytest.mark.parametrize(
+    "picture",
+    [
+        ((0.12, 0.30), (0.88, 0.60)),
+        ((0.12, 0.30), (0.88, 0.30), (0.88, 0.60), (0.12, 0.60)),
+    ],
+)
+def test_page_export_as_xml_figures(picture):
+    page = _figure_page(picture=picture)
+    xml = page.export_as_xml()[0].decode()
+    assert 'class="ocr_photo" id="figure_1"' in xml
+    assert 'title="bbox 96 300 704 600"' in xml
+    assert "ocr_photo" in xml.split('name="ocr-capabilities" content="')[1].split('"')[0]
+    # The raw order also carries the figures
+    assert 'class="ocr_photo"' in page.export_as_xml(reading_order=False)[0].decode()

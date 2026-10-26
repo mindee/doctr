@@ -69,16 +69,15 @@ def picture_regions(page: "Page") -> list["LayoutElement"]:
     Returns:
         the figure regions, in detection order
     """
-    from doctr.models.reading_order.base import _to_boxes
+    from doctr.models.reading_order.base import _box_areas, _pairwise_overlaps, _to_boxes
 
     regions = [region for region in (getattr(page, "layout", None) or []) if is_picture_region(region)]
     if len(regions) < 2:
         return regions
     boxes = _to_boxes([region.geometry for region in regions])
-    inter_w = np.minimum(boxes[:, None, 2], boxes[None, :, 2]) - np.maximum(boxes[:, None, 0], boxes[None, :, 0])
-    inter_h = np.minimum(boxes[:, None, 3], boxes[None, :, 3]) - np.maximum(boxes[:, None, 1], boxes[None, :, 1])
-    areas = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
-    inside = np.clip(inter_w, 0, None) * np.clip(inter_h, 0, None) >= 0.5 * areas[:, None]
+    inter_w, inter_h = _pairwise_overlaps(boxes, boxes)
+    areas = _box_areas(boxes)
+    inside = inter_w * inter_h >= 0.5 * areas[:, None]
     # A region is nested when half of it lies in a larger region (or in an earlier one of the same area)
     rank = np.empty(len(regions), dtype=int)
     rank[np.argsort(-areas, kind="stable")] = np.arange(len(regions))
