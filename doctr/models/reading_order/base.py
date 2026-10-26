@@ -44,6 +44,17 @@ _FLOAT_LABELS = {"table", "picture", "figure", "image", "chart", "graphic"}
 
 _FURNITURE_ROLES = ("header", "footer", "footnote")
 
+# Normalized labels of the text lying in a float region without float element (e.g. a table without structure)
+_FLOAT_TEXT_LABELS = {f"{label}_text" for label in _FLOAT_LABELS}
+
+# Key-value rows (receipts, invoices, forms): a "column" of short values, each level with the text it belongs to and
+# far from it, is not a text column. Below this number of column voters, such a split does not make a multi-column page
+_KEY_VALUE_MAX_VOTERS = 60
+# Maximum median aspect ratio (width / height) of the values: a number or a short label, not a line of running text
+_KEY_VALUE_MAX_ASPECT = 8.0
+# Minimum median gap between a value and the text level with it, in median element heights (a gutter is narrower)
+_KEY_VALUE_MIN_GAP = 4.0
+
 
 def normalize_layout_label(label: str | None) -> str:
     """Normalize a layout label to lower snake case (e.g. 'Page-header' -> 'page_header')
@@ -80,6 +91,11 @@ def layout_label_role(label: str | None) -> str:
     if norm in _FLOAT_LABELS:
         return "float"
     return "body"
+
+
+def _float_text_label(label: str) -> str:
+    """Return the label of a text element lying in a float region (e.g. 'Table' -> 'Table text')"""
+    return f"{label} text"
 
 
 def detect_text_direction(texts: Iterable[str], language: str | None = None) -> str:
@@ -179,6 +195,52 @@ def _strict_rank(primary: np.ndarray, secondary: np.ndarray) -> np.ndarray:
     return ranks
 
 
+def _key_value_rows(
+    boxes: np.ndarray, voters: np.ndarray, split: float, y_overlap: np.ndarray, y_overlap_threshold: float, span: float
+) -> bool:
+    """Check whether the voters on the right of a column split are the values of key-value rows rather than a column
+
+    On a receipt or an invoice, the amounts form a narrow right-aligned "column": each amount is level with the item
+    it belongs to, far from it, and the rows must be read one after the other. In a text column, the lines are long
+    and the gutter separating them from the lines of the previous column is narrow.
+
+    Args:
+        boxes: the (N, 4) boxes in canonical LTR space
+        voters: the mask of the boxes used to detect the columns
+        split: the abscissa of the column split
+        y_overlap: the (N, N) vertical overlap ratios of the boxes
+        y_overlap_threshold: the vertical overlap above which two boxes lie on the same row
+        span: the horizontal extent of the voters
+
+    Returns:
+        whether the split separates the keys from the values of key-value rows
+    """
+    num_voters = int(np.count_nonzero(voters))
+    if num_voters > _KEY_VALUE_MAX_VOTERS:
+        return False
+    x0, y0, x1, y1 = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]
+    left_side = voters & ((x0 + x1) / 2 <= split)
+    right = np.flatnonzero(voters & ~left_side)
+    left = np.flatnonzero(left_side)
+    if right.size == 0 or left.size == 0:
+        return False
+    height = float(np.median(y1[voters] - y0[voters]))
+    if not height > 0:
+        return False
+    aspect = float(np.median((x1[right] - x0[right]) / np.maximum(y1[right] - y0[right], 1e-9)))
+    if aspect >= _KEY_VALUE_MAX_ASPECT:
+        return False
+    # Gap between each value and the text level with it on its left
+    level = y_overlap[np.ix_(right, left)] > y_overlap_threshold
+    level &= x1[left][None, :] <= x0[right][:, None] + 0.02 * span
+    paired = level.any(axis=1)
+    if np.count_nonzero(paired) < 0.5 * right.size:
+        return False
+    ends = np.where(level, x1[left][None, :], -np.inf).max(axis=1)
+    gaps = (x0[right][paired] - ends[paired]) / height
+    return float(np.median(gaps)) >= _KEY_VALUE_MIN_GAP
+
+
 def _topological_order(
     boxes: np.ndarray, x_overlap_threshold: float, y_overlap_threshold: float, voters: np.ndarray | None = None
 ) -> list[int]:
@@ -193,7 +255,9 @@ def _topological_order(
     The relations are resolved with Kahn's algorithm; among the available elements, the traversal favors the
     continuation of the current column (the closest element below the last emitted one with a horizontal
     overlap), which keeps multi-column bodies intact even for non-Manhattan layouts where recursive XY-cuts
-    fail to find a valid split. `voters` optionally restricts the boxes used to detect a multi-column page.
+    fail to find a valid split. `voters` optionally restricts the boxes used to detect a multi-column page. A split
+    separating the values of key-value rows from their keys (e.g. the amounts of a receipt, cf. `_key_value_rows`)
+    does not make the page multi-column.
     """
     num_boxes = boxes.shape[0]
     if num_boxes <= 1:
@@ -215,6 +279,14 @@ def _topological_order(
     same_row = y_overlap > y_overlap_threshold
     same_row &= ~x_linked
     same_row &= x_rank[:, None] < x_rank[None, :]  # i is on the left of j
+    # An element shifted between two rows (e.g. an amount on a crumpled receipt) only waits for the row it overlaps most
+    best_left = np.max(y_overlap, axis=0, where=same_row, initial=0.0)
+    weak_i, weak_j = np.nonzero(same_row & (y_overlap < best_left[None, :] - 0.1))
+    if weak_i.size > 0:
+        cols = np.unique(weak_j)
+        best = np.argmax(np.where(same_row[:, cols], y_overlap[:, cols], -1.0), axis=0)
+        other_row = y_overlap[weak_i, best[np.searchsorted(cols, weak_j)]] <= y_overlap_threshold
+        same_row[weak_i[other_row], weak_j[other_row]] = False
     edges |= same_row
     del same_row
     np.fill_diagonal(edges, False)
@@ -224,23 +296,14 @@ def _topological_order(
     order: list[int] = []
     last = -1
 
-    # Column components: elements connected through horizontal overlap, ignoring page-spanning lines (e.g.
-    # titles) which would otherwise merge separate columns. This keeps the traversal inside a column even when
-    # the direct top-to-bottom continuation is momentarily broken by a fragmented or misaligned OCR line.
-    page_width = float(x1.max() - x0.min()) or 1.0
-    spanning = (x1 - x0) > 0.5 * page_width
-
-    # Reuse the horizontal-overlap matrix; keep the upper triangle only, so each pair is visited once
-    col_edges = np.triu(x_linked, 1)
-    col_edges &= ~spanning[:, None]
-    col_edges &= ~spanning[None, :]
-    component = connected_components(csr_matrix(col_edges), directed=False, return_labels=True)[1]
-
     # Detect whether the page is multi-column: if a vertical line can be drawn that separates the boxes into two
     # groups with a small number of crossing boxes, the page is considered multi-column. This is used to
     # favor the continuation of the current column when traversing the graph, which keeps multi-column bodies intact
     # even for non-Manhattan layouts where recursive XY-cuts fail to find a valid split.
     multi_column = False
+    page_width = float(x1.max() - x0.min()) or 1.0
+    spanning = (x1 - x0) > 0.5 * page_width
+    bridging = spanning.copy()  # elements which must not merge the columns: page-wide or crossing the gutter
     if voters is None or np.count_nonzero(voters) < 3:
         voters = np.ones(num_boxes, dtype=bool)
     vx0, vx1, num_voters = x0[voters], x1[voters], int(np.count_nonzero(voters))
@@ -255,8 +318,18 @@ def _topological_order(
             crossing = int(np.count_nonzero(np.minimum(vx1 - split, split - vx0) > 0.02 * span))
             left = int(np.count_nonzero(centers <= split))
             if crossing <= tolerance and left >= 0.25 * num_voters and num_voters - left >= 0.25 * num_voters:
+                if _key_value_rows(boxes, voters, float(split), y_overlap, y_overlap_threshold, span):
+                    break  # rows of keys and values (e.g. a receipt): read row after row
                 multi_column = True
+                bridging |= np.minimum(x1 - split, split - x0) > 0.02 * span
                 break
+
+    # Column components: elements connected through horizontal overlap. This keeps the traversal inside a column even
+    # when the direct top-to-bottom continuation is momentarily broken by a fragmented or misaligned OCR line.
+    col_edges = np.triu(x_linked, 1)  # each pair once
+    col_edges &= ~bridging[:, None]
+    col_edges &= ~bridging[None, :]
+    component = connected_components(csr_matrix(col_edges), directed=False, return_labels=True)[1]
 
     while len(order) < num_boxes:
         ready = np.flatnonzero((in_degree == 0) & ~emitted)
@@ -375,7 +448,7 @@ def _defer_floats(
     inner = {idx for idcs in members.values() for idx in idcs}
 
     def _is_float(idx: int) -> bool:
-        return labels[idx] in _FLOAT_LABELS or idx in inner
+        return labels[idx] in _FLOAT_LABELS or labels[idx] in _FLOAT_TEXT_LABELS or idx in inner
 
     out = list(order)
     pos = 0
@@ -656,12 +729,14 @@ def resolve_reading_segments(
     angle_geoms: Sequence[Any] | np.ndarray | None = None,
     column_voters: Sequence[bool] | None = None,
     region_groups: Sequence[int] | None = None,
+    row_gap: float = 1.5,
 ) -> list[list[int]]:
     """Order elements in reading order and group consecutive ones into segments (paragraphs or regions).
 
     This is typically used to regroup individual lines into paragraphs once they have been put in reading
     order: two consecutive elements are merged into the same segment when they share the same (possibly None)
-    layout label, belong to the same column and are vertically close enough.
+    layout label and layout region, and either belong to the same column and are vertically close enough, or
+    continue the same visual row.
 
     Args:
         geoms: sequence of geometries in any docTR format (cf. `sort_reading_order`)
@@ -682,7 +757,10 @@ def resolve_reading_segments(
             estimate the page angle on rotated pages (cf. `deskew_reading_geometries`)
         column_voters: optional mask of the elements used to detect a multi-column page (all by default)
         region_groups: optional layout region index of each element (-1 for none), used to attach the captions of
-            a region as a unit and to read a float standing beside a region after it
+            a region as a unit, to read a float standing beside a region after it, and to keep distinct regions in
+            distinct segments
+        row_gap: maximum horizontal gap between two consecutive elements of a visual row to join them, as a multiple
+            of the median element height (not applied to body text of the same layout region)
 
     Returns:
         a partition of the input indices into reading-ordered segments (each segment being itself in
@@ -704,24 +782,49 @@ def resolve_reading_segments(
         return []
     canonical = _to_canonical_ltr(_to_boxes(geoms), direction)
     median_height = float(np.median(canonical[:, 3] - canonical[:, 1]))
+    aspect = 1.0  # horizontal distances in the height unit
+    if page_shape is not None and page_shape[0] > 0 and page_shape[1] > 0:
+        aspect = page_shape[0] / page_shape[1] if direction.startswith("ttb") else page_shape[1] / page_shape[0]
     norm_labels = [normalize_layout_label(labels[idx] if labels is not None else None) for idx in range(len(order))]
 
     segments: list[list[int]] = [[order[0]]]
+    row = canonical[order[0]].copy()  # extent of the last visual row of the current segment
     for prev, cur in zip(order[:-1], order[1:]):
-        x_gap = min(canonical[prev, 2], canonical[cur, 2]) - max(canonical[prev, 0], canonical[cur, 0])
-        x_overlap = x_gap / max(
-            min(canonical[prev, 2] - canonical[prev, 0], canonical[cur, 2] - canonical[cur, 0]), 1e-9
+        box = canonical[cur]
+        x_gap = min(row[2], box[2]) - max(row[0], box[0])
+        x_overlap = x_gap / max(min(row[2] - row[0], box[2] - box[0]), 1e-9)
+        y_inter = min(canonical[prev, 3], box[3]) - max(canonical[prev, 1], box[1])
+        y_overlap = y_inter / max(min(canonical[prev, 3] - canonical[prev, 1], box[3] - box[1]), 1e-9)
+        stacked = x_overlap > x_overlap_threshold and box[1] - row[3] <= paragraph_gap * median_height
+        same_region = region_groups is None or region_groups[prev] == region_groups[cur]
+        # The rest of a line split at a wide word gap (any gap within a region of body text)
+        same_row = (
+            y_overlap > y_overlap_threshold
+            and box[0] > canonical[prev, 0]
+            and (
+                (box[0] - canonical[prev, 2]) * aspect <= row_gap * median_height
+                or (
+                    region_groups is not None
+                    and region_groups[cur] >= 0
+                    and same_region
+                    and layout_label_role(norm_labels[cur]) == "body"
+                )
+            )
         )
         same_segment = (
             norm_labels[prev] == norm_labels[cur]
             and layout_label_role(norm_labels[cur]) != "float"
-            and x_overlap > x_overlap_threshold
-            and canonical[cur, 1] - canonical[prev, 3] <= paragraph_gap * median_height
+            and same_region
+            and (stacked or same_row)
         )
         if same_segment:
             segments[-1].append(cur)
         else:
             segments.append([cur])
+        if same_segment and same_row and not stacked:
+            row = np.concatenate((np.minimum(row[:2], box[:2]), np.maximum(row[2:], box[2:])))
+        else:
+            row = box.copy()
     return segments
 
 
@@ -765,6 +868,33 @@ def assign_layout_labels(
         str(layout_labels[reg_idx]) if reg_idx >= 0 else None
         for reg_idx in _covering_regions(boxes, regions, min_coverage, layout_labels)
     ]
+
+
+def _region_groups(regions: np.ndarray, labels: Sequence[str | None], min_overlap: float = 0.1) -> list[int]:
+    """Return the group of each (R, 4) layout region (the index of one of its members), grouping the regions of the
+    same label which overlap by more than `min_overlap` of the smaller one (e.g. two regions for a paragraph around a
+    figure)
+    """
+    norm = [normalize_layout_label(label) for label in labels]
+    areas = (regions[:, 2] - regions[:, 0]) * (regions[:, 3] - regions[:, 1])
+    parent = list(range(regions.shape[0]))
+
+    def _find(idx: int) -> int:
+        while parent[idx] != idx:
+            parent[idx] = parent[parent[idx]]
+            idx = parent[idx]
+        return idx
+
+    for i in range(regions.shape[0]):
+        for j in range(i + 1, regions.shape[0]):
+            if norm[i] != norm[j]:
+                continue
+            inter = max(min(regions[i, 2], regions[j, 2]) - max(regions[i, 0], regions[j, 0]), 0.0) * max(
+                min(regions[i, 3], regions[j, 3]) - max(regions[i, 1], regions[j, 1]), 0.0
+            )
+            if inter > min_overlap * min(areas[i], areas[j]):
+                parent[_find(i)] = _find(j)
+    return [_find(idx) for idx in range(regions.shape[0])]
 
 
 def _covering_regions(
