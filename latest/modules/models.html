@@ -1787,7 +1787,7 @@ characters (bidirectional categories <cite>R</cite> and <cite>AL</cite>, coverin
 Thaana, N’Ko) are counted against strong left-to-right characters (category <cite>L</cite>). This makes the
 detection language-independent and robust to mixed content. When no strong character is found, the
 optional ISO 639 language code is used as a fallback hint.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils.reading_order</span><span class="w"> </span><span class="kn">import</span> <span class="n">detect_text_direction</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.reading_order</span><span class="w"> </span><span class="kn">import</span> <span class="n">detect_text_direction</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">detect_text_direction</span><span class="p">([</span><span class="s2">"Hello"</span><span class="p">,</span> <span class="s2">"world"</span><span class="p">])</span>
 <span class="go">'ltr'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">detect_text_direction</span><span class="p">([</span><span class="s2">"مرحبا"</span><span class="p">,</span> <span class="s2">"بالعالم"</span><span class="p">])</span>
