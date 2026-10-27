@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" data-theme="auto">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Core concepts &#8212; docTR documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "auto";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "auto";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/doctr.css?v=376da089" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
+
+    <script src="../_static/documentation_options.js?v=bb6b65a3"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=08e7b316"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('consent', 'default', {
+                    'ad_storage': 'denied',
+                    'ad_user_data': 'denied',
+                    'ad_personalization': 'denied',
+                    'analytics_storage': 'denied'
+                });
+            </script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-40DVRMX8T4"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-40DVRMX8T4');
+            </script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'getting_started/concepts';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.23.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = '_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'latest';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = true;</script>
+    <script src="../_static/js/doctr.js?v=0ea358fd"></script>
+    <link rel="icon" href="../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="User guide" href="../user_guide/index.html" />
+    <link rel="prev" title="Quickstart" href="quickstart.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.1.1a0" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="auto">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo-light.png" class="logo__image only-light" alt="docTR - Home"/>
+    <img src="../_static/logo-dark.png" class="logo__image only-dark pst-js-only" alt="docTR - Home"/>
+  
+  
+</a></div>
+    
+      <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Get started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/index.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../models/index.html">
+    Model zoo
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../training/index.html">
+    Training
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../deployment/index.html">
+    Deployment
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../community/index.html">
+    Community
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mindee/doctr" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/python-doctr/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-python fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://huggingface.co/spaces/mindee/doctr" title="Live demo on Hugging Face" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-wand-magic-sparkles fa-lg" aria-hidden="true"></i><span class="visually-hidden">Live demo on Hugging Face</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Get started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/index.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../models/index.html">
+    Model zoo
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../training/index.html">
+    Training
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../deployment/index.html">
+    Deployment
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../community/index.html">
+    Community
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mindee/doctr" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/python-doctr/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-python fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://huggingface.co/spaces/mindee/doctr" title="Live demo on Hugging Face" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-wand-magic-sparkles fa-lg" aria-hidden="true"></i><span class="visually-hidden">Live demo on Hugging Face</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">Core concepts</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Get started</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Core concepts</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="core-concepts">
+<h1>Core concepts<a class="headerlink" href="#core-concepts" title="Link to this heading">#</a></h1>
+<p>A few ideas come back on every page of this documentation: <strong>predictors</strong>, the <strong><code class="docutils literal notranslate"><span class="pre">Document</span></code></strong> tree they return,
+and the way docTR expresses <strong>positions</strong>. Ten minutes here will make everything else easier to follow.</p>
+<section id="the-ocr-pipeline">
+<h2>The OCR pipeline<a class="headerlink" href="#the-ocr-pipeline" title="Link to this heading">#</a></h2>
+<p>OCR is split into two consecutive tasks, each solved by a dedicated deep learning model:</p>
+<ol class="arabic simple">
+<li><p><strong>Text detection</strong> localizes every word on the page (<em>where is text?</em>).</p></li>
+<li><p><strong>Text recognition</strong> transcribes each detected word from its crop (<em>what does it say?</em>).</p></li>
+</ol>
+<p>The predictions are then assembled into a structured document. Optional stages plug into the same pipeline when
+you need them: orientation handling for rotated pages, layout analysis, and table structure recognition.</p>
+<div class="doctr-diagram" role="img" aria-label="docTR pipeline: your files go through text detection and text recognition, are assembled by the document builder into a Document. Optional stages: orientation handling, layout analysis and table structure recognition.">
+<svg viewBox="0 0 1000 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="doctr-ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="arrow-head" d="M 0 0 L 10 5 L 0 10 z"/>
+    </marker>
+  </defs>
+  <!-- Main pipeline -->
+  <rect class="box" x="10" y="30" width="130" height="92" rx="12"/>
+  <text class="title" x="75" y="62" text-anchor="middle">Your files</text>
+  <text class="sub" x="75" y="84" text-anchor="middle">PDF · images</text>
+  <text class="sub" x="75" y="101" text-anchor="middle">web pages</text>
+
+  <rect class="box core" x="180" y="30" width="165" height="92" rx="12"/>
+  <text class="title" x="262" y="60" text-anchor="middle">Text detection</text>
+  <text class="sub" x="262" y="82" text-anchor="middle">Localize every word</text>
+  <text class="mono" x="262" y="104" text-anchor="middle">det_arch</text>
+
+  <rect class="box core" x="385" y="30" width="165" height="92" rx="12"/>
+  <text class="title" x="467" y="60" text-anchor="middle">Text recognition</text>
+  <text class="sub" x="467" y="82" text-anchor="middle">Read each word crop</text>
+  <text class="mono" x="467" y="104" text-anchor="middle">reco_arch</text>
+
+  <rect class="box" x="590" y="30" width="165" height="92" rx="12"/>
+  <text class="title" x="672" y="60" text-anchor="middle">Document builder</text>
+  <text class="sub" x="672" y="82" text-anchor="middle">Lines, blocks and</text>
+  <text class="sub" x="672" y="99" text-anchor="middle">reading order</text>
+
+  <rect class="box out" x="795" y="30" width="195" height="92" rx="12"/>
+  <text class="title on-dark" x="892" y="60" text-anchor="middle">Document</text>
+  <text class="sub on-dark" x="892" y="82" text-anchor="middle">JSON · text · Markdown</text>
+  <text class="sub on-dark" x="892" y="99" text-anchor="middle">HTML · AsciiDoc · hOCR</text>
+
+  <line class="arrow" x1="140" y1="76" x2="176" y2="76" marker-end="url(#doctr-ah)"/>
+  <line class="arrow" x1="345" y1="76" x2="381" y2="76" marker-end="url(#doctr-ah)"/>
+  <line class="arrow" x1="550" y1="76" x2="586" y2="76" marker-end="url(#doctr-ah)"/>
+  <line class="arrow" x1="755" y1="76" x2="791" y2="76" marker-end="url(#doctr-ah)"/>
+
+  <!-- Optional stages -->
+  <rect class="box opt" x="180" y="182" width="370" height="80" rx="12"/>
+  <text class="title" x="365" y="210" text-anchor="middle">Orientation handling</text>
+  <text class="sub" x="365" y="230" text-anchor="middle">Straighten rotated pages and word crops</text>
+  <text class="mono" x="365" y="249" text-anchor="middle">assume_straight_pages=False</text>
+
+  <rect class="box opt" x="590" y="182" width="165" height="80" rx="12"/>
+  <text class="title" x="672" y="210" text-anchor="middle">Layout analysis</text>
+  <text class="sub" x="672" y="230" text-anchor="middle">Titles, tables, figures…</text>
+  <text class="mono" x="672" y="249" text-anchor="middle">detect_layout=True</text>
+
+  <rect class="box opt" x="795" y="182" width="195" height="80" rx="12"/>
+  <text class="title" x="892" y="210" text-anchor="middle">Table structure</text>
+  <text class="sub" x="892" y="230" text-anchor="middle">Rows, columns and cells</text>
+  <text class="mono" x="892" y="249" text-anchor="middle">detect_tables=True</text>
+
+  <line class="arrow" x1="262" y1="182" x2="262" y2="126" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
+  <line class="arrow" x1="467" y1="182" x2="467" y2="126" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
+  <line class="arrow" x1="672" y1="182" x2="672" y2="126" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
+  <line class="arrow" x1="892" y1="182" x2="892" y2="126" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
+  <line class="arrow" x1="755" y1="222" x2="791" y2="222" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
+
+  <!-- Legend -->
+  <line class="arrow" x1="10" y1="200" x2="40" y2="200"/>
+  <text class="legend" x="48" y="204">always runs</text>
+  <line class="arrow" x1="10" y1="226" x2="40" y2="226" stroke-dasharray="4 4"/>
+  <text class="legend" x="48" y="230">optional</text>
+</svg>
+</div>
+</section>
+<section id="predictors-and-models">
+<h2>Predictors and models<a class="headerlink" href="#predictors-and-models" title="Link to this heading">#</a></h2>
+<p>You rarely call a model directly. Instead you use a <strong>predictor</strong>: a callable that takes care of everything
+around the neural network so you can feed it raw pages.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Layer</p></th>
+<th class="head"><p>Responsibility</p></th>
+<th class="head"><p>Example</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Pre-processor</strong></p></td>
+<td><p>Resizes, pads, normalizes and batches the input images</p></td>
+<td><p><a class="reference internal" href="../api/models.html#doctr.models.preprocessor.PreProcessor" title="doctr.models.preprocessor.PreProcessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">PreProcessor</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Model</strong></p></td>
+<td><p>A regular PyTorch <code class="docutils literal notranslate"><span class="pre">nn.Module</span></code> that runs the network</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fast_base</span></code>, <code class="docutils literal notranslate"><span class="pre">crnn_vgg16_bn</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Post-processor</strong></p></td>
+<td><p>Turns raw network outputs into boxes, strings and scores</p></td>
+<td><p>decoding of the segmentation map</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>docTR exposes a factory function for every task. Each one accepts an architecture <strong>name</strong> (or a model
+<strong>instance</strong>, e.g. one you trained yourself) and returns a ready-to-use predictor:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Task</p></th>
+<th class="head"><p>Factory</p></th>
+<th class="head"><p>Returns</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>End-to-end OCR</p></td>
+<td><p><a class="reference internal" href="../api/models.html#doctr.models.ocr_predictor" title="doctr.models.ocr_predictor"><code class="xref py py-func docutils literal notranslate"><span class="pre">ocr_predictor()</span></code></a></p></td>
+<td><p>a <a class="reference internal" href="../api/io.html#doctr.io.Document" title="doctr.io.Document"><code class="xref py py-class docutils literal notranslate"><span class="pre">Document</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Key information extraction</p></td>
+<td><p><a class="reference internal" href="../api/models.html#doctr.models.kie_predictor" title="doctr.models.kie_predictor"><code class="xref py py-func docutils literal notranslate"><span class="pre">kie_predictor()</span></code></a></p></td>
+<td><p>a <a class="reference internal" href="../api/io.html#doctr.io.KIEDocument" title="doctr.io.KIEDocument"><code class="xref py py-class docutils literal notranslate"><span class="pre">KIEDocument</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p>Text detection only</p></td>
+<td><p><a class="reference internal" href="../api/models.html#doctr.models.detection.detection_predictor" title="doctr.models.detection.detection_predictor"><code class="xref py py-func docutils literal notranslate"><span class="pre">detection_predictor()</span></code></a></p></td>
+<td><p>boxes per page</p></td>
+</tr>
+<tr class="row-odd"><td><p>Text recognition only</p></td>
+<td><p><a class="reference internal" href="../api/models.html#doctr.models.recognition.recognition_predictor" title="doctr.models.recognition.recognition_predictor"><code class="xref py py-func docutils literal notranslate"><span class="pre">recognition_predictor()</span></code></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(text,</span> <span class="pre">confidence)</span></code> per crop</p></td>
+</tr>
+<tr class="row-even"><td><p>Layout analysis</p></td>
+<td><p><a class="reference internal" href="../api/models.html#doctr.models.layout.layout_predictor" title="doctr.models.layout.layout_predictor"><code class="xref py py-func docutils literal notranslate"><span class="pre">layout_predictor()</span></code></a></p></td>
+<td><p>labelled regions per page</p></td>
+</tr>
+<tr class="row-odd"><td><p>Table structure recognition</p></td>
+<td><p><a class="reference internal" href="../api/models.html#doctr.models.table_structure.table_predictor" title="doctr.models.table_structure.table_predictor"><code class="xref py py-func docutils literal notranslate"><span class="pre">table_predictor()</span></code></a></p></td>
+<td><p>cells with row/column spans per table</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The end-to-end <a class="reference internal" href="../api/models.html#doctr.models.ocr_predictor" title="doctr.models.ocr_predictor"><code class="xref py py-func docutils literal notranslate"><span class="pre">ocr_predictor()</span></code></a> composes the task predictors, which stay reachable as attributes:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
+
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">predictor</span><span class="o">.</span><span class="n">det_predictor</span>  <span class="c1"># text detection (pre-processor + model + post-processor)</span>
+<span class="n">predictor</span><span class="o">.</span><span class="n">reco_predictor</span>  <span class="c1"># text recognition</span>
+<span class="n">predictor</span><span class="o">.</span><span class="n">doc_builder</span>  <span class="c1"># assembles words into lines, blocks and pages</span>
+</pre></div>
+</div>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>Always pass <code class="docutils literal notranslate"><span class="pre">pretrained=True</span></code> unless you load your own weights: without it, the models are randomly initialized
+and return meaningless predictions.</p>
+</div>
+</section>
+<section id="the-document-tree">
+<h2>The <code class="docutils literal notranslate"><span class="pre">Document</span></code> tree<a class="headerlink" href="#the-document-tree" title="Link to this heading">#</a></h2>
+<p>The OCR predictor returns a <a class="reference internal" href="../api/io.html#doctr.io.Document" title="doctr.io.Document"><code class="xref py py-class docutils literal notranslate"><span class="pre">Document</span></code></a>: a tree of elements that mirrors the structure of what was
+read.</p>
+<div class="doctr-tree"><span class="k">Document</span>
+└── pages: list[<span class="k">Page</span>]                  <span class="c"># one per input page</span>
+    ├── blocks: list[<span class="k">Block</span>]            <span class="c"># groups of lines (paragraphs, addresses...)</span>
+    │   ├── lines: list[<span class="k">Line</span>]          <span class="c"># words read together</span>
+    │   │   └── words: list[<span class="k">Word</span>]      <span class="c"># value, confidence, geometry</span>
+    │   └── artefacts: list[<span class="k">Artefact</span>]  <span class="c"># non-textual elements</span>
+    ├── layout: list[<span class="k">LayoutElement</span>]    <span class="c"># with detect_layout=True</span>
+    └── tables: list[<span class="k">Table</span>]            <span class="c"># with detect_tables=True</span>
+        └── cells: list[<span class="k">TableCell</span>]</div><div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Element</p></th>
+<th class="head"><p>What it represents</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/io.html#doctr.io.Word" title="doctr.io.Word"><code class="xref py py-class docutils literal notranslate"><span class="pre">Word</span></code></a></p></td>
+<td><p>An uninterrupted sequence of characters, with its text <code class="docutils literal notranslate"><span class="pre">value</span></code>, recognition <code class="docutils literal notranslate"><span class="pre">confidence</span></code> and <code class="docutils literal notranslate"><span class="pre">geometry</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/io.html#doctr.io.Line" title="doctr.io.Line"><code class="xref py py-class docutils literal notranslate"><span class="pre">Line</span></code></a></p></td>
+<td><p>Words aligned and meant to be read together. On a two-column page, a horizontal row holds two lines</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/io.html#doctr.io.Block" title="doctr.io.Block"><code class="xref py py-class docutils literal notranslate"><span class="pre">Block</span></code></a></p></td>
+<td><p>A group of lines (e.g. an address written on several lines) and artefacts</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/io.html#doctr.io.Artefact" title="doctr.io.Artefact"><code class="xref py py-class docutils literal notranslate"><span class="pre">Artefact</span></code></a></p></td>
+<td><p>A non-textual element: a picture, a logo, a QR code, a signature…</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/io.html#doctr.io.LayoutElement" title="doctr.io.LayoutElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">LayoutElement</span></code></a></p></td>
+<td><p>A region found by the layout model: <code class="docutils literal notranslate"><span class="pre">Title</span></code>, <code class="docutils literal notranslate"><span class="pre">Text</span></code>, <code class="docutils literal notranslate"><span class="pre">Table</span></code>, <code class="docutils literal notranslate"><span class="pre">Picture</span></code>, <code class="docutils literal notranslate"><span class="pre">Page-header</span></code>…</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/io.html#doctr.io.Table" title="doctr.io.Table"><code class="xref py py-class docutils literal notranslate"><span class="pre">Table</span></code></a> / <a class="reference internal" href="../api/io.html#doctr.io.TableCell" title="doctr.io.TableCell"><code class="xref py py-class docutils literal notranslate"><span class="pre">TableCell</span></code></a></p></td>
+<td><p>A recognized table, as cells spanning rows and columns</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/io.html#doctr.io.Page" title="doctr.io.Page"><code class="xref py py-class docutils literal notranslate"><span class="pre">Page</span></code></a></p></td>
+<td><p>Everything found on one page, plus its <code class="docutils literal notranslate"><span class="pre">dimensions</span></code>, <code class="docutils literal notranslate"><span class="pre">orientation</span></code> and <code class="docutils literal notranslate"><span class="pre">language</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Every element can be <strong>rendered</strong> to text with <code class="docutils literal notranslate"><span class="pre">.render()</span></code> and <strong>exported</strong> to a JSON-serializable dict with
+<code class="docutils literal notranslate"><span class="pre">.export()</span></code>. See <a class="reference internal" href="../user_guide/results.html"><span class="std std-doc">Working with results</span></a> for a hands-on tour.</p>
+</section>
+<section id="coordinates">
+<h2>Coordinates<a class="headerlink" href="#coordinates" title="Link to this heading">#</a></h2>
+<p>All geometries are expressed in <strong>relative coordinates</strong>, between <code class="docutils literal notranslate"><span class="pre">0</span></code> and <code class="docutils literal notranslate"><span class="pre">1</span></code>, as a fraction of the page width (x)
+and height (y), with the origin at the <strong>top-left</strong> corner. This makes them independent of the resolution the page
+was rendered at.</p>
+<div class="sd-container-fluid sd-sphinx-override sd-mb-4 docutils">
+<div class="sd-row sd-row-cols-1 sd-row-cols-xs-1 sd-row-cols-sm-1 sd-row-cols-md-2 sd-row-cols-lg-2 sd-g-3 sd-g-xs-3 sd-g-sm-3 sd-g-md-3 sd-g-lg-3 docutils">
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Straight boxes (default)</div>
+<p class="sd-card-text">Two points: the top-left and the bottom-right corners.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">((</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">))</span>
+<span class="c1"># e.g. ((0.12, 0.05), (0.31, 0.08))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+Rotated boxes</div>
+<p class="sd-card-text">With <code class="docutils literal notranslate"><span class="pre">assume_straight_pages=False</span></code>: a polygon of four <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y)</span></code> points, as a NumPy array of shape <code class="docutils literal notranslate"><span class="pre">(4,</span> <span class="pre">2)</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">array</span><span class="p">([[</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">],</span> <span class="p">[</span><span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">],</span> <span class="p">[</span><span class="n">x3</span><span class="p">,</span> <span class="n">y3</span><span class="p">],</span> <span class="p">[</span><span class="n">x4</span><span class="p">,</span> <span class="n">y4</span><span class="p">]])</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p>To get pixel coordinates, multiply by the page size. Note that <code class="docutils literal notranslate"><span class="pre">page.dimensions</span></code> is <code class="docutils literal notranslate"><span class="pre">(height,</span> <span class="pre">width)</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">dimensions</span>
+<span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span> <span class="o">=</span> <span class="n">word</span><span class="o">.</span><span class="n">geometry</span>
+<span class="n">box_in_pixels</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">xmin</span> <span class="o">*</span> <span class="n">width</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">ymin</span> <span class="o">*</span> <span class="n">height</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">xmax</span> <span class="o">*</span> <span class="n">width</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">ymax</span> <span class="o">*</span> <span class="n">height</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="scores">
+<h2>Scores<a class="headerlink" href="#scores" title="Link to this heading">#</a></h2>
+<p>docTR attaches several scores to its predictions. They answer different questions:</p>
+<dl class="simple myst">
+<dt><code class="docutils literal notranslate"><span class="pre">Word.confidence</span></code></dt><dd><p>How sure the <strong>recognition</strong> model is about the text, between 0 and 1. By default it is the lowest
+probability among the characters of the word (see <a class="reference internal" href="../user_guide/ocr_predictor.html#confidence-scores"><span class="std std-ref">confidence aggregation</span></a>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">Word.objectness_score</span></code></dt><dd><p>How sure the <strong>detection</strong> model is that the box contains text.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">Word.crop_orientation</span></code></dt><dd><p>The predicted rotation of the word crop, <code class="docutils literal notranslate"><span class="pre">{&quot;value&quot;:</span> <span class="pre">angle,</span> <span class="pre">&quot;confidence&quot;:</span> <span class="pre">score}</span></code>, when crop orientation is
+classified (rotated documents).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">Page.orientation</span></code> / <code class="docutils literal notranslate"><span class="pre">Page.language</span></code></dt><dd><p>The estimated page rotation and language, filled with <code class="docutils literal notranslate"><span class="pre">detect_orientation=True</span></code> / <code class="docutils literal notranslate"><span class="pre">detect_language=True</span></code>.</p>
+</dd>
+</dl>
+</section>
+<section id="vocabularies">
+<h2>Vocabularies<a class="headerlink" href="#vocabularies" title="Link to this heading">#</a></h2>
+<p>A recognition model can only output characters from the <strong>vocabulary</strong> it was trained on. The pretrained recognition
+models use the <code class="docutils literal notranslate"><span class="pre">french</span></code> vocabulary, which covers Latin characters with the most common accents, digits and
+punctuation. docTR ships <a class="reference internal" href="../models/vocabs.html"><span class="std std-doc">100+ vocabularies</span></a> for training models on other languages and
+alphabets, and lets you <a class="reference internal" href="../user_guide/ocr_predictor.html#restrict-the-output-characters"><span class="std std-ref">restrict a model to a subset</span></a>
+of its vocabulary.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">recognition_predictor</span>
+
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="s2">"crnn_vgg16_bn"</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">predictor</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s2">"vocab"</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="next-steps">
+<h2>Next steps<a class="headerlink" href="#next-steps" title="Link to this heading">#</a></h2>
+<div class="sd-container-fluid sd-sphinx-override sd-mb-4 docutils">
+<div class="sd-row sd-row-cols-1 sd-row-cols-xs-1 sd-row-cols-sm-2 sd-row-cols-md-2 sd-row-cols-lg-2 sd-g-3 sd-g-xs-3 sd-g-sm-3 sd-g-md-3 sd-g-lg-3 docutils">
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+<svg version="1.1" width="1.1em" height="1.1em" class="sd-octicon sd-octicon-book" viewBox="0 0 16 16" aria-hidden="true"><path d="M0 1.75A.75.75 0 0 1 .75 1h4.253c1.227 0 2.317.59 3 1.501A3.743 3.743 0 0 1 11.006 1h4.245a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75h-4.507a2.25 2.25 0 0 0-1.591.659l-.622.621a.75.75 0 0 1-1.06 0l-.622-.621A2.25 2.25 0 0 0 5.258 13H.75a.75.75 0 0 1-.75-.75Zm7.251 10.324.004-5.073-.002-2.253A2.25 2.25 0 0 0 5.003 2.5H1.5v9h3.757a3.75 3.75 0 0 1 1.994.574ZM8.755 4.75l-.004 7.322a3.752 3.752 0 0 1 1.992-.572H14.5v-9h-3.495a2.25 2.25 0 0 0-2.25 2.25Z"></path></svg> User guide</div>
+<p class="sd-card-text">Every option of the OCR predictor, explained with examples.</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="../user_guide/index.html"><span class="doc">User guide</span></a></div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+<svg version="1.1" width="1.1em" height="1.1em" class="sd-octicon sd-octicon-stack" viewBox="0 0 16 16" aria-hidden="true"><path d="M7.122.392a1.75 1.75 0 0 1 1.756 0l5.003 2.902c.83.481.83 1.68 0 2.162L8.878 8.358a1.75 1.75 0 0 1-1.756 0L2.119 5.456a1.251 1.251 0 0 1 0-2.162ZM8.125 1.69a.248.248 0 0 0-.25 0l-4.63 2.685 4.63 2.685a.248.248 0 0 0 .25 0l4.63-2.685ZM1.601 7.789a.75.75 0 0 1 1.025-.273l5.249 3.044a.248.248 0 0 0 .25 0l5.249-3.044a.75.75 0 0 1 .752 1.298l-5.248 3.044a1.75 1.75 0 0 1-1.756 0L1.874 8.814A.75.75 0 0 1 1.6 7.789Zm0 3.5a.75.75 0 0 1 1.025-.273l5.249 3.044a.248.248 0 0 0 .25 0l5.249-3.044a.75.75 0 0 1 .752 1.298l-5.248 3.044a1.75 1.75 0 0 1-1.756 0l-5.248-3.044a.75.75 0 0 1-.273-1.025Z"></path></svg> Model zoo</div>
+<p class="sd-card-text">Compare the architectures and pick the right one for your documents.</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="../models/index.html"><span class="doc">Model zoo</span></a></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="quickstart.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Quickstart</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../user_guide/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">User guide</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-ocr-pipeline">The OCR pipeline</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#predictors-and-models">Predictors and models</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-document-tree">The <code class="docutils literal notranslate"><span class="pre">Document</span></code> tree</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#coordinates">Coordinates</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scores">Scores</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vocabularies">Vocabularies</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#next-steps">Next steps</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/mindee/doctr/edit/main/docs/source/getting_started/concepts.md">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2021-2026, Mindee.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+    <div class="footer-items__center">
+      
+        <div class="footer-item"><p class="maintainers">
+  Created by <a href="https://mindee.com">Mindee</a> &middot; developed and maintained by
+  <a href="https://www.text2knowledge.de">t2k GmbH</a> and the docTR community
+</p></div>
+      
+    </div>
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="license">
+  Released under the <a href="https://github.com/mindee/doctr/blob/main/LICENSE">Apache 2.0 License</a>
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

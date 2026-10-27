@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" data-theme="auto">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Running OCR &#8212; docTR documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "auto";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "auto";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/doctr.css?v=376da089" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
+
+    <script src="../_static/documentation_options.js?v=bb6b65a3"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=08e7b316"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('consent', 'default', {
+                    'ad_storage': 'denied',
+                    'ad_user_data': 'denied',
+                    'ad_personalization': 'denied',
+                    'analytics_storage': 'denied'
+                });
+            </script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-40DVRMX8T4"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-40DVRMX8T4');
+            </script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/ocr_predictor';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.23.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = '_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'latest';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = true;</script>
+    <script src="../_static/js/doctr.js?v=0ea358fd"></script>
+    <link rel="icon" href="../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Working with results" href="results.html" />
+    <link rel="prev" title="Loading documents" href="loading_documents.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.1.1a0" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="auto">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo-light.png" class="logo__image only-light" alt="docTR - Home"/>
+    <img src="../_static/logo-dark.png" class="logo__image only-dark pst-js-only" alt="docTR - Home"/>
+  
+  
+</a></div>
+    
+      <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../getting_started/index.html">
+    Get started
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../models/index.html">
+    Model zoo
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../training/index.html">
+    Training
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../deployment/index.html">
+    Deployment
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../community/index.html">
+    Community
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mindee/doctr" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/python-doctr/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-python fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://huggingface.co/spaces/mindee/doctr" title="Live demo on Hugging Face" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-wand-magic-sparkles fa-lg" aria-hidden="true"></i><span class="visually-hidden">Live demo on Hugging Face</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../getting_started/index.html">
+    Get started
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../models/index.html">
+    Model zoo
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../training/index.html">
+    Training
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../deployment/index.html">
+    Deployment
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../community/index.html">
+    Community
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mindee/doctr" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/python-doctr/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-python fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://huggingface.co/spaces/mindee/doctr" title="Live demo on Hugging Face" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-wand-magic-sparkles fa-lg" aria-hidden="true"></i><span class="visually-hidden">Live demo on Hugging Face</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">The essentials</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="loading_documents.html">Loading documents</a></li>
+<li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">Running OCR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="results.html">Working with results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exporting.html">Exporting results</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Beyond plain text</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="layout_and_tables.html">Layout analysis &amp; tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rotated_documents.html">Rotated documents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="kie.html">Key information extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="standalone_predictors.html">Task-specific predictors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="artefacts.html">Artefact detection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command-line interface</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Help</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Troubleshooting &amp; FAQ</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">User guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Running OCR</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="running-ocr">
+<h1>Running OCR<a class="headerlink" href="#running-ocr" title="Link to this heading">#</a></h1>
+<p><a class="reference internal" href="../api/models.html#doctr.models.ocr_predictor" title="doctr.models.ocr_predictor"><code class="xref py py-func docutils literal notranslate"><span class="pre">ocr_predictor()</span></code></a> builds the end-to-end pipeline: it detects the words of each page, reads them,
+and assembles the result into a <a class="reference internal" href="../api/io.html#doctr.io.Document" title="doctr.io.Document"><code class="xref py py-class docutils literal notranslate"><span class="pre">Document</span></code></a>. This page walks through its options, from choosing
+the models to fine-tuning the output.</p>
+<section id="create-a-predictor">
+<h2>Create a predictor<a class="headerlink" href="#create-a-predictor" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
+
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">pages</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_pdf</span><span class="p">(</span><span class="s2">"path/to/report.pdf"</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">pages</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Building a predictor loads the models (and downloads their weights the first time), so <strong>create it once and reuse
+it</strong> for all your documents. The predictor runs in inference mode and accepts any number of pages per call.</p>
+</section>
+<section id="choose-the-architectures">
+<h2>Choose the architectures<a class="headerlink" href="#choose-the-architectures" title="Link to this heading">#</a></h2>
+<p>By default, <code class="docutils literal notranslate"><span class="pre">ocr_predictor</span></code> uses <code class="docutils literal notranslate"><span class="pre">fast_base</span></code> for text detection and <code class="docutils literal notranslate"><span class="pre">crnn_vgg16_bn</span></code> for text recognition. Pass the
+names of other architectures to trade speed for accuracy:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="s2">"db_resnet50"</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="s2">"parseq"</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>You want…</p></th>
+<th class="head"><p>Detection (<code class="docutils literal notranslate"><span class="pre">det_arch</span></code>)</p></th>
+<th class="head"><p>Recognition (<code class="docutils literal notranslate"><span class="pre">reco_arch</span></code>)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>A good default</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fast_base</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">crnn_vgg16_bn</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Maximum speed (CPU, edge devices)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fast_tiny</span></code>, <code class="docutils literal notranslate"><span class="pre">db_mobilenet_v3_large</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">crnn_mobilenet_v3_small</span></code>, <code class="docutils literal notranslate"><span class="pre">viptr_tiny</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Maximum accuracy</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">db_resnet50</span></code>, <code class="docutils literal notranslate"><span class="pre">fast_base</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">parseq</span></code>, <code class="docutils literal notranslate"><span class="pre">vitstr_base</span></code>, <code class="docutils literal notranslate"><span class="pre">master</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The <a class="reference internal" href="../models/index.html"><span class="std std-doc">model zoo</span></a> lists every architecture with its benchmark. Instead of a name, you can also pass
+a model <strong>instance</strong>, which is how you plug in <a class="reference internal" href="../training/custom_models.html"><span class="std std-doc">your own trained models</span></a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span><span class="p">,</span> <span class="n">fast_base</span><span class="p">,</span> <span class="n">parseq</span>
+
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span>
+    <span class="n">det_arch</span><span class="o">=</span><span class="n">fast_base</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+    <span class="n">reco_arch</span><span class="o">=</span><span class="n">parseq</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="options-at-a-glance">
+<h2>Options at a glance<a class="headerlink" href="#options-at-a-glance" title="Link to this heading">#</a></h2>
+<p>All options are keyword arguments of <a class="reference internal" href="../api/models.html#doctr.models.ocr_predictor" title="doctr.models.ocr_predictor"><code class="xref py py-func docutils literal notranslate"><span class="pre">ocr_predictor()</span></code></a>.</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-0">
+Page geometry</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Effect</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">assume_straight_pages</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Assume upright pages with horizontal text: fastest, returns straight boxes. Set to <code class="docutils literal notranslate"><span class="pre">False</span></code> for rotated or skewed documents.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">straighten_pages</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Estimate the page rotation and straighten the pages before running the models</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">export_as_straight_boxes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>With <code class="docutils literal notranslate"><span class="pre">assume_straight_pages=False</span></code>, still export straight boxes instead of polygons</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">preserve_aspect_ratio</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Pad the pages instead of stretching them when resizing them for the models</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">symmetric_pad</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>With <code class="docutils literal notranslate"><span class="pre">preserve_aspect_ratio=True</span></code>, pad on all sides instead of bottom-right only</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>See <a class="reference internal" href="rotated_documents.html"><span class="std std-doc">Rotated documents</span></a> for a detailed guide.</p>
+</div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-1">
+Extra predictions</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Effect</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">detect_orientation</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Estimate the general orientation of each page, available as <code class="docutils literal notranslate"><span class="pre">page.orientation</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">detect_language</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Estimate the language of each page, available as <code class="docutils literal notranslate"><span class="pre">page.language</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">detect_layout</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Run a layout model and attach its regions to each page (<code class="docutils literal notranslate"><span class="pre">page.layout</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">layout_arch</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;lw_detr_s&quot;</span></code></p></td>
+<td><p>Layout architecture name or model instance</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">detect_tables</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Recognize the structure of tables (<code class="docutils literal notranslate"><span class="pre">page.tables</span></code>); enables the layout model</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ignore_regions</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Layout classes to mask out before OCR, e.g. <code class="docutils literal notranslate"><span class="pre">[&quot;Picture&quot;]</span></code>; requires the layout model (<code class="docutils literal notranslate"><span class="pre">detect_layout=True</span></code>)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>See <a class="reference internal" href="layout_and_tables.html"><span class="std std-doc">Layout analysis &amp; tables</span></a>.</p>
+</div>
+<input id="sd-tab-item-2" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-2">
+Output structure</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Effect</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">resolve_lines</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Group words into lines</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">resolve_blocks</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Group lines into blocks (by default, all the lines of a page form a single block)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">paragraph_break</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.035</span></code></p></td>
+<td><p>Minimum horizontal gap, relative to the page width, that splits two words into different lines</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">keep_reading_order</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Sort the blocks of every page in reading order</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-3" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-3">
+Performance</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Effect</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">det_bs</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2</span></code></p></td>
+<td><p>Batch size of the detection model (also used by the layout and table models)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">reco_bs</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">128</span></code></p></td>
+<td><p>Batch size of the recognition model (number of word crops per batch)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">disable_page_orientation</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Skip the page orientation classifier (see <a class="reference internal" href="rotated_documents.html"><span class="std std-doc">rotated documents</span></a>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">disable_crop_orientation</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Skip the word crop orientation classifier</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>See <a class="reference internal" href="../deployment/performance.html"><span class="std std-doc">Performance</span></a> for GPU and half-precision inference.</p>
+</div>
+</div>
+</section>
+<section id="tune-the-text-detection">
+<h2>Tune the text detection<a class="headerlink" href="#tune-the-text-detection" title="Link to this heading">#</a></h2>
+<p>The detection models output a probability map that is binarized, then split into boxes. Two thresholds of the
+post-processor control this step:</p>
+<dl class="simple myst">
+<dt><code class="docutils literal notranslate"><span class="pre">bin_thresh</span></code></dt><dd><p>Minimum probability for a pixel to be considered as text. Lower it to catch faint text, raise it to separate words
+that are close to each other.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">box_thresh</span></code></dt><dd><p>Minimum mean score of a box to be kept. Lower it to keep more (uncertain) words, raise it to drop noise.</p>
+</dd>
+</dl>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">predictor</span><span class="o">.</span><span class="n">det_predictor</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">postprocessor</span><span class="o">.</span><span class="n">bin_thresh</span> <span class="o">=</span> <span class="mf">0.3</span>
+<span class="n">predictor</span><span class="o">.</span><span class="n">det_predictor</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">postprocessor</span><span class="o">.</span><span class="n">box_thresh</span> <span class="o">=</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+</section>
+<section id="confidence-scores">
+<h2>Confidence scores<a class="headerlink" href="#confidence-scores" title="Link to this heading">#</a></h2>
+<p>The recognition model predicts a probability for each character of a word. They are aggregated into
+<code class="docutils literal notranslate"><span class="pre">word.confidence</span></code> with one of the following methods:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Method</p></th>
+<th class="head"><p>Behavior</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;min&quot;</span></code></p></td>
+<td><p>The least confident character (default for CRNN, VIPTR, SAR and MASTER)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;mean&quot;</span></code></p></td>
+<td><p>Average probability (default for ViTSTR and PARSeq)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;geometric_mean&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;harmonic_mean&quot;</span></code></p></td>
+<td><p>Means that penalize a single uncertain character more than the arithmetic mean</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;median&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;max&quot;</span></code></p></td>
+<td><p>Ignore most uncertain characters: they barely separate misread words from correct ones</p></td>
+</tr>
+<tr class="row-even"><td><p>a callable</p></td>
+<td><p>Any function taking the 1D array of probabilities and returning a float</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>For the probabilities <code class="docutils literal notranslate"><span class="pre">[0.99,</span> <span class="pre">0.98,</span> <span class="pre">0.12,</span> <span class="pre">0.99]</span></code> (one doubtful character), the mean is <code class="docutils literal notranslate"><span class="pre">0.77</span></code>, the geometric mean
+<code class="docutils literal notranslate"><span class="pre">0.58</span></code>, the harmonic mean <code class="docutils literal notranslate"><span class="pre">0.35</span></code> and the minimum <code class="docutils literal notranslate"><span class="pre">0.12</span></code>. Pick a method that makes uncertain words stand out if
+you use the confidence to flag words for human review.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span><span class="p">,</span> <span class="n">parseq</span>
+
+<span class="c1"># When building the predictor (modifies a model instance passed as `reco_arch`)</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">confidence_aggregation</span><span class="o">=</span><span class="s2">"geometric_mean"</span><span class="p">)</span>
+
+<span class="c1"># Or afterwards, on the post-processor of the recognition model</span>
+<span class="n">predictor</span><span class="o">.</span><span class="n">reco_predictor</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">postprocessor</span><span class="o">.</span><span class="n">confidence_aggregation</span> <span class="o">=</span> <span class="s2">"mean"</span>
+
+<span class="c1"># Or on a model instance</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">reco_arch</span><span class="o">=</span><span class="n">parseq</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">confidence_aggregation</span><span class="o">=</span><span class="s2">"min"</span><span class="p">),</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Details: which probabilities are aggregated?</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Only the probabilities of the predicted characters: the CTC blank frames (CRNN, VIPTR) and the positions from the
+end-of-sequence token onwards (SAR, MASTER) are ignored, and a CTC character has the highest probability of its
+frames. An empty prediction has a confidence of <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p>
+<p class="sd-card-text">Very wide crops are split into parts that are read separately; their confidences are combined with the
+<code class="docutils literal notranslate"><span class="pre">split_confidence_aggregation</span></code> of the recognition predictor (<code class="docutils literal notranslate"><span class="pre">&quot;min&quot;</span></code> by default):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">predictor</span><span class="o">.</span><span class="n">reco_predictor</span><span class="o">.</span><span class="n">split_confidence_aggregation</span> <span class="o">=</span> <span class="s2">"mean"</span>
+</pre></div>
+</div>
+</div>
+</details></section>
+<section id="restrict-the-output-characters">
+<h2>Restrict the output characters<a class="headerlink" href="#restrict-the-output-characters" title="Link to this heading">#</a></h2>
+<p>If you know which languages to expect, restrict the recognition model to their characters with
+<a class="reference internal" href="../api/models.html#doctr.models.utils.add_whitelist" title="doctr.models.utils.add_whitelist"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_whitelist()</span></code></a>. Forbidden characters can no longer be predicted, which removes a whole
+class of errors (e.g. <code class="docutils literal notranslate"><span class="pre">ł</span></code> read instead of <code class="docutils literal notranslate"><span class="pre">l</span></code> on an English document).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">VOCABS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_whitelist</span>
+
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Only German and Polish characters can be predicted from now on</span>
+<span class="n">handle</span> <span class="o">=</span> <span class="n">add_whitelist</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="p">[</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">"german"</span><span class="p">],</span> <span class="n">VOCABS</span><span class="p">[</span><span class="s2">"polish"</span><span class="p">]])</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">pages</span><span class="p">)</span>
+
+<span class="c1"># Restore the original decoding</span>
+<span class="n">handle</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The handle is also a context manager, which removes the whitelist when the block ends:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">add_whitelist</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="n">VOCABS</span><span class="p">[</span><span class="s2">"german"</span><span class="p">]):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">pages</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>By default, forbidden characters are dropped (<code class="docutils literal notranslate"><span class="pre">strategy=&quot;mask&quot;</span></code>) and the model falls back to its best allowed
+character. With <code class="docutils literal notranslate"><span class="pre">strategy=&quot;nearest&quot;</span></code>, each forbidden character is first folded onto the closest allowed one,
+which is handy to normalize accents onto a base alphabet:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># é -&gt; e, ł -&gt; l, ß -&gt; ss...: an ASCII-only output</span>
+<span class="n">handle</span> <span class="o">=</span> <span class="n">add_whitelist</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="n">VOCABS</span><span class="p">[</span><span class="s2">"latin"</span><span class="p">],</span> <span class="n">strategy</span><span class="o">=</span><span class="s2">"nearest"</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The closest character is found by transliteration by default. Pass <code class="docutils literal notranslate"><span class="pre">mapping=&quot;weights&quot;</span></code> to derive it from the
+model’s own confusions instead, or a <code class="docutils literal notranslate"><span class="pre">{&quot;forbidden&quot;:</span> <span class="pre">&quot;allowed&quot;}</span></code> dict to override specific characters.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A whitelist can only <em>restrict</em> a model: characters it was not trained on are silently ignored. To read a new
+alphabet, use a model trained on a matching <a class="reference internal" href="../models/vocabs.html"><span class="std std-doc">vocabulary</span></a>.</p>
+</div>
+</section>
+<section id="hooks">
+<h2>Hooks<a class="headerlink" href="#hooks" title="Link to this heading">#</a></h2>
+<p>Hooks let you edit the detected boxes <strong>before they are read</strong>. A hook is a callable that receives the location
+predictions right after text detection and returns them, possibly modified. The recognition model then reads the
+crops of the boxes the hook returned:</p>
+<ul class="simple">
+<li><p><strong>remove</strong> boxes to skip regions you don’t need (they are not read, which also saves time);</p></li>
+<li><p><strong>move or resize</strong> boxes, e.g. to pad crops that are too tight;</p></li>
+<li><p><strong>add</strong> boxes, e.g. for fields at a known position on a form.</p></li>
+</ul>
+<p>The location predictions are a list with one NumPy array per page, in relative coordinates: <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">4)</span></code> straight boxes
+as <code class="docutils literal notranslate"><span class="pre">xmin,</span> <span class="pre">ymin,</span> <span class="pre">xmax,</span> <span class="pre">ymax</span></code>, or <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">4,</span> <span class="pre">2)</span></code> polygons with <code class="docutils literal notranslate"><span class="pre">assume_straight_pages=False</span></code>. A hook returns the same
+structure, with any number of boxes per page.</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-4" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-4">
+Skip headers &amp; footers</label><div class="sd-tab-content docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SkipMargins</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Ignore the words in the top and bottom bands of the page (headers, footers)"""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">band</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">band</span> <span class="o">=</span> <span class="n">band</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loc_preds</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="n">kept</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">boxes</span> <span class="ow">in</span> <span class="n">loc_preds</span><span class="p">:</span>  <span class="c1"># one array per page, relative coordinates</span>
+            <span class="k">if</span> <span class="n">boxes</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>  <span class="c1"># straight boxes (N, 4): xmin, ymin, xmax, ymax</span>
+                <span class="n">center_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">boxes</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">boxes</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># rotated boxes (N, 4, 2): polygons</span>
+                <span class="n">center_y</span> <span class="o">=</span> <span class="n">boxes</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">keep</span> <span class="o">=</span> <span class="p">(</span><span class="n">center_y</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">band</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">center_y</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">band</span><span class="p">)</span>
+            <span class="n">kept</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">boxes</span><span class="p">[</span><span class="n">keep</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">kept</span>
+
+
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">predictor</span><span class="o">.</span><span class="n">add_hook</span><span class="p">(</span><span class="n">SkipMargins</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>On the <a class="reference download internal" download="" href="../_downloads/cee7617ae8b35185437366bc59dea9c4/invoice.pdf"><code class="xref download docutils literal notranslate"><span class="pre">sample</span> <span class="pre">invoice</span></code></a>, the footer line
+(<code class="docutils literal notranslate"><span class="pre">ACME</span> <span class="pre">Office</span> <span class="pre">Supplies</span> <span class="pre">GmbH</span> <span class="pre">-</span> <span class="pre">VAT</span> <span class="pre">ID</span> <span class="pre">...</span></code>) is no longer read.</p>
+</div>
+<input id="sd-tab-item-5" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-5">
+Pad the boxes</label><div class="sd-tab-content docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">pad_boxes</span><span class="p">(</span><span class="n">loc_preds</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">pad</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.002</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Enlarge the straight boxes slightly, so that the crops keep the character edges"""</span>
+    <span class="n">offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="n">pad</span><span class="p">,</span> <span class="o">-</span><span class="n">pad</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="n">pad</span><span class="p">])</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">boxes</span> <span class="o">+</span> <span class="n">offsets</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">boxes</span><span class="o">.</span><span class="n">dtype</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">boxes</span> <span class="ow">in</span> <span class="n">loc_preds</span><span class="p">]</span>
+
+
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">predictor</span><span class="o">.</span><span class="n">add_hook</span><span class="p">(</span><span class="n">pad_boxes</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Good to know:</p>
+<ul class="simple">
+<li><p>Hooks run in the order they were added, each one receiving the output of the previous one.</p></li>
+<li><p>Each returned box keeps the <code class="docutils literal notranslate"><span class="pre">objectness_score</span></code> of the closest detected box of its page; a box added on a page
+without any detection gets a score of <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></li>
+<li><p>With the <a class="reference internal" href="kie.html"><span class="std std-doc">KIE predictor</span></a>, hooks receive and return a dict with one such list per class.</p></li>
+<li><p>An output in the wrong format (not one array per page, or boxes of another shape) raises a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>.</p></li>
+</ul>
+</section>
+<section id="process-many-documents">
+<h2>Process many documents<a class="headerlink" href="#process-many-documents" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Reuse the predictor</strong>: building it is the expensive part.</p></li>
+<li><p><strong>Batch your pages</strong>: one call on a list of pages is faster than one call per page, as the models process
+several pages and word crops at once (see <code class="docutils literal notranslate"><span class="pre">det_bs</span></code> and <code class="docutils literal notranslate"><span class="pre">reco_bs</span></code> above).</p></li>
+<li><p><strong>Free memory between documents</strong>: the predictor returns plain Python objects, so drop the results you no
+longer need.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
+
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">"invoices"</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"*.pdf"</span><span class="p">)):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_pdf</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+    <span class="n">path</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">".txt"</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">render</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+<section id="next-steps">
+<h2>Next steps<a class="headerlink" href="#next-steps" title="Link to this heading">#</a></h2>
+<div class="sd-container-fluid sd-sphinx-override sd-mb-4 docutils">
+<div class="sd-row sd-row-cols-1 sd-row-cols-xs-1 sd-row-cols-sm-2 sd-row-cols-md-2 sd-row-cols-lg-2 sd-g-3 sd-g-xs-3 sd-g-sm-3 sd-g-md-3 sd-g-lg-3 docutils">
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+<svg version="1.1" width="1.1em" height="1.1em" class="sd-octicon sd-octicon-list-unordered" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.75 2.5h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5Zm0 5h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5Zm0 5h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5ZM2 14a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm1-6a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM2 4a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg> Working with results</div>
+<p class="sd-card-text">Navigate the <code class="docutils literal notranslate"><span class="pre">Document</span></code>, read words and boxes, and save the predictions.</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="results.html"><span class="doc">Working with results</span></a></div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+<svg version="1.1" width="1.1em" height="1.1em" class="sd-octicon sd-octicon-rocket" viewBox="0 0 16 16" aria-hidden="true"><path d="M14.064 0h.186C15.216 0 16 .784 16 1.75v.186a8.752 8.752 0 0 1-2.564 6.186l-.458.459c-.314.314-.641.616-.979.904v3.207c0 .608-.315 1.172-.833 1.49l-2.774 1.707a.749.749 0 0 1-1.11-.418l-.954-3.102a1.214 1.214 0 0 1-.145-.125L3.754 9.816a1.218 1.218 0 0 1-.124-.145L.528 8.717a.749.749 0 0 1-.418-1.11l1.71-2.774A1.748 1.748 0 0 1 3.31 4h3.204c.288-.338.59-.665.904-.979l.459-.458A8.749 8.749 0 0 1 14.064 0ZM8.938 3.623h-.002l-.458.458c-.76.76-1.437 1.598-2.02 2.5l-1.5 2.317 2.143 2.143 2.317-1.5c.902-.583 1.74-1.26 2.499-2.02l.459-.458a7.25 7.25 0 0 0 2.123-5.127V1.75a.25.25 0 0 0-.25-.25h-.186a7.249 7.249 0 0 0-5.125 2.123ZM3.56 14.56c-.732.732-2.334 1.045-3.005 1.148a.234.234 0 0 1-.201-.064.234.234 0 0 1-.064-.201c.103-.671.416-2.273 1.15-3.003a1.502 1.502 0 1 1 2.12 2.12Zm6.94-3.935c-.088.06-.177.118-.266.175l-2.35 1.521.548 1.783 1.949-1.2a.25.25 0 0 0 .119-.213ZM3.678 8.116 5.2 5.766c.058-.09.117-.178.176-.266H3.309a.25.25 0 0 0-.213.119l-1.2 1.95ZM12 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path></svg> Performance</div>
+<p class="sd-card-text">Run on GPU, in half precision, and compile the models.</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="../deployment/performance.html"><span class="doc">Performance</span></a></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="loading_documents.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Loading documents</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="results.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Working with results</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-a-predictor">Create a predictor</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choose-the-architectures">Choose the architectures</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#options-at-a-glance">Options at a glance</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tune-the-text-detection">Tune the text detection</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#confidence-scores">Confidence scores</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#restrict-the-output-characters">Restrict the output characters</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hooks">Hooks</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#process-many-documents">Process many documents</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#next-steps">Next steps</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/mindee/doctr/edit/main/docs/source/user_guide/ocr_predictor.md">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2021-2026, Mindee.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+    <div class="footer-items__center">
+      
+        <div class="footer-item"><p class="maintainers">
+  Created by <a href="https://mindee.com">Mindee</a> &middot; developed and maintained by
+  <a href="https://www.text2knowledge.de">t2k GmbH</a> and the docTR community
+</p></div>
+      
+    </div>
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="license">
+  Released under the <a href="https://github.com/mindee/doctr/blob/main/LICENSE">Apache 2.0 License</a>
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
