@@ -142,6 +142,22 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             dict_loc_preds[class_name] = _loc_preds
             objectness_scores[class_name] = _scores
 
+        # Apply hooks to loc_preds if any, before the crops are extracted so that the hooked boxes are read
+        if self.hooks:
+            # Pass a copy, so that a hook modifying its input in place does not alter the reference
+            hooked_preds: Any = {class_name: list(preds) for class_name, preds in dict_loc_preds.items()}
+            for hook in self.hooks:
+                hooked_preds = hook(hooked_preds)
+            if not isinstance(hooked_preds, dict) or set(hooked_preds) != set(dict_loc_preds):
+                raise ValueError(
+                    "hooks of the KIE predictor must return a dict with the same classes as their input: "
+                    f"{sorted(dict_loc_preds)}"
+                )
+            for class_name in dict_loc_preds.keys():
+                dict_loc_preds[class_name], objectness_scores[class_name] = self._align_hook_output(
+                    dict_loc_preds[class_name], hooked_preds[class_name], objectness_scores[class_name]
+                )
+
         # Crop images
         crops = {}
         for class_name in dict_loc_preds.keys():
@@ -152,10 +168,6 @@ class KIEPredictor(nn.Module, _KIEPredictor):
                 assume_straight_pages=self.assume_straight_pages,
                 assume_horizontal=self._page_orientation_disabled,
             )
-
-        # Apply hooks to loc_preds if any
-        for hook in self.hooks:
-            dict_loc_preds = hook(dict_loc_preds)
 
         # Rectify crop orientation
         crop_orientations: Any = {}
