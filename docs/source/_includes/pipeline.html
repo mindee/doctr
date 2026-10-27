@@ -1,0 +1,67 @@
+<div class="doctr-diagram" role="img" aria-label="docTR pipeline: your files go through text detection and text recognition, are assembled by the document builder into a Document. Optional stages: orientation handling, layout analysis and table structure recognition.">
+<svg viewBox="0 0 1000 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="doctr-ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="arrow-head" d="M 0 0 L 10 5 L 0 10 z"/>
+    </marker>
+  </defs>
+  <!-- Main pipeline -->
+  <rect class="box" x="10" y="30" width="130" height="92" rx="12"/>
+  <text class="title" x="75" y="62" text-anchor="middle">Your files</text>
+  <text class="sub" x="75" y="84" text-anchor="middle">PDF · images</text>
+  <text class="sub" x="75" y="101" text-anchor="middle">web pages</text>
+
+  <rect class="box core" x="180" y="30" width="165" height="92" rx="12"/>
+  <text class="title" x="262" y="60" text-anchor="middle">Text detection</text>
+  <text class="sub" x="262" y="82" text-anchor="middle">Localize every word</text>
+  <text class="mono" x="262" y="104" text-anchor="middle">det_arch</text>
+
+  <rect class="box core" x="385" y="30" width="165" height="92" rx="12"/>
+  <text class="title" x="467" y="60" text-anchor="middle">Text recognition</text>
+  <text class="sub" x="467" y="82" text-anchor="middle">Read each word crop</text>
+  <text class="mono" x="467" y="104" text-anchor="middle">reco_arch</text>
+
+  <rect class="box" x="590" y="30" width="165" height="92" rx="12"/>
+  <text class="title" x="672" y="60" text-anchor="middle">Document builder</text>
+  <text class="sub" x="672" y="82" text-anchor="middle">Lines, blocks and</text>
+  <text class="sub" x="672" y="99" text-anchor="middle">reading order</text>
+
+  <rect class="box out" x="795" y="30" width="195" height="92" rx="12"/>
+  <text class="title on-dark" x="892" y="60" text-anchor="middle">Document</text>
+  <text class="sub on-dark" x="892" y="82" text-anchor="middle">JSON · text · Markdown</text>
+  <text class="sub on-dark" x="892" y="99" text-anchor="middle">HTML · AsciiDoc · hOCR</text>
+
+  <line class="arrow" x1="140" y1="76" x2="176" y2="76" marker-end="url(#doctr-ah)"/>
+  <line class="arrow" x1="345" y1="76" x2="381" y2="76" marker-end="url(#doctr-ah)"/>
+  <line class="arrow" x1="550" y1="76" x2="586" y2="76" marker-end="url(#doctr-ah)"/>
+  <line class="arrow" x1="755" y1="76" x2="791" y2="76" marker-end="url(#doctr-ah)"/>
+
+  <!-- Optional stages -->
+  <rect class="box opt" x="180" y="182" width="370" height="80" rx="12"/>
+  <text class="title" x="365" y="210" text-anchor="middle">Orientation handling</text>
+  <text class="sub" x="365" y="230" text-anchor="middle">Straighten rotated pages and word crops</text>
+  <text class="mono" x="365" y="249" text-anchor="middle">assume_straight_pages=False</text>
+
+  <rect class="box opt" x="590" y="182" width="165" height="80" rx="12"/>
+  <text class="title" x="672" y="210" text-anchor="middle">Layout analysis</text>
+  <text class="sub" x="672" y="230" text-anchor="middle">Titles, tables, figures…</text>
+  <text class="mono" x="672" y="249" text-anchor="middle">detect_layout=True</text>
+
+  <rect class="box opt" x="795" y="182" width="195" height="80" rx="12"/>
+  <text class="title" x="892" y="210" text-anchor="middle">Table structure</text>
+  <text class="sub" x="892" y="230" text-anchor="middle">Rows, columns and cells</text>
+  <text class="mono" x="892" y="249" text-anchor="middle">detect_tables=True</text>
+
+  <line class="arrow" x1="262" y1="182" x2="262" y2="126" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
+  <line class="arrow" x1="467" y1="182" x2="467" y2="126" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
+  <line class="arrow" x1="672" y1="182" x2="672" y2="126" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
+  <line class="arrow" x1="892" y1="182" x2="892" y2="126" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
+  <line class="arrow" x1="755" y1="222" x2="791" y2="222" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
+
+  <!-- Legend -->
+  <line class="arrow" x1="10" y1="200" x2="40" y2="200"/>
+  <text class="legend" x="48" y="204">always runs</text>
+  <line class="arrow" x1="10" y1="226" x2="40" y2="226" stroke-dasharray="4 4"/>
+  <text class="legend" x="48" y="230">optional</text>
+</svg>
+</div>

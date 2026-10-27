@@ -3,18 +3,11 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-# Configuration file for the Sphinx documentation builder.
-#
-# This file only contains a selection of the most common options. For a full
-# list see the documentation:
-# https://www.sphinx-doc.org/en/master/usage/configuration.html
+"""Sphinx configuration of the docTR documentation.
 
-# -- Path setup --------------------------------------------------------------
+Build it locally from the repository root with ``make docs-single-version`` (output in ``docs/_build``).
+"""
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-#
 import os
 import sys
 from datetime import datetime
@@ -34,112 +27,329 @@ author = "François-Guillaume Fernandez, Charles Gaillard, Olivier Dulcy, Felix 
 version = doctr.__version__
 release = doctr.__version__ + "-git"
 
+# Version selected in the version switcher. `build.sh` sets it for every deployed version
+# ("latest" for the main branch, "v1.1.0", ... for the releases).
+DOCS_VERSION = os.environ.get("DOCTR_DOCS_VERSION", "latest")
+
+# `build.sh` also renders the previous releases with this configuration: their sources still rely on
+# a few extensions that the current pages do not use anymore.
+LEGACY_BUILD = os.environ.get("DOCTR_DOCS_LEGACY", "0") == "1"
+
 # -- General configuration ---------------------------------------------------
 
-# Add any Sphinx extension module names here, as strings. They can be
-# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
-# ones.
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",
-    "sphinx.ext.coverage",
     "sphinx.ext.mathjax",
-    "sphinx.ext.autosectionlabel",
-    "sphinxemoji.sphinxemoji",  # cf. https://sphinxemojicodes.readthedocs.io/en/stable/
+    "myst_parser",
+    "sphinx_design",
     "sphinx_copybutton",
-    "recommonmark",
-    "sphinx_markdown_tables",
-    "sphinx_tabs.tabs",
 ]
+
+if LEGACY_BUILD:
+    extensions += ["sphinx.ext.autosectionlabel", "sphinxemoji.sphinxemoji", "sphinx_tabs.tabs"]
+else:
+    extensions += ["sphinx_reredirects"]
+
+source_suffix = {".rst": "restructuredtext", ".md": "markdown"}
+
+templates_path = ["_templates"]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "notebooks/*.rst", "**/_generated", "_includes"]
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "torch": ("https://docs.pytorch.org/docs/stable/", None),
     "pypdfium2": ("https://pypdfium2.readthedocs.io/en/stable/", None),
 }
 
+# -- MyST (Markdown) ---------------------------------------------------------
+
+myst_enable_extensions = [
+    "attrs_block",
+    "attrs_inline",
+    "colon_fence",
+    "deflist",
+    "fieldlist",
+    "html_image",
+    "substitution",
+    "tasklist",
+]
+myst_heading_anchors = 3
+myst_substitutions = {
+    "version": version,
+}
+
+# -- API documentation -------------------------------------------------------
+
+autodoc_member_order = "bysource"
+autodoc_typehints = "description"
+autodoc_typehints_description_target = "documented_params"
+autodoc_preserve_defaults = True
+add_module_names = False
+python_maximum_signature_line_length = 88
+napoleon_google_docstring = True
+napoleon_numpy_docstring = False
 napoleon_use_ivar = True
+napoleon_use_rtype = False
 
-# Add any paths that contain templates here, relative to this directory.
-templates_path = ["_templates"]
+# -- Copy button -------------------------------------------------------------
 
-# List of patterns, relative to source directory, that match files and
-# directories to ignore when looking for source files.
-# This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "notebooks/*.rst"]
+# Strip the prompts of doctest / shell snippets when copying them
+copybutton_prompt_text = r">>> |\.\.\. |\$ "
+copybutton_prompt_is_regexp = True
+copybutton_exclude = ".linenos, .gp, .go"
 
+# -- Redirects (pages moved by the documentation refactor) -------------------
 
-# The name of the Pygments (syntax highlighting) style to use.
-pygments_style = "friendly"
-pygments_dark_style = "monokai"
-highlight_language = "python3"
+redirects = {
+    "getting_started/installing": "installation.html",
+    "notebooks": "community/notebooks.html",
+    "using_doctr/using_models": "../user_guide/ocr_predictor.html",
+    "using_doctr/using_datasets": "../training/datasets.html",
+    "using_doctr/using_contrib_modules": "../user_guide/artefacts.html",
+    "using_doctr/sharing_models": "../training/sharing_models.html",
+    "using_doctr/using_model_export": "../deployment/performance.html",
+    "using_doctr/custom_models_training": "../training/train.html",
+    "using_doctr/running_on_aws": "../deployment/configuration.html",
+    "using_doctr/using_cli": "../user_guide/cli.html",
+    "modules/contrib": "../api/contrib.html",
+    "modules/datasets": "../api/datasets.html",
+    "modules/io": "../api/io.html",
+    "modules/models": "../api/models.html",
+    "modules/transforms": "../api/transforms.html",
+    "modules/utils": "../api/utils.html",
+}
 
 # -- Options for HTML output -------------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-#
-html_theme = "furo"
+html_theme = "pydata_sphinx_theme"
+html_title = "docTR documentation"
+html_short_title = "docTR"
+html_favicon = "_static/images/favicon.ico"
+html_static_path = ["_static"]
+html_css_files = ["css/doctr.css"]
+html_js_files = ["js/doctr.js"]
+html_show_sourcelink = False
+html_copy_source = False
 
-# Theme options are theme-specific and customize the look and feel of a theme
-# further.  For a list of options available for each theme, see the
-# documentation.
-#
-html_theme_options = {
-    "sidebar_hide_name": True,
-    "navigation_with_keys": True,
-    "light_css_variables": {
-        "color-sidebar-background": "#082747",
-        "color-sidebar-background-border": "#082747",
-        "color-sidebar-caption-text": "white",
-        "color-sidebar-link-text--top-level": "white",
-        "color-sidebar-link-text": "white",
-        "sidebar-caption-font-size": "normal",
-        "color-sidebar-item-background--hover": " #5dade2",
-    },
-    "dark_css_variables": {
-        "color-sidebar-background": "#1a1c1e",
-        "color-sidebar-background-border": "#1a1c1e",
-        "color-sidebar-caption-text": "white",
-        "color-sidebar-link-text--top-level": "white",
-    },
+html_context = {
+    "github_user": "mindee",
+    "github_repo": "doctr",
+    "github_version": "main",
+    "doc_path": "docs/source",
+    "default_mode": "auto",
 }
 
-html_logo = "_static/images/Logo-docTR-white.png"
-html_favicon = "_static/images/favicon.ico"
-html_title = "docTR documentation"
+html_theme_options = {
+    "logo": {
+        "image_light": "_static/images/logo-light.png",
+        "image_dark": "_static/images/logo-dark.png",
+        "alt_text": "docTR - Home",
+    },
+    "navbar_align": "left",
+    "navbar_start": ["navbar-logo", "version-switcher"],
+    "navbar_end": ["theme-switcher", "navbar-icon-links"],
+    "header_links_before_dropdown": 4 if LEGACY_BUILD else 7,
+    "switcher": {
+        "json_url": "_static/switcher.json",
+        "version_match": DOCS_VERSION,
+    },
+    "show_version_warning_banner": not LEGACY_BUILD,
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/mindee/doctr",
+            "icon": "fa-brands fa-github",
+        },
+        {
+            "name": "PyPI",
+            "url": "https://pypi.org/project/python-doctr/",
+            "icon": "fa-brands fa-python",
+        },
+        {
+            "name": "Live demo on Hugging Face",
+            "url": "https://huggingface.co/spaces/mindee/doctr",
+            "icon": "fa-solid fa-wand-magic-sparkles",
+        },
+    ],
+    "use_edit_page_button": not LEGACY_BUILD,
+    "secondary_sidebar_items": {
+        "**": ["page-toc", "edit-this-page"],
+        "index": [],
+    },
+    "show_toc_level": 2,
+    "show_nav_level": 1,
+    "navigation_depth": 3,
+    "show_prev_next": True,
+    "back_to_top_button": True,
+    "search_as_you_type": True,
+    "footer_start": ["copyright"],
+    "footer_center": ["maintainers"],
+    "footer_end": ["license"],
+    "pygments_light_style": "github-light",
+    "pygments_dark_style": "github-dark",
+    "analytics": {"google_analytics_id": "G-40DVRMX8T4"},
+}
 
-
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
+# The landing page is a full-width page
+html_sidebars = {"index": []}
 
 # A list of files that should not be packed into the epub file.
 epub_exclude_files = ["search.html"]
 
 
-def add_ga_javascript(app, pagename, templatename, context, doctree):
-    # Add googleanalytics id
-    # ref: https://github.com/orenhecht/googleanalytics/blob/master/sphinxcontrib/googleanalytics.py
+# -- Generated content ---------------------------------------------------------
 
-    metatags = context.get("metatags", "")
-    metatags += """
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id={0}"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){{dataLayer.push(arguments);}}
-  gtag('js', new Date());
-  gtag('config', '{0}');
-</script>
-    """.format(app.config.googleanalytics_id)
-    context["metatags"] = metatags
+# Vocabularies listed on `models/vocabs.md`, grouped by script. Any vocabulary missing from these groups is listed
+# under "Other scripts", so that the page always reflects `doctr.datasets.VOCABS`.
+VOCAB_GROUPS = {
+    "General purpose": ["latin", "english", "multilingual", "latex"],
+    "Latin script": [
+        "albanian",
+        "afrikaans",
+        "azerbaijani",
+        "basque",
+        "bosnian",
+        "catalan",
+        "croatian",
+        "czech",
+        "danish",
+        "dutch",
+        "estonian",
+        "esperanto",
+        "french",
+        "finnish",
+        "frisian",
+        "galician",
+        "german",
+        "hausa",
+        "hungarian",
+        "icelandic",
+        "indonesian",
+        "irish",
+        "italian",
+        "latvian",
+        "lithuanian",
+        "luxembourgish",
+        "malagasy",
+        "malay",
+        "maltese",
+        "maori",
+        "montenegrin",
+        "norwegian",
+        "polish",
+        "portuguese",
+        "quechua",
+        "romanian",
+        "scottish_gaelic",
+        "serbian_latin",
+        "slovak",
+        "slovene",
+        "somali",
+        "spanish",
+        "swahili",
+        "swedish",
+        "tagalog",
+        "turkish",
+        "uzbek_latin",
+        "vietnamese",
+        "welsh",
+        "yoruba",
+        "zulu",
+    ],  # fmt: skip
+    "Cyrillic script": [
+        "russian",
+        "belarusian",
+        "tatar",
+        "tajik",
+        "kazakh",
+        "kyrgyz",
+        "bulgarian",
+        "macedonian",
+        "mongolian",
+        "yakut",
+        "serbian_cyrillic",
+        "uzbek_cyrillic",
+        "ukrainian",
+    ],  # fmt: skip
+    "Greek script": ["greek", "greek_extended"],
+    "Hebrew & Arabic scripts": ["hebrew", "arabic", "persian", "urdu", "pashto", "kurdish", "uyghur", "sindhi"],
+    "Indic scripts": [
+        "devanagari",
+        "hindi",
+        "sanskrit",
+        "marathi",
+        "nepali",
+        "gujarati",
+        "bengali",
+        "tamil",
+        "telugu",
+        "kannada",
+        "sinhala",
+        "malayalam",
+        "punjabi",
+        "odia",
+    ],  # fmt: skip
+    "Southeast Asian & other scripts": [
+        "thai",
+        "lao",
+        "khmer",
+        "burmese",
+        "javanese",
+        "sudanese",
+        "armenian",
+        "georgian",
+        "ethiopic",
+    ],  # fmt: skip
+    "East Asian scripts": ["japanese", "korean", "simplified_chinese"],
+}
+
+
+def _generate_vocab_tables(app):
+    """Write the tables of the supported vocabularies, included by `models/vocabs.md`"""
+    from html import escape
+
+    from doctr.datasets import VOCABS
+
+    english = set(VOCABS["english"])
+    listed = {name for names in VOCAB_GROUPS.values() for name in names}
+    first_lang = list(VOCABS).index("latin")  # the entries before are building blocks (digits, punctuation, ...)
+    others = [name for name in list(VOCABS)[first_lang:] if name not in listed]
+    groups = {**VOCAB_GROUPS, **({"Other scripts": others} if others else {})}
+
+    parts = []
+    for title, names in groups.items():
+        rows = []
+        for name in names:
+            if name not in VOCABS:
+                continue
+            chars = VOCABS[name]
+            extra = "".join(c for c in chars if c not in english)
+            if title == "Latin script" and len(extra) < len(chars) / 2:
+                summary = f'<span class="vocab-base">english +</span> {escape(extra)}' if extra else "english"
+            else:
+                summary = escape(chars[:60]) + ("…" if len(chars) > 60 else "")
+            rows.append(
+                f"<tr><td><code>{name}</code></td><td>{len(chars)}</td>"
+                f'<td><details><summary>{summary}</summary><div class="vocab-chars">{escape(chars)}</div>'
+                "</details></td></tr>"
+            )
+        parts.append(
+            f"### {title}\n\n```{{raw}} html\n"
+            '<div class="pst-scrollable-table-container"><table class="table vocab-table">'
+            "<thead><tr><th>Name</th><th>Size</th><th>Characters</th></tr></thead>"
+            f"<tbody>{''.join(rows)}</tbody></table></div>\n```\n"
+        )
+
+    out_dir = os.path.join(app.srcdir, "models", "_generated")
+    os.makedirs(out_dir, exist_ok=True)
+    with open(os.path.join(out_dir, "vocabs.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(parts))
 
 
 def setup(app):
-    app.add_config_value("googleanalytics_id", "G-40DVRMX8T4", "html")
-    app.add_css_file("css/mindee.css")
-    app.add_js_file("js/custom.js")
-    app.connect("html-page-context", add_ga_javascript)
+    if not LEGACY_BUILD:
+        app.connect("builder-inited", _generate_vocab_tables)
