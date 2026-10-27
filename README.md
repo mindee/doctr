@@ -25,7 +25,7 @@ What you can expect from this repository:
 ### Getting your pretrained model
 
 End-to-End OCR is achieved in docTR using a two-stage approach: text detection (localizing words), then text recognition (identify all characters in the word).
-As such, you can select the architecture used for [text detection](https://mindee.github.io/doctr/latest/modules/models.html#doctr-models-detection), and the one for [text recognition](https://mindee.github.io/doctr/latest//modules/models.html#doctr-models-recognition) from the list of available implementations.
+As such, you can select the architecture used for [text detection](https://mindee.github.io/doctr/latest/models/detection.html), and the one for [text recognition](https://mindee.github.io/doctr/latest/models/recognition.html) from the list of available implementations.
 
 ```python
 from doctr.models import ocr_predictor
@@ -119,7 +119,7 @@ plt.show()
 ![Synthesis sample](https://github.com/mindee/doctr/raw/main/docs/images/synthesized_sample.png)
 
 The `ocr_predictor` returns a `Document` object with a nested structure (with `Page`, `Block`, `Line`, `Word`, `Artefact`).
-To get a better understanding of our document model, check our [documentation](https://mindee.github.io/doctr/modules/io.html#document-structure):
+To get a better understanding of our document model, check our [documentation](https://mindee.github.io/doctr/latest/getting_started/concepts.html#the-document-tree):
 
 You can also export them as a nested dict, more appropriate for JSON format:
 

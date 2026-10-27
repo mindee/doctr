@@ -81,14 +81,16 @@ quality = [
     "pre-commit>=2.17.0",
 ]
 docs = [
-    "sphinx>=3.0.0,!=3.5.0",
-    "sphinxemoji>=0.1.8",
-    "sphinx-copybutton>=0.3.1",
+    "sphinx>=8.0.0",
     "docutils<0.23",
-    "recommonmark>=0.7.1",
-    "sphinx-markdown-tables>=0.0.15",
+    "pydata-sphinx-theme>=0.23.0",
+    "myst-parser>=4.0.0",
+    "sphinx-design>=0.6.0",
+    "sphinx-copybutton>=0.5.2",
+    "sphinx-reredirects>=0.1.5",
+    # Only used to render the documentation of previous releases (cf. docs/build.sh)
+    "sphinxemoji>=0.1.8",
     "sphinx-tabs>=3.3.0",
-    "furo>=2022.3.4",
 ]
 dev = [
     # PyTorch
@@ -110,14 +112,16 @@ dev = [
     "mypy>=1.0",
     "pre-commit>=3.0.0",
     # Docs
-    "sphinx>=3.0.0,!=3.5.0",
-    "sphinxemoji>=0.1.8",
-    "sphinx-copybutton>=0.3.1",
+    "sphinx>=8.0.0",
     "docutils<0.23",
-    "recommonmark>=0.7.1",
-    "sphinx-markdown-tables>=0.0.15",
+    "pydata-sphinx-theme>=0.23.0",
+    "myst-parser>=4.0.0",
+    "sphinx-design>=0.6.0",
+    "sphinx-copybutton>=0.5.2",
+    "sphinx-reredirects>=0.1.5",
+    # Only used to render the documentation of previous releases (cf. docs/build.sh)
+    "sphinxemoji>=0.1.8",
     "sphinx-tabs>=3.3.0",
-    "furo>=2022.3.4",
 ]
 
 [project.urls]
