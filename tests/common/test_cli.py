@@ -12,7 +12,7 @@ import torch
 import doctr.cli.main as cli
 from doctr import __version__
 from doctr.datasets.generator.base import synthesize_text_img
-from doctr.io import DocumentFile, FigureEncoder
+from doctr.io import ConcatSource, DocumentFile, FigureEncoder
 from doctr.io.exporters import DocumentExportsMixin
 from doctr.models import ocr_predictor
 from doctr.models.builder import DocumentBuilder
@@ -95,6 +95,7 @@ def test_parse_args_defaults():
     assert args.symmetric_pad is True
     assert args.det_bs == 2
     assert args.reco_bs == 128
+    assert args.page_chunk_size == 32
     assert args.detect_orientation is False
     assert args.detect_language is False
     assert args.detect_layout is False
@@ -238,6 +239,7 @@ def test_parse_args_version(capsys):
         ["--box_thresh", "-0.1"],
         ["--bin_thresh", "high"],
         ["--confidence_aggregation", "average"],
+        ["--page_chunk_size", "0"],
     ],
 )
 def test_parse_args_invalid_values(argv):
@@ -421,6 +423,8 @@ def test_build_predictor_forwards_every_option(recorded_predictor):
         "4",
         "--reco_bs",
         "64",
+        "--page_chunk_size",
+        "8",
         "--confidence_aggregation",
         "geometric_mean",
         "--detect_orientation",
@@ -461,6 +465,7 @@ def test_build_predictor_forwards_every_option(recorded_predictor):
         "disable_page_orientation": True,
         "disable_crop_orientation": True,
         "preserve_original_coords": True,
+        "page_chunk_size": 8,
         "resolve_lines": False,
         "resolve_blocks": True,
         "paragraph_break": 0.1,
@@ -472,6 +477,7 @@ def test_build_predictor_forwards_every_option(recorded_predictor):
     assert model.layout_predictor is not None
     assert model.table_predictor is not None
     assert model.det_predictor.pre_processor.batch_size == 4
+    assert model.page_chunk_size == 8
     assert model.reco_predictor.pre_processor.batch_size == 64
     assert model.reco_predictor.model.postprocessor.confidence_aggregation == "geometric_mean"
 
@@ -559,7 +565,8 @@ def test_set_thresholds_without_postprocessor(monkeypatch, predictor, caplog):
 def test_load_document_concatenates_inputs(text_images, mock_pdf):
     pages = cli._load_document(cli._parse_args(["--input_path", *text_images, mock_pdf]))
 
-    # 2 images + the 2 pages of the mock PDF
+    # 2 images + the 2 pages of the mock PDF, decoded on demand
+    assert isinstance(pages, ConcatSource)
     assert len(pages) == 4
     assert all(isinstance(page, np.ndarray) and page.ndim == 3 for page in pages)
 
@@ -575,7 +582,7 @@ def test_load_document_forwards_pdf_options(monkeypatch, mock_pdf):
 
     args = cli._parse_args(["--input_path", mock_pdf, "--pdf_scale", "4", "--pdf_password", "secret"])
     assert len(cli._load_document(args)) == 1
-    assert recorder == {"file": mock_pdf, "scale": 4, "password": "secret"}
+    assert recorder == {"file": mock_pdf, "lazy": True, "scale": 4, "password": "secret"}
 
 
 def test_load_document_from_url(monkeypatch):
@@ -590,6 +597,7 @@ def test_load_document_from_url(monkeypatch):
     args = cli._parse_args(["--input_path", "https://www.mindee.com"])
     assert len(cli._load_document(args)) == 1
     assert recorder["url"] == "https://www.mindee.com"
+    assert recorder["lazy"] is True
 
 
 # Exporting the predictions

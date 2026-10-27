@@ -3,12 +3,13 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from collections.abc import Callable, Collection
+from collections.abc import Callable, Collection, Iterable, Iterator, Sequence
 from typing import Any
 
 import numpy as np
 
-from doctr.io.elements import Document, KIEPage
+from doctr.io.elements import Document, KIEPage, Page
+from doctr.io.sources import PageSource, _EncodedImage, _SourcePage
 from doctr.models.builder import DocumentBuilder
 from doctr.utils.geometry import (
     extract_crops,
@@ -17,6 +18,7 @@ from doctr.utils.geometry import (
     rotate_image,
     straighten_page,
 )
+from doctr.utils.multithreading import chunked, prefetch
 
 from .._utils import estimate_orientation, mask_boxes, rectify_crops, rectify_loc_preds
 from ..classification import crop_orientation_predictor, page_orientation_predictor
@@ -43,6 +45,9 @@ class _OCRPredictor:
             be masked out (filled with black) before passing the pages to the detection/recognition modules.
         preserve_original_coords: if True and straighten_pages is True, bounding boxes are mapped back to the
             original page coordinates. Useful for redaction and annotation.
+        page_chunk_size: the maximum number of pages processed at once. Longer inputs, as well as lazy page sources
+            (cf. `DocumentFile.from_pdf(..., lazy=True)`) and iterators, are processed chunk by chunk so that the
+            memory footprint does not grow with the number of pages.
         **kwargs: keyword args of `DocumentBuilder`
     """
 
@@ -58,8 +63,12 @@ class _OCRPredictor:
         detect_orientation: bool = False,
         ignore_regions: Collection[str] | None = None,
         preserve_original_coords: bool = False,
+        page_chunk_size: int = 32,
         **kwargs: Any,
     ) -> None:
+        if page_chunk_size < 1:
+            raise ValueError("`page_chunk_size` must be a positive integer")
+        self.page_chunk_size = page_chunk_size
         self.assume_straight_pages = assume_straight_pages
         self.straighten_pages = straighten_pages
         self.preserve_original_coords = preserve_original_coords
@@ -83,6 +92,65 @@ class _OCRPredictor:
         self.ignore_regions = ignore_regions
 
         self.hooks: list[Callable] = []
+
+    # Type of the documents returned by the predictor
+    _document_cls: type[Document] = Document
+
+    def _predict_pages(self, pages: list[np.ndarray], **kwargs: Any) -> Document:
+        """Run the full pipeline on a list of pages held in memory"""
+        raise NotImplementedError
+
+    def _run(self, pages: Sequence[np.ndarray] | Iterable[np.ndarray], **kwargs: Any) -> Document:
+        """Predict on any input: short lists are processed at once, everything else chunk by chunk"""
+        if isinstance(pages, (list, tuple)) and len(pages) <= self.page_chunk_size:
+            return self._predict_pages(list(pages), **kwargs)
+        return self._document_cls(pages=list(self.stream(pages, **kwargs)))  # type: ignore[arg-type]
+
+    def stream(
+        self,
+        pages: Sequence[np.ndarray] | Iterable[np.ndarray],
+        page_chunk_size: int | None = None,
+        prefetch_pages: bool = True,
+        **kwargs: Any,
+    ) -> Iterator[Page | KIEPage]:
+        """Predict on a document of any length, yielding the pages one by one as soon as they are processed
+
+        The pages are processed by chunks of `page_chunk_size`, and the next chunk is decoded in a background thread
+        while the current one goes through the models. Only the pages of the chunks in flight are held in memory,
+        so that a 1000+ page PDF or a folder of 100k images can be processed with a constant memory footprint.
+
+        >>> from doctr.io import DocumentFile
+        >>> from doctr.models import ocr_predictor
+        >>> model = ocr_predictor(pretrained=True)
+        >>> doc = DocumentFile.from_pdf("path/to/your/long_doc.pdf", lazy=True)
+        >>> for page in model.stream(doc):
+        ...     print(page.page_idx, page.render())
+
+        Args:
+            pages: a list of pages, a lazy page source (cf. `DocumentFile.from_pdf(..., lazy=True)`) or any
+                iterable of pages (e.g. a generator)
+            page_chunk_size: the number of pages processed at once (defaults to the `page_chunk_size` of the predictor)
+            prefetch_pages: whether the next chunk of pages is decoded in a background thread
+            **kwargs: keyword arguments forwarded to the sub-predictors (as for a regular call)
+
+        Returns:
+            an iterator over the predicted pages, in the input order. `page_idx` is the index of the page in the
+            whole input. For lazy page sources, the predicted pages hold a reference to their image instead of the
+            image itself: `page.page` decodes it again on access.
+        """
+        chunk_size = self.page_chunk_size if page_chunk_size is None else page_chunk_size
+        source = pages if isinstance(pages, PageSource) else None
+        offset = 0
+        for chunk in prefetch(chunked(pages, chunk_size), enabled=prefetch_pages):
+            result = self._predict_pages(chunk, **kwargs)
+            for local_idx, (page, image) in enumerate(zip(result.pages, chunk)):
+                page.page_idx = offset + local_idx
+                if source is not None:
+                    # Unchanged pages are decoded again from the source on access, transformed ones (e.g.
+                    # straightened) are kept losslessly compressed
+                    page.page = _SourcePage(source, page.page_idx) if page.page is image else _EncodedImage(page.page)
+                yield page
+            offset += len(chunk)
 
     def _general_page_orientations(
         self,

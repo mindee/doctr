@@ -114,6 +114,67 @@ pages = DocumentFile.from_pdf("cover_letter.pdf") + DocumentFile.from_images(["i
 result = predictor(pages)  # one Document with all the pages, in order
 ```
 
+{meth}`~doctr.io.DocumentFile.from_files` does the same in a single call, for any mix of PDFs, images, folders and
+URLs (folders are expanded to the PDFs and images they contain, sorted by name):
+
+```python
+pages = DocumentFile.from_files(["cover_letter.pdf", "id_front.jpg", "id_back.jpg", "path/to/scans/"])
+```
+
+## Long documents & large collections
+
+Every page of a list is decoded in memory: at the default resolution, an A4 page weighs about 11 MB, so a 1,000-page
+PDF would need more than 10 GB. Pass `lazy=True` to get a **page source** instead: it behaves like the list (`len`,
+indexing, slicing, iteration), but a page is only decoded when it is accessed.
+
+```python
+from doctr.io import DocumentFile
+from doctr.models import ocr_predictor
+
+predictor = ocr_predictor(pretrained=True)
+
+doc = DocumentFile.from_pdf("path/to/1000_pages.pdf", lazy=True)
+print(len(doc), doc[0].shape)  # only the first page is rendered
+
+result = predictor(doc)  # one call, a bounded memory footprint
+```
+
+The predictor processes a page source chunk by chunk (`page_chunk_size` pages at a time, 32 by default), and decodes
+the next chunk in a background thread while the models run on the current one. The pages of the returned
+{class}`~doctr.io.Document` only keep a reference to their image: `result.pages[i].page` renders it again on access,
+so `show()` and the figure exports keep working.
+
+The same goes for images, folders and mixed inputs:
+
+```python
+# Every image of a folder (sorted by name), decoded on demand
+doc = DocumentFile.from_images("path/to/100k_scans/", lazy=True)
+
+# Any mix of PDFs, images, folders and URLs
+doc = DocumentFile.from_files(["contracts/", "annex.pdf", "signature.png"], lazy=True)
+source_idx, page_idx = doc.locate(42)  # the input that the 43rd page comes from
+```
+
+To write the results as you go instead of keeping them all, iterate over
+{meth}`~doctr.models.predictor.OCRPredictor.stream`: it yields the pages one by one, as soon as they are processed.
+
+```python
+with open("result.txt", "w") as f:
+    for page in predictor.stream(doc):
+        f.write(f"--- page {page.page_idx + 1} ---\n{page.render()}\n")
+```
+
+| Class                        | Pages                                                              |
+| ---------------------------- | ------------------------------------------------------------------ |
+| {class}`~doctr.io.PDFSource`    | The pages of a PDF, rendered on demand (`scale`, `password`, `rgb_mode`) |
+| {class}`~doctr.io.ImageSource`  | Image files, folders or bytes, decoded on demand                   |
+| {class}`~doctr.io.ConcatSource` | The concatenation of several sources (also obtained with `+`)      |
+
+:::{tip}
+Missing files and invalid PDFs are reported when the source is created. Images, on the other hand, are only decoded
+when they are processed: an unreadable image raises a `ValueError` naming the file.
+:::
+
 ## Low-level readers
 
 `DocumentFile` is a thin wrapper around these functions, which you can use directly when you need more control:

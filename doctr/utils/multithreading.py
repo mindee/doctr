@@ -7,12 +7,14 @@
 import multiprocessing as mp
 import os
 from collections.abc import Callable, Iterable, Iterator
+from concurrent.futures import ThreadPoolExecutor
+from itertools import islice
 from multiprocessing.pool import ThreadPool
 from typing import Any
 
 from doctr.file_utils import ENV_VARS_TRUE_VALUES
 
-__all__ = ["multithread_exec"]
+__all__ = ["multithread_exec", "chunked", "prefetch"]
 
 
 def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: int | None = None) -> Iterator[Any]:
@@ -49,3 +51,67 @@ def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: in
             # That's why wrapping result in map to return iterator
             results = map(lambda x: x, tp.map(func, items))  # noqa: C417
     return results
+
+
+def chunked(seq: Iterable[Any], size: int) -> Iterator[list[Any]]:
+    """Split an iterable into consecutive lists of at most `size` elements, consuming it lazily
+
+    >>> from doctr.utils.multithreading import chunked
+    >>> list(chunked(range(5), 2))
+    [[0, 1], [2, 3], [4]]
+
+    Args:
+        seq: iterable
+        size: the maximum number of elements per chunk
+
+    Returns:
+        iterator of chunks
+    """
+    if size < 1:
+        raise ValueError("the chunk size must be a positive integer")
+    iterator = iter(seq)
+    while chunk := list(islice(iterator, size)):
+        yield chunk
+
+
+_EXHAUSTED = object()
+
+
+def prefetch(seq: Iterable[Any], enabled: bool = True) -> Iterator[Any]:
+    """Iterate over an iterable while producing its next element in a background thread
+
+    This overlaps the production of the next element (e.g. decoding the next pages of a document) with the
+    processing of the current one (e.g. running the models). At most one element is produced ahead, and the
+    iterable is only ever advanced by one thread at a time.
+
+    >>> from doctr.utils.multithreading import prefetch
+    >>> for item in prefetch(expensive_generator()):
+    ...     process(item)
+
+    Args:
+        seq: iterable
+        enabled: whether the elements are produced in a background thread
+
+    Returns:
+        iterator over the elements of the iterable
+
+    Notes:
+        Prefetching is disabled when 'DOCTR_MULTIPROCESSING_DISABLE' is set to 'TRUE'.
+    """
+    if not enabled or os.environ.get("DOCTR_MULTIPROCESSING_DISABLE", "").upper() in ENV_VARS_TRUE_VALUES:
+        yield from seq
+        return
+
+    iterator = iter(seq)
+    try:
+        # On early exit, leaving the context waits for the element being produced, so that the iterable is
+        # never closed while it is advanced in the background thread
+        with ThreadPoolExecutor(max_workers=1, thread_name_prefix="doctr-prefetch") as executor:
+            future = executor.submit(next, iterator, _EXHAUSTED)
+            while (item := future.result()) is not _EXHAUSTED:
+                future = executor.submit(next, iterator, _EXHAUSTED)
+                yield item
+    finally:
+        close = getattr(iterator, "close", None)
+        if callable(close):
+            close()

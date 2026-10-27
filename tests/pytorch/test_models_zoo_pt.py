@@ -7,7 +7,7 @@ from torch import nn
 from doctr import models
 from doctr.file_utils import CLASS_NAME
 from doctr.io import Document, DocumentFile, FigureEncoder, crop_layout_region
-from doctr.io.elements import KIEDocument, LayoutElement, Table
+from doctr.io.elements import KIEDocument, KIEPage, LayoutElement, Table
 from doctr.models import detection, layout, recognition
 from doctr.models.classification import mobilenet_v3_small_crop_orientation, mobilenet_v3_small_page_orientation
 from doctr.models.classification.zoo import crop_orientation_predictor, page_orientation_predictor
@@ -1025,3 +1025,156 @@ def test_kie_predictor_straighten_with_preserve_original_coords(mock_tilted_pays
     assert geoms_on != geoms_off
     assert out_on.pages[0].page.shape[:2] == out_on.pages[0].dimensions
     assert out_on.pages[0].page.shape[:2] == doc[0].shape[:2]
+
+
+# Long documents: chunking, streaming & lazy page sources
+
+
+class _ValueDetPredictor(nn.Module):
+    """Fake detection: one box per page, and records the number of pages of each call"""
+
+    def __init__(self):
+        super().__init__()
+        self.calls = []
+
+    def forward(self, pages, **kwargs):
+        self.calls.append(len(pages))
+        return [{CLASS_NAME: np.array([[0.1, 0.1, 0.9, 0.9, 0.9]], dtype=np.float32)} for _ in pages]
+
+
+class _ValueRecoPredictor(nn.Module):
+    """Fake recognition: reads the gray level of the crop, which identifies the page"""
+
+    def forward(self, crops, **kwargs):
+        return [(str(round(float(crop.mean()))), 1.0) for crop in crops]
+
+
+def _page_words(page):
+    if isinstance(page, KIEPage):
+        return [word.value for word in page.predictions[CLASS_NAME]]
+    return [word.value for block in page.blocks for line in block.lines for word in line.words]
+
+
+def _value_pages(num_pages):
+    return [np.full((60 + idx, 80, 3), 10 * idx, dtype=np.uint8) for idx in range(num_pages)]
+
+
+def _value_predictor(predictor_cls, **kwargs):
+    return predictor_cls(_ValueDetPredictor(), _ValueRecoPredictor(), assume_straight_pages=True, **kwargs)
+
+
+@pytest.mark.parametrize(
+    "predictor_cls, doc_cls",
+    [(OCRPredictor, Document), (KIEPredictor, KIEDocument)],
+)
+def test_predictors_chunk_long_inputs(predictor_cls, doc_cls):
+    pages = _value_pages(7)
+    predictor = _value_predictor(predictor_cls, page_chunk_size=3)
+
+    out = predictor(pages)
+    assert type(out) is doc_cls
+    # processed by chunks of at most 3 pages, the results being identical to a single pass
+    assert predictor.det_predictor.calls == [3, 3, 1]
+    assert [page.page_idx for page in out.pages] == list(range(7))
+    assert [_page_words(page) for page in out.pages] == [[str(10 * idx)] for idx in range(7)]
+    assert [page.dimensions for page in out.pages] == [page.shape[:2] for page in pages]
+    # in-memory pages are referenced as-is
+    assert all(page.page is image for page, image in zip(out.pages, pages))
+
+    single_pass = _value_predictor(predictor_cls)
+    assert single_pass(pages).export() == out.export()
+    assert single_pass.det_predictor.calls == [7]
+
+    # any iterable of pages, e.g. a generator, is supported
+    assert predictor(page for page in pages).export() == out.export()
+    assert predictor(tuple(pages)).export() == out.export()
+
+
+@pytest.mark.parametrize("predictor_cls", [OCRPredictor, KIEPredictor])
+def test_predictors_stream(predictor_cls):
+    pages = _value_pages(5)
+    predictor = _value_predictor(predictor_cls, page_chunk_size=4)
+
+    stream = predictor.stream(pages, page_chunk_size=2, prefetch_pages=False)
+    first = next(stream)
+    # results are yielded as soon as their chunk is processed
+    assert predictor.det_predictor.calls == [2]
+    assert (first.page_idx, _page_words(first)) == (0, ["0"])
+    rest = list(stream)
+    assert [page.page_idx for page in rest] == [1, 2, 3, 4]
+    assert predictor.det_predictor.calls == [2, 2, 1]
+
+    # same results with prefetching, and the predictor default chunk size
+    predictor.det_predictor.calls.clear()
+    streamed = list(predictor.stream(iter(pages)))
+    assert predictor.det_predictor.calls == [4, 1]
+    assert [page.export() for page in streamed] == [page.export() for page in [first, *rest]]
+    assert list(predictor.stream([])) == []
+
+
+@pytest.mark.parametrize(
+    "predictor_cls, doc_cls",
+    [(OCRPredictor, Document), (KIEPredictor, KIEDocument)],
+)
+def test_predictors_lazy_source(tmp_path, predictor_cls, doc_cls):
+    pages = _value_pages(5)
+    for idx, page in enumerate(pages):
+        cv2.imwrite(str(tmp_path / f"page_{idx}.png"), page)
+    source = DocumentFile.from_images(tmp_path, lazy=True)
+
+    predictor = _value_predictor(predictor_cls, page_chunk_size=2)
+    out = predictor(source)
+    assert type(out) is doc_cls
+    assert predictor.det_predictor.calls == [2, 2, 1]
+    assert out.export() == _value_predictor(predictor_cls)(pages).export()
+
+    # the predictions only keep a reference to their page, decoded again on access
+    assert all(type(page._page).__name__ == "_SourcePage" for page in out.pages)
+    assert all(np.array_equal(page.page, image) for page, image in zip(out.pages, pages))
+    assert type(predictor(source[:0])) is doc_cls
+
+
+def test_predictors_lazy_source_transformed_pages(tmp_path):
+    """Pages modified by the pipeline (e.g. straightened) cannot be read again from the source: they are kept
+    losslessly compressed"""
+
+    class _TransformingPredictor(OCRPredictor):
+        def _predict_pages(self, pages, **kwargs):
+            out = super()._predict_pages(pages, **kwargs)
+            for page in out.pages:
+                page.page = np.ascontiguousarray(page.page[::-1])
+            return out
+
+    pages = _value_pages(3)
+    pages[1][:10] = 255
+    for idx, page in enumerate(pages):
+        cv2.imwrite(str(tmp_path / f"page_{idx}.png"), page)
+
+    predictor = _TransformingPredictor(_ValueDetPredictor(), _ValueRecoPredictor(), page_chunk_size=2)
+    out = predictor(DocumentFile.from_images(tmp_path, lazy=True))
+    assert all(type(page._page).__name__ == "_EncodedImage" for page in out.pages)
+    assert all(np.array_equal(page.page, image[::-1]) for page, image in zip(out.pages, pages))
+
+
+def test_predictors_invalid_page_chunk_size():
+    for predictor_cls in (OCRPredictor, KIEPredictor):
+        with pytest.raises(ValueError):
+            _value_predictor(predictor_cls, page_chunk_size=0)
+
+
+@pytest.mark.parametrize("straighten_pages", [False, True])
+def test_ocr_predictor_lazy_pdf(mock_pdf, straighten_pages):
+    predictor = models.ocr_predictor(
+        "db_mobilenet_v3_large",
+        "crnn_mobilenet_v3_small",
+        pretrained=True,
+        straighten_pages=straighten_pages,
+        page_chunk_size=1,
+    )
+    eager = predictor(DocumentFile.from_pdf(mock_pdf))
+    lazy = predictor(DocumentFile.from_pdf(mock_pdf, lazy=True))
+
+    assert lazy.export() == eager.export()
+    assert lazy.render() == eager.render()
+    assert all(np.array_equal(lazy_page.page, page.page) for lazy_page, page in zip(lazy.pages, eager.pages))
+    assert len(lazy.export_as_markdown(images="embedded")) > 0

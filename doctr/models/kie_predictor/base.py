@@ -6,6 +6,7 @@
 from collections.abc import Collection
 from typing import Any
 
+from doctr.io.elements import Document, KIEDocument
 from doctr.models.builder import KIEDocumentBuilder
 
 from ..classification.predictor import OrientationPredictor
@@ -32,11 +33,15 @@ class _KIEPredictor(_OCRPredictor):
             be masked out (filled with black) before passing the pages to the detection/recognition modules.
         preserve_original_coords: if True and straighten_pages is True, bounding boxes are mapped back to the
             original page coordinates. Useful for redaction and annotation.
+        page_chunk_size: the maximum number of pages processed at once. Longer inputs, as well as lazy page sources
+            and iterators, are processed chunk by chunk so that the memory footprint does not grow with the number
+            of pages.
         kwargs: keyword args of `DocumentBuilder`
     """
 
     crop_orientation_predictor: OrientationPredictor | None
     page_orientation_predictor: OrientationPredictor | None
+    _document_cls: type[Document] = KIEDocument
 
     def __init__(
         self,
@@ -47,6 +52,7 @@ class _KIEPredictor(_OCRPredictor):
         detect_orientation: bool = False,
         ignore_regions: Collection[str] | None = None,
         preserve_original_coords: bool = False,
+        page_chunk_size: int = 32,
         **kwargs: Any,
     ) -> None:
         super().__init__(
@@ -57,6 +63,7 @@ class _KIEPredictor(_OCRPredictor):
             detect_orientation,
             ignore_regions,
             preserve_original_coords=preserve_original_coords,
+            page_chunk_size=page_chunk_size,
             **kwargs,
         )
 
