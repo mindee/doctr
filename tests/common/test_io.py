@@ -86,6 +86,20 @@ def test_read_img_as_numpy(tmpdir_factory, mock_pdf):
     assert page.shape == (40, 60, 3)
     assert np.all(page[0, 0] == 255) and np.all(page[20, 30] == (255, 0, 0))
     assert np.all(io.read_img_as_numpy(png_stream.getvalue(), rgb_output=False)[20, 30] == (0, 0, 255))
+    # Semi-transparent pixels are blended with white
+    rgba[0, 0] = (0, 0, 0, 128)
+    png_stream = BytesIO()
+    Image.fromarray(rgba, "RGBA").save(png_stream, format="PNG")
+    assert np.all(io.read_img_as_numpy(png_stream.getvalue())[0, 0] == 127)
+
+    # Fully opaque RGBA images are kept as is
+    rgba[..., 3] = 255
+    png_stream = BytesIO()
+    Image.fromarray(rgba, "RGBA").save(png_stream, format="PNG")
+    page = io.read_img_as_numpy(png_stream.getvalue())
+    assert page.shape == (40, 60, 3) and page.flags.c_contiguous
+    assert np.all(page == rgba[..., :3])
+    assert np.all(io.read_img_as_numpy(png_stream.getvalue(), rgb_output=False) == rgba[..., 2::-1])
 
 
 def test_read_html():
@@ -126,4 +140,6 @@ def test_read_img_as_numpy_exif_orientation(tmpdir_factory):
     # Same for an image with transparency
     path = str(folder.join("exif_o6.png"))
     Image.fromarray(np.zeros((40, 60, 4), dtype=np.uint8), "RGBA").save(path, format="PNG", exif=exif)
-    assert io.read_img_as_numpy(path).shape == (60, 40, 3)
+    page = io.read_img_as_numpy(path)
+    assert page.shape == (60, 40, 3)
+    assert np.all(page[0, 0] == 255)

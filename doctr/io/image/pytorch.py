@@ -7,10 +7,12 @@ from io import BytesIO
 
 import numpy as np
 import torch
-from PIL import Image, ImageOps
+from PIL import Image
 from torchvision.transforms.functional import to_tensor
 
 from doctr.utils.common_types import AbstractPath
+
+from .base import _pil_to_rgb_array
 
 __all__ = ["tensor_from_pil", "read_img_as_tensor", "decode_img_as_tensor", "tensor_from_numpy", "get_img_shape"]
 
@@ -47,9 +49,8 @@ def read_img_as_tensor(img_path: AbstractPath, dtype: torch.dtype = torch.float3
         raise ValueError("insupported value for dtype")
 
     with Image.open(img_path, mode="r") as pil_img:
-        # Apply the EXIF orientation before decoding, to stay consistent with `read_img_as_numpy`
-        # (OpenCV applies EXIF orientation automatically, PIL does not)
-        return tensor_from_pil(ImageOps.exif_transpose(pil_img).convert("RGB"), dtype)
+        # Apply the EXIF orientation and place transparent pixels on white, like `read_img_as_numpy`
+        return tensor_from_numpy(_pil_to_rgb_array(pil_img), dtype)
 
 
 def decode_img_as_tensor(img_content: bytes, dtype: torch.dtype = torch.float32) -> torch.Tensor:
@@ -66,7 +67,7 @@ def decode_img_as_tensor(img_content: bytes, dtype: torch.dtype = torch.float32)
         raise ValueError("insupported value for dtype")
 
     with Image.open(BytesIO(img_content), mode="r") as pil_img:
-        return tensor_from_pil(ImageOps.exif_transpose(pil_img).convert("RGB"), dtype)
+        return tensor_from_numpy(_pil_to_rgb_array(pil_img), dtype)
 
 
 def tensor_from_numpy(npy_img: np.ndarray, dtype: torch.dtype = torch.float32) -> torch.Tensor:

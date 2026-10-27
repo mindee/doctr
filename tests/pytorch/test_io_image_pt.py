@@ -68,3 +68,20 @@ def test_read_img_as_tensor_exif_orientation(tmpdir_factory):
     with open(path, "rb") as f:
         img_stream = decode_img_as_tensor(f.read())
     assert img_stream.shape == (3, 60, 40)
+
+
+def test_img_as_tensor_transparency(tmpdir_factory):
+    # Opaque red square on a transparent black background, placed on white like `read_img_as_numpy` does
+    rgba = np.zeros((40, 60, 4), dtype=np.uint8)
+    rgba[10:30, 20:40] = (255, 0, 0, 255)
+    path = str(tmpdir_factory.mktemp("images").join("transparent.png"))
+    Image.fromarray(rgba, "RGBA").save(path, format="PNG")
+    with open(path, "rb") as f:
+        img_stream = f.read()
+
+    for img in (read_img_as_tensor(path, dtype=torch.uint8), decode_img_as_tensor(img_stream, dtype=torch.uint8)):
+        assert img.shape == (3, 40, 60)
+        assert torch.all(img[:, 0, 0] == 255)
+        assert img[:, 20, 30].tolist() == [255, 0, 0]
+    assert torch.all(read_img_as_tensor(path)[:, 0, 0] == 1)
+    assert torch.all(decode_img_as_tensor(img_stream)[:, 0, 0] == 1)
