@@ -661,8 +661,7 @@ class ObjectDetectionMetric:
         - :math:`\mathcal{C}` is the set of possible class indices,
         - :math:`S` are confidence scores associated to predictions,
         - :math:`\mathcal{T} = \{0.5, 0.55, \dots, 0.95\}` is the set of IoU thresholds,
-        - :math:`AP_t(c)` is the Average Precision for class :math:`c`
-        at IoU threshold :math:`t`.
+        - :math:`AP_t(c)` is the Average Precision for class :math:`c` at IoU threshold :math:`t`.
 
     For a given class and IoU threshold, predictions from all images are
     aggregated and sorted globally by decreasing confidence score.

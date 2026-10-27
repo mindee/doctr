@@ -13,6 +13,7 @@ from doctr.models._utils import (
     invert_data_structure,
     mask_boxes,
 )
+from doctr.models.predictor.base import _OCRPredictor
 from doctr.utils import geometry
 
 
@@ -185,3 +186,49 @@ def test_aggregate_confidence_edge_cases():
     for invalid in ["average", ["mean"], {"mean"}, None, 1]:
         with pytest.raises(ValueError, match="Unknown confidence aggregation"):
             aggregate_confidence([0.5], invalid)
+
+
+def test_align_hook_output():
+    boxes = [
+        np.array([[0.1, 0.1, 0.2, 0.2], [0.5, 0.5, 0.6, 0.6], [0.8, 0.1, 0.9, 0.2]], dtype=np.float32),
+        np.zeros((0, 4), dtype=np.float32),
+    ]
+    scores = [np.array([0.9, 0.3, 0.6], dtype=np.float32), np.zeros((0,), dtype=np.float32)]
+
+    # Unchanged boxes keep their scores
+    out_boxes, out_scores = _OCRPredictor._align_hook_output(boxes, [b.copy() for b in boxes], scores)
+    assert all(np.array_equal(a, b) for a, b in zip(out_boxes, boxes))
+    assert out_scores[0] == pytest.approx([0.9, 0.3, 0.6])
+
+    # Moved, reordered and filtered boxes keep the score of their closest box; lists are converted to arrays,
+    # and a box added on a page without predictions gets a score of 1
+    hooked = [np.array([[0.81, 0.1, 0.91, 0.2], [0.11, 0.1, 0.21, 0.2]]), [[0.0, 0.0, 0.1, 0.1]]]
+    out_boxes, out_scores = _OCRPredictor._align_hook_output(boxes, hooked, scores)
+    assert out_boxes[0].dtype == np.float32 and out_boxes[0].shape == (2, 4)
+    assert out_boxes[1].shape == (1, 4)
+    assert out_scores[0] == pytest.approx([0.6, 0.9])
+    assert out_scores[1] == pytest.approx([1.0])
+
+    # All the boxes can be removed
+    out_boxes, out_scores = _OCRPredictor._align_hook_output(boxes, [[], []], scores)
+    assert [b.shape for b in out_boxes] == [(0, 4), (0, 4)]
+    assert [len(s) for s in out_scores] == [0, 0]
+
+    # Rotated boxes
+    polys = [
+        np.array([
+            [[0.1, 0.1], [0.2, 0.1], [0.2, 0.2], [0.1, 0.2]],
+            [[0.5, 0.5], [0.6, 0.5], [0.6, 0.6], [0.5, 0.6]],
+        ])
+    ]
+    out_boxes, out_scores = _OCRPredictor._align_hook_output(polys, [polys[0][1:]], [np.array([0.4, 0.7])])
+    assert out_boxes[0].shape == (1, 4, 2)
+    assert out_scores[0] == pytest.approx([0.7])
+
+    # Invalid outputs
+    with pytest.raises(ValueError, match="one array of boxes per page"):
+        _OCRPredictor._align_hook_output(boxes, boxes[:1], scores)
+    with pytest.raises(ValueError, match="one array of boxes per page"):
+        _OCRPredictor._align_hook_output(boxes, boxes[0], scores)
+    with pytest.raises(ValueError, match="format of the boxes"):
+        _OCRPredictor._align_hook_output(boxes, [boxes[0][:, :2], boxes[1]], scores)

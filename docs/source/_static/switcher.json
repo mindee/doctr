@@ -1,0 +1,33 @@
+[
+  {
+    "name": "latest (main)",
+    "version": "latest",
+    "url": "https://mindee.github.io/doctr/latest/"
+  },
+  {
+    "name": "v1.1.0 (stable)",
+    "version": "v1.1.0",
+    "url": "https://mindee.github.io/doctr/",
+    "preferred": true
+  },
+  {
+    "name": "v1.0.1",
+    "version": "v1.0.1",
+    "url": "https://mindee.github.io/doctr/v1.0.1/"
+  },
+  {
+    "name": "v1.0.0",
+    "version": "v1.0.0",
+    "url": "https://mindee.github.io/doctr/v1.0.0/"
+  },
+  {
+    "name": "v0.12.0",
+    "version": "v0.12.0",
+    "url": "https://mindee.github.io/doctr/v0.12.0/"
+  },
+  {
+    "name": "v0.11.0",
+    "version": "v0.11.0",
+    "url": "https://mindee.github.io/doctr/v0.11.0/"
+  }
+]
