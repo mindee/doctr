@@ -204,6 +204,71 @@ def test_predictors_keep_objectness_scores_aligned(predictor_cls, assume_straigh
     assert [word.objectness_score for word in words] == pytest.approx([0.9, 0.8])
 
 
+@pytest.mark.parametrize("assume_straight_pages", [True, False])
+@pytest.mark.parametrize("predictor_cls", [OCRPredictor, KIEPredictor])
+def test_predictors_hooks_run_before_cropping(predictor_cls, assume_straight_pages):
+    # Each box covers a region of the page filled with its own gray level, read back by the recognition stub
+    levels = [10, 100, 200]
+    page = np.full((100, 200, 3), 255, dtype=np.uint8)
+    straight_boxes = [[0.1, 0.1, 0.3, 0.2], [0.4, 0.1, 0.6, 0.2], [0.7, 0.1, 0.9, 0.2]]
+    for (xmin, ymin, xmax, ymax), level in zip(straight_boxes, levels):
+        page[int(ymin * 100) : int(ymax * 100), int(xmin * 200) : int(xmax * 200)] = level
+    scores = [0.9, 0.8, 0.7]
+    if assume_straight_pages:
+        boxes = np.array([[*box, score] for box, score in zip(straight_boxes, scores)], dtype=np.float32)
+    else:
+        boxes = np.array(
+            [
+                [[x0, y0], [x1, y0], [x1, y1], [x0, y1], [score, score]]
+                for (x0, y0, x1, y1), score in zip(straight_boxes, scores)
+            ],
+            dtype=np.float32,
+        )
+
+    class _FixedDetPredictor(nn.Module):
+        def forward(self, pages, **kwargs):
+            return [{CLASS_NAME: boxes.copy()} for _ in pages]
+
+    class _GrayLevelRecoPredictor(nn.Module):
+        def forward(self, crops, **kwargs):
+            return [(str(int(np.median(crop))), 1.0) for crop in crops]
+
+    predictor = predictor_cls(
+        _FixedDetPredictor(),
+        _GrayLevelRecoPredictor(),
+        assume_straight_pages=assume_straight_pages,
+        disable_page_orientation=True,
+        disable_crop_orientation=True,
+    )
+
+    def _words(out):
+        page_out = out.pages[0]
+        if predictor_cls is KIEPredictor:
+            return page_out.predictions[CLASS_NAME]
+        return [word for block in page_out.blocks for line in block.lines for word in line.words]
+
+    # A hook removing the first box: only the other boxes are read, each with its own text and score
+    if predictor_cls is KIEPredictor:
+        predictor.add_hook(lambda preds: {name: [p[1:] for p in pages] for name, pages in preds.items()})
+    else:
+        predictor.add_hook(lambda preds: [p[1:] for p in preds])
+    words = sorted(_words(predictor([page])), key=lambda word: np.asarray(word.geometry)[..., 0].min())
+    assert [word.value for word in words] == ["100", "200"]
+    assert [word.objectness_score for word in words] == pytest.approx([0.8, 0.7])
+
+    # Hooks run in order: the second one only keeps the box of the third region
+    if predictor_cls is KIEPredictor:
+        predictor.add_hook(lambda preds: {name: [p[1:] for p in pages] for name, pages in preds.items()})
+    else:
+        predictor.add_hook(lambda preds: [p[1:] for p in preds])
+    assert [word.value for word in _words(predictor([page]))] == ["200"]
+
+    # Invalid outputs are reported
+    predictor.hooks = [lambda preds: preds[0] if isinstance(preds, list) else list(preds.values())]
+    with pytest.raises(ValueError):
+        predictor([page])
+
+
 def test_ocrpredictor_layout(mock_pdf, mock_vocab, mock_payslip):
     det_predictor = DetectionPredictor(
         PreProcessor(output_size=(512, 512), batch_size=2),

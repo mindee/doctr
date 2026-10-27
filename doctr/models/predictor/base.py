@@ -313,7 +313,92 @@ class _OCRPredictor:
     def add_hook(self, hook: Callable) -> None:
         """Add a hook to the predictor
 
+        Hooks run after text detection and before the word crops are extracted, in the order they were added.
+        Each hook receives the location predictions, one array of boxes per page in relative coordinates
+        (`(N, 4)` straight boxes or `(N, 4, 2)` polygons), and returns them in the same format. It can move,
+        resize, add or remove boxes: only the returned boxes are cropped and read by the recognition model.
+
         Args:
             hook: a callable that takes as input the `loc_preds` and returns the modified `loc_preds`
         """
         self.hooks.append(hook)
+
+    def _apply_hooks(
+        self, loc_preds: list[np.ndarray], objectness_scores: list[np.ndarray]
+    ) -> tuple[list[np.ndarray], list[np.ndarray]]:
+        """Run the hooks on the location predictions, before the word crops are extracted
+
+        Args:
+            loc_preds: one array of boxes per page, in relative coordinates
+            objectness_scores: one array of objectness scores per page
+
+        Returns:
+            the location predictions returned by the hooks, and the matching objectness scores
+        """
+        if not self.hooks:
+            return loc_preds, objectness_scores
+        # Pass a copy of the list, so that a hook replacing the arrays in place does not alter the reference
+        hooked_preds: Any = list(loc_preds)
+        for hook in self.hooks:
+            hooked_preds = hook(hooked_preds)
+        return self._align_hook_output(loc_preds, hooked_preds, objectness_scores)
+
+    @staticmethod
+    def _align_hook_output(
+        loc_preds: list[np.ndarray], hooked_preds: Any, objectness_scores: list[np.ndarray]
+    ) -> tuple[list[np.ndarray], list[np.ndarray]]:
+        """Check the location predictions returned by the hooks, and give each box an objectness score
+
+        A box keeps the score of the closest predicted box of its page, so that moved, resized, reordered or
+        filtered boxes keep their own score. A box added on a page without any prediction gets a score of 1.
+
+        Args:
+            loc_preds: the location predictions passed to the hooks, one array per page
+            hooked_preds: the location predictions returned by the hooks
+            objectness_scores: the objectness scores of `loc_preds`, one array per page
+
+        Returns:
+            the location predictions returned by the hooks as arrays, and their objectness scores
+        """
+        if not isinstance(hooked_preds, (list, tuple)) or len(hooked_preds) != len(loc_preds):
+            received = type(hooked_preds).__name__
+            if isinstance(hooked_preds, (list, tuple)):
+                received += f" of length {len(hooked_preds)}"
+            raise ValueError(
+                f"hooks must return one array of boxes per page: expected a list of {len(loc_preds)} arrays, "
+                f"got a {received}"
+            )
+
+        out_preds: list[np.ndarray] = []
+        out_scores: list[np.ndarray] = []
+        for page_idx, (boxes, new_boxes, scores) in enumerate(zip(loc_preds, hooked_preds, objectness_scores)):
+            new_boxes = np.asarray(new_boxes, dtype=boxes.dtype)
+            if new_boxes.size == 0:
+                new_boxes = new_boxes.reshape((0, *boxes.shape[1:]))
+            if new_boxes.shape[1:] != boxes.shape[1:]:
+                raise ValueError(
+                    "hooks must keep the format of the boxes: expected an array of shape "
+                    f"(N, {', '.join(map(str, boxes.shape[1:]))}) for page {page_idx}, got {new_boxes.shape}"
+                )
+
+            if new_boxes.shape == boxes.shape and np.array_equal(new_boxes, boxes):
+                new_scores = scores
+            elif len(new_boxes) == 0:
+                new_scores = scores[:0]
+            elif len(boxes) == 0:
+                new_scores = np.ones(len(new_boxes), dtype=scores.dtype)
+            else:
+                # Match each returned box with the closest predicted box (L1 distance between the corners),
+                # by chunks to bound the memory used on dense pages
+                ref = boxes.reshape(len(boxes), -1)
+                flat = new_boxes.reshape(len(new_boxes), -1)
+                idcs = np.concatenate([
+                    np.abs(flat[start : start + 256, None, :] - ref[None, :, :]).sum(-1).argmin(axis=1)
+                    for start in range(0, len(flat), 256)
+                ])
+                new_scores = scores[idcs]
+
+            out_preds.append(new_boxes)
+            out_scores.append(new_scores)
+
+        return out_preds, out_scores
