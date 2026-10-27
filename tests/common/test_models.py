@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 import requests
 
-from doctr.io import reader
+from doctr.io import read_img_as_numpy
 from doctr.models._utils import (
     aggregate_confidence,
     estimate_orientation,
@@ -24,7 +24,7 @@ def mock_image(tmpdir_factory):
     tmp_path = str(tmpdir_factory.mktemp("data").join("mock_bitmap.jpg"))
     with open(tmp_path, "wb") as f:
         f.write(file.getbuffer())
-    image = reader.read_img_as_numpy(tmp_path)
+    image = read_img_as_numpy(tmp_path)
     return image
 
 
@@ -52,7 +52,7 @@ def test_estimate_orientation(mock_image, mock_bitmap, mock_tilted_payslip):
     angle_rotated = estimate_orientation(rotated)
     assert abs(angle_rotated) == 0
 
-    mock_tilted_payslip = reader.read_img_as_numpy(mock_tilted_payslip)
+    mock_tilted_payslip = read_img_as_numpy(mock_tilted_payslip)
     assert estimate_orientation(mock_tilted_payslip) == -30
 
     rotated = geometry.rotate_image(mock_tilted_payslip, -30, expand=True)
