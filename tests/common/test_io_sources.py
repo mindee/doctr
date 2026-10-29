@@ -4,6 +4,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+import pypdfium2 as pdfium
 import pytest
 from PIL import Image
 
@@ -63,22 +64,80 @@ def test_pdf_source_fails_eagerly(tmp_path):
         io.PDFSource(corrupted)
 
 
-def test_pdf_source_handles(mock_pdf):
+def test_pdf_source_handles(mock_pdf, monkeypatch):
+    opened = []
+    _open = io.PDFSource._open
+
+    def _counting_open(self):
+        if self._pdf is None:
+            opened.append(self)
+        return _open(self)
+
+    monkeypatch.setattr(io.PDFSource, "_open", _counting_open)
     source = io.PDFSource(mock_pdf)
-    # no file handle is held until a page is rendered
+    opened.clear()
+
+    # no file handle is held outside of an iteration or a `with` block: random access opens the document for the
+    # page only
     assert source._pdf is None
-    _ = source[0]
-    assert source._pdf is not None
-    source.close()
+    assert source[0].ndim == 3 and source[1].ndim == 3
     assert source._pdf is None
-    # the source can still be used after being closed
-    assert source[1].ndim == 3
+    assert len(opened) == 2
+    assert not sources._OPEN_PDF_SOURCES
+
+    # a `with` block keeps it open for all the accesses of the block
+    opened.clear()
     with source as doc:
-        assert doc[0].ndim == 3
+        assert doc[0].ndim == 3 and doc[1].ndim == 3
+        assert source._pdf is not None
+        # nested blocks
+        with source:
+            assert doc[1].ndim == 3
+        assert source._pdf is not None
     assert source._pdf is None
-    # a full iteration releases the handle it acquired
-    assert len(list(source)) == 2
+    assert len(opened) == 1
+
+    # an iteration opens it once, and releases it at the end
+    opened.clear()
+    iterator = iter(source)
+    next(iterator)
+    assert source._pdf is not None
+    assert len(list(iterator)) == 1
     assert source._pdf is None
+    assert len(opened) == 1
+    # also when stopped early
+    iterator = iter(source)
+    next(iterator)
+    iterator.close()
+    assert source._pdf is None
+
+    # closing it within a `with` block or an iteration is not an issue: it is opened again on demand
+    with source:
+        source.close()
+        assert source[0].ndim == 3
+        assert source._pdf is not None
+    assert source._pdf is None
+
+
+def test_pdf_source_handle_released_on_errors(mock_pdf, monkeypatch):
+    source = io.PDFSource(mock_pdf)
+
+    def _failing_render(*args, **kwargs):
+        raise RuntimeError("render failure")
+
+    # a page that cannot be loaded
+    with pytest.raises(Exception):
+        source._load(5)
+    assert source._pdf is None
+    # a page that cannot be rendered
+    monkeypatch.setattr(pdfium.PdfPage, "render", _failing_render)
+    with pytest.raises(RuntimeError, match="render failure"):
+        source[0]
+    assert source._pdf is None
+    with pytest.raises(RuntimeError, match="render failure"):
+        list(source)
+    assert source._pdf is None
+    assert not sources._OPEN_PDF_SOURCES
 
 
 def test_pdf_source_pickle(mock_pdf):
@@ -189,8 +248,27 @@ def test_slicing(mock_pdf):
     assert len(source[::-1]) == 2
     assert np.array_equal(source[::-1][0], source[1])
     assert len(source[5:]) == 0
-    view.close()
+
+    # a view holds nothing of its own: closing it leaves its source and the other views untouched
+    with source:
+        _ = source[0]
+        view.close()
+        assert source._pdf is not None
+        assert np.array_equal(source[:1][0], source[0])
     assert source._pdf is None
+    # iterating over a view opens its source for the pass only, `with view:` for the block
+    assert len(list(source[::-1])) == 2
+    assert source._pdf is None
+    with view:
+        _ = view[0]
+        assert source._pdf is not None
+    assert source._pdf is None
+    # views of views
+    assert np.array_equal(source[::-1][1:][0], source[0])
+    # a source used in a `with` block can still be pickled
+    with source:
+        assert pickle.loads(pickle.dumps(source))._pdf is None
+        assert len(pickle.loads(pickle.dumps(view))) == 1
 
 
 def test_iter_batches(image_folder):
@@ -227,14 +305,60 @@ def test_concat_source(mock_pdf, image_folder):
 
 def test_concat_source_keeps_one_pdf_open(mock_pdf):
     pdfs = [io.PDFSource(mock_pdf) for _ in range(3)]
-    source = io.ConcatSource(pdfs)
+    source = io.ConcatSource([pdfs[0], [np.zeros((4, 4, 3), dtype=np.uint8)], pdfs[1], pdfs[2]])
+    # random access holds no handle
     for idx in range(len(source)):
-        _ = source[idx]
-        assert sum(pdf._pdf is not None for pdf in pdfs) == 1
+        assert source[idx].ndim == 3
+        assert all(pdf._pdf is None for pdf in pdfs)
+    # an iteration holds at most one, and none once it is over
     for _ in source:
         assert sum(pdf._pdf is not None for pdf in pdfs) <= 1
-    source.close()
     assert all(pdf._pdf is None for pdf in pdfs)
+    # same for the views on a concatenation, in any order
+    pages = list(source)
+    view = source[::-1]
+    for page, ref in zip(view, pages[::-1]):
+        assert np.array_equal(page, ref)
+        assert sum(pdf._pdf is not None for pdf in pdfs) <= 1
+    assert all(pdf._pdf is None for pdf in pdfs)
+
+
+def test_concat_source_concurrent_access(mock_pdf, monkeypatch):
+    """Pages can be read (e.g. through the page images of predictions) while another thread iterates over the
+    concatenation: no state is shared, and the document being iterated is not closed under the iteration"""
+    pdfs = [io.PDFSource(mock_pdf) for _ in range(4)]
+    source = io.ConcatSource(pdfs)
+    expected = list(source)
+    # documents closed while an iteration was still reading them
+    closed_under_iteration = []
+    _close = io.PDFSource.close
+
+    def _recording_close(self):
+        if self._holders > 0 and self._pdf is not None:
+            closed_under_iteration.append(self)
+        return _close(self)
+
+    monkeypatch.setattr(io.PDFSource, "close", _recording_close)
+
+    errors = []
+
+    def _read_randomly():
+        try:
+            for _ in range(5):
+                for idx in range(len(source)):
+                    assert np.array_equal(source[idx], expected[idx])
+        except Exception as e:  # pragma: no cover
+            errors.append(e)
+
+    reader = threading.Thread(target=_read_randomly)
+    reader.start()
+    iterated = list(source)
+    reader.join()
+    assert not errors
+    assert all(np.array_equal(page, ref) for page, ref in zip(iterated, expected))
+    assert not closed_under_iteration
+    assert all(pdf._pdf is None for pdf in pdfs)
+    assert not sources._OPEN_PDF_SOURCES
 
 
 # DocumentFile
@@ -277,6 +401,18 @@ def test_document_file_from_files(mock_pdf, image_folder, tmp_path):
     assert doc.sources[1].scale == 1
 
 
+def test_is_pdf(mock_pdf):
+    pdf_bytes = Path(mock_pdf).read_bytes()
+    assert sources._is_pdf(pdf_bytes)
+    assert sources._is_pdf(b"\n \r\n" + pdf_bytes)
+    assert not sources._is_pdf(b"\x89PNG\r\n")
+    assert not sources._is_pdf(b"")
+    # only the beginning of the content is looked at
+    assert not sources._is_pdf(b" " * 2048 + pdf_bytes)
+    assert sources._is_pdf(Path("doc.PDF")) and sources._is_pdf("doc.pdf")
+    assert not sources._is_pdf("doc.png")
+
+
 # Lazy page images
 
 
@@ -284,6 +420,9 @@ def test_page_image_on_demand(mock_pdf):
     source = io.PDFSource(mock_pdf)
     page = Page(sources._SourcePage(source, 1), [], 1, source[1].shape[:2])
     assert np.array_equal(page.page, source[1])
+    # accessing the image of a prediction leaves no file handle behind
+    assert source._pdf is None
+    assert not sources._OPEN_PDF_SOURCES
     # assigning an array still works
     page.page = np.zeros((2, 2, 3), dtype=np.uint8)
     assert page.page.shape == (2, 2, 3)

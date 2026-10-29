@@ -6,7 +6,7 @@
 
 import multiprocessing as mp
 import os
-from collections.abc import Callable, Iterable, Iterator
+from collections.abc import Callable, Generator, Iterable, Iterator
 from concurrent.futures import ThreadPoolExecutor
 from itertools import islice
 from multiprocessing.pool import ThreadPool
@@ -77,7 +77,7 @@ def chunked(seq: Iterable[Any], size: int) -> Iterator[list[Any]]:
 _EXHAUSTED = object()
 
 
-def prefetch(seq: Iterable[Any], enabled: bool = True) -> Iterator[Any]:
+def prefetch(seq: Iterable[Any], enabled: bool = True) -> Generator[Any, None, None]:
     """Iterate over an iterable while producing its next element in a background thread
 
     This overlaps the production of the next element (e.g. decoding the next pages of a document) with the
@@ -93,7 +93,7 @@ def prefetch(seq: Iterable[Any], enabled: bool = True) -> Iterator[Any]:
         enabled: whether the elements are produced in a background thread
 
     Returns:
-        iterator over the elements of the iterable
+        generator over the elements of the iterable: closing it waits for the element being produced, if any
 
     Notes:
         Prefetching is disabled when 'DOCTR_MULTIPROCESSING_DISABLE' is set to 'TRUE'.

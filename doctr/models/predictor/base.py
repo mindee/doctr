@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+import threading
 from collections.abc import Callable, Collection, Iterable, Iterator, Sequence
 from typing import Any
 
@@ -141,23 +142,46 @@ class _OCRPredictor:
             whole input. For lazy page sources, the predicted pages hold a reference to their image instead of the
             image itself: `page.page` decodes it again on access. Pages transformed by the pipeline (e.g. with
             `straighten_pages=True`) cannot be read again from the source: they keep their transformed image, as
-            for in-memory inputs.
+            for in-memory inputs. Stopping the iteration early (e.g. with `break`) stops decoding ahead after the
+            page in progress.
         """
         chunk_size = self.page_chunk_size if page_chunk_size is None else page_chunk_size
         source = pages if isinstance(pages, PageSource) else None
         # Pages already held in memory gain nothing from a background thread: it would only slice the list
         in_memory = isinstance(pages, (list, tuple, np.ndarray))
+        # Set when the consumer stops early (or on error), so that the background thread stops decoding ahead after
+        # the page in progress instead of completing a whole chunk that nobody will process
+        stop = threading.Event()
+
+        def _pages_until_stopped() -> Iterator[np.ndarray]:
+            iterator = iter(pages)
+            try:
+                for page in iterator:
+                    yield page
+                    if stop.is_set():
+                        return
+            finally:
+                # Release the resources held by the iteration (e.g. an open PDF) as soon as it is over
+                close = getattr(iterator, "close", None)
+                if callable(close):
+                    close()
+
+        chunks = prefetch(chunked(_pages_until_stopped(), chunk_size), enabled=prefetch_pages and not in_memory)
         offset = 0
-        for chunk in prefetch(chunked(pages, chunk_size), enabled=prefetch_pages and not in_memory):
-            result = self._predict_pages(chunk, **kwargs)
-            for local_idx, (page, image) in enumerate(zip(result.pages, chunk)):
-                page.page_idx = offset + local_idx
-                # Unchanged pages are decoded again from the source on access. Transformed ones (e.g. straightened)
-                # keep their image, exactly as for in-memory inputs
-                if source is not None and page.page is image:
-                    page.page = _SourcePage(source, page.page_idx)
-                yield page
-            offset += len(chunk)
+        try:
+            for chunk in chunks:
+                result = self._predict_pages(chunk, **kwargs)
+                for local_idx, (page, image) in enumerate(zip(result.pages, chunk)):
+                    page.page_idx = offset + local_idx
+                    # Unchanged pages are decoded again from the source on access. Transformed ones (e.g.
+                    # straightened) keep their image, exactly as for in-memory inputs
+                    if source is not None and page.page is image:
+                        page.page = _SourcePage(source, page.page_idx)
+                    yield page
+                offset += len(chunk)
+        finally:
+            stop.set()
+            chunks.close()
 
     def _general_page_orientations(
         self,

@@ -146,6 +146,16 @@ so `show()` and the figure exports keep working. Pages transformed by the predic
 cannot be rendered again from the source: as for a list of pages, each of them keeps its straightened image in memory.
 Lists of pages already held in memory are simply processed chunk by chunk, without a background thread.
 
+A page source holds no open file between accesses: iterating over it opens each PDF once for the pass, while a
+single page (`doc[i]`, or `result.pages[i].page`) opens the file for that page only. The results therefore stay tied
+to their input files: if one is moved or deleted, accessing the image of its pages raises a `FileNotFoundError`. For
+many random accesses to the same PDF, a `with` block keeps it open until the block ends:
+
+```python
+with DocumentFile.from_pdf("path/to/1000_pages.pdf", lazy=True) as doc:
+    pages = [doc[i] for i in (0, 10, 500)]
+```
+
 The same goes for images, folders and mixed inputs:
 
 ```python

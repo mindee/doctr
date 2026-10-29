@@ -8,7 +8,8 @@ import threading
 import weakref
 from bisect import bisect_right
 from collections.abc import Iterable, Iterator, Sequence
-from itertools import accumulate
+from contextlib import AbstractContextManager, contextmanager, nullcontext
+from itertools import accumulate, groupby
 from pathlib import Path
 from typing import Any, overload
 
@@ -112,9 +113,22 @@ class PageSource(Sequence[np.ndarray]):
             raise IndexError(f"page index {idx} is out of range for a document of {num_pages} page(s)")
         return self._load(_idx)
 
+    def _session(self) -> AbstractContextManager[Any]:
+        """Context during which the resources needed to decode the pages (e.g. an open PDF) are kept.
+
+        Iterations run within one, so that the resources are acquired once for the whole pass. Outside of it, an
+        access to a single page (`source[idx]`) acquires them for that page only, and releases them right after.
+        """
+        return nullcontext()
+
+    def _iter_indices(self, indices: Iterable[int]) -> Iterator[np.ndarray]:
+        """Decode the pages at the given (non-negative, in-range) indices, in this order"""
+        with self._session():
+            for idx in indices:
+                yield self._load(idx)
+
     def __iter__(self) -> Iterator[np.ndarray]:
-        for idx in range(len(self)):
-            yield self._load(idx)
+        return self._iter_indices(range(len(self)))
 
     def __add__(self, other: Sequence[np.ndarray]) -> "ConcatSource":
         if not isinstance(other, Sequence):
@@ -148,13 +162,36 @@ class PageSource(Sequence[np.ndarray]):
 
     def close(self) -> None:
         """Release the resources held by the source (e.g. open PDF handles). The source can still be used
-        afterwards: the resources are acquired again on demand."""
+        afterwards: the resources are acquired again on demand.
+
+        Resources are only held during an iteration or a `with` block: accessing a single page outside of those
+        (e.g. `source[idx]`, or `page.page` on a prediction made from this source) releases them right after.
+        """
 
     def __enter__(self) -> "PageSource":
+        # Keep the resources for the whole block, e.g. for many random accesses to the pages of a PDF
+        session = self._session()
+        session.__enter__()
+        self.__dict__.setdefault("_entered", []).append(session)
         return self
 
     def __exit__(self, *args: Any) -> None:
+        entered = self.__dict__.get("_entered")
+        if entered:
+            entered.pop().__exit__(*args)
+        if not entered:
+            # Leaving the outermost block
+            self._release()
+
+    def _release(self) -> None:
+        """Release the resources once the last `with` block on the source is left"""
         self.close()
+
+    def __getstate__(self) -> dict[str, Any]:
+        # The resources held by a `with` block are not part of the source
+        state = self.__dict__.copy()
+        state.pop("_entered", None)
+        return state
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(num_pages={len(self)})"
@@ -167,6 +204,11 @@ class PDFSource(PageSource):
     >>> from doctr.io import PDFSource
     >>> doc = PDFSource("path/to/your/doc.pdf", scale=2)
     >>> first_page = doc[0]
+    >>> with doc:  # keep the document open for many random accesses
+    ...     pages = [doc[idx] for idx in (0, 10, 500)]
+
+    No file handle is held between accesses: an iteration opens the document once for the pass, and accessing a
+    single page outside of an iteration or a `with` block opens it for that page only.
 
     Args:
         file: the path to the PDF file or its content as bytes
@@ -190,6 +232,8 @@ class PDFSource(PageSource):
         self.password = password
         self.render_kwargs = kwargs
         self._pdf: pdfium.PdfDocument | None = None
+        # Number of sessions (iterations, `with` blocks) keeping the document open
+        self._holders = 0
         # Open the document eagerly: invalid inputs fail here rather than in the middle of a prediction
         with _PDFIUM_LOCK:
             pdf = self._open()
@@ -207,25 +251,37 @@ class PDFSource(PageSource):
     def __len__(self) -> int:
         return self._num_pages
 
+    @contextmanager
+    def _session(self) -> Iterator[None]:
+        with _PDFIUM_LOCK:
+            self._holders += 1
+        try:
+            yield
+        finally:
+            with _PDFIUM_LOCK:
+                self._holders -= 1
+                # Release the file handle once nobody reads the document anymore
+                if self._holders == 0:
+                    self.close()
+
     def _load(self, idx: int) -> np.ndarray:
         with _PDFIUM_LOCK:
-            page = self._open()[idx]
+            # Outside of any session (e.g. `source[idx]`, or the page image of a prediction accessed later on), the
+            # document is only opened for this page: no file handle is left behind. Within a session, it is kept open
+            # (and opened again if it was closed in the meantime).
+            transient = self._pdf is None and self._holders == 0
+            pdf = self._open()
             try:
-                bitmap = page.render(scale=self.scale, rev_byteorder=self.rgb_mode, **self.render_kwargs)
-                # The bitmap buffer is allocated by Python: the array safely outlives the pdfium page & document
-                return bitmap.to_numpy()
+                page = pdf[idx]
+                try:
+                    bitmap = page.render(scale=self.scale, rev_byteorder=self.rgb_mode, **self.render_kwargs)
+                    # The bitmap buffer is allocated by Python: the array safely outlives the pdfium page & document
+                    return bitmap.to_numpy()
+                finally:
+                    page.close()
             finally:
-                page.close()
-
-    def __iter__(self) -> Iterator[np.ndarray]:
-        was_open = self._pdf is not None
-        try:
-            for idx in range(len(self)):
-                yield self._load(idx)
-        finally:
-            # Release the file handle once the whole document has been read
-            if not was_open:
-                self.close()
+                if transient:
+                    self.close()
 
     def close(self) -> None:
         with _PDFIUM_LOCK:
@@ -234,10 +290,16 @@ class PDFSource(PageSource):
                 self._pdf = None
             _OPEN_PDF_SOURCES.discard(self)
 
+    def _release(self) -> None:
+        # The document is closed by the last session releasing it: an iteration still running in another thread
+        # keeps it open
+        pass
+
     def __getstate__(self) -> dict[str, Any]:
         # pdfium handles cannot be pickled: the document is re-opened on demand
-        state = self.__dict__.copy()
+        state = super().__getstate__()
         state["_pdf"] = None
+        state["_holders"] = 0
         return state
 
     def __repr__(self) -> str:
@@ -310,7 +372,6 @@ class ConcatSource(PageSource):
             # Flatten nested concatenations
             self.sources.extend(source.sources if isinstance(source, ConcatSource) else [source])
         self._offsets = [0, *accumulate(len(source) for source in self.sources)]
-        self._active: Sequence[np.ndarray] | None = None
 
     def __len__(self) -> int:
         return self._offsets[-1]
@@ -330,35 +391,37 @@ class ConcatSource(PageSource):
         source_idx = bisect_right(self._offsets, _idx) - 1
         return source_idx, _idx - self._offsets[source_idx]
 
-    def _switch_to(self, source: Sequence[np.ndarray]) -> None:
-        # Keep at most one underlying document open at a time
-        if self._active is not None and self._active is not source and isinstance(self._active, PageSource):
-            self._active.close()
-        self._active = source
-
     def _load(self, idx: int) -> np.ndarray:
+        # No state is shared between accesses, so that pages can be read from several threads at once (e.g. the
+        # page images of predictions while the predictor still iterates over the document in the background)
         source_idx, page_idx = self.locate(idx)
-        source = self.sources[source_idx]
-        self._switch_to(source)
-        return source[page_idx]
+        return self.sources[source_idx][page_idx]
 
-    def __iter__(self) -> Iterator[np.ndarray]:
-        for source in self.sources:
-            self._switch_to(source)
-            yield from source
+    def _iter_indices(self, indices: Iterable[int]) -> Iterator[np.ndarray]:
+        # Consecutive pages of the same input are read within one session of that input: a PDF is opened once for
+        # them and closed before moving on, so that at most one underlying document is open at a time
+        for source_idx, run in groupby(indices, key=lambda idx: bisect_right(self._offsets, idx) - 1):
+            source, offset = self.sources[source_idx], self._offsets[source_idx]
+            if isinstance(source, PageSource):
+                yield from source._iter_indices(idx - offset for idx in run)
+            else:
+                yield from (source[idx - offset] for idx in run)
 
     def close(self) -> None:
         for source in self.sources:
             if isinstance(source, PageSource):
                 source.close()
-        self._active = None
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(num_sources={len(self.sources)}, num_pages={len(self)})"
 
 
 class _PageView(PageSource):
-    """Lazy view on a subset of the pages of another source (returned when slicing a source)"""
+    """Lazy view on a subset of the pages of another source (returned when slicing a source)
+
+    A view holds no resources of its own: iterating over it holds those of its source for the pass only, and
+    closing it leaves its source (and the other views on it) untouched.
+    """
 
     def __init__(self, source: PageSource, indices: Sequence[int]) -> None:
         self.source = source
@@ -370,8 +433,12 @@ class _PageView(PageSource):
     def _load(self, idx: int) -> np.ndarray:
         return self.source[self.indices[idx]]
 
-    def close(self) -> None:
-        self.source.close()
+    def _session(self) -> AbstractContextManager[Any]:
+        # `with view:` keeps the resources of the source for the block
+        return self.source._session()
+
+    def _iter_indices(self, indices: Iterable[int]) -> Iterator[np.ndarray]:
+        return self.source._iter_indices(self.indices[idx] for idx in indices)
 
 
 def _list_files(folder: Path, extensions: Sequence[str]) -> list[Path]:
@@ -385,7 +452,8 @@ def _list_files(folder: Path, extensions: Sequence[str]) -> list[Path]:
 def _is_pdf(file: AbstractFile) -> bool:
     """Whether a file (path or bytes) is a PDF"""
     if isinstance(file, bytes):
-        return file.lstrip()[:5] == b"%PDF-"
+        # Only look at the beginning of the content: stripping a whole document would copy it
+        return file[:1024].lstrip()[:5] == b"%PDF-"
     return Path(file).suffix.lower() == ".pdf"
 
 

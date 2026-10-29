@@ -1,3 +1,6 @@
+import threading
+import time
+
 import cv2
 import numpy as np
 import pytest
@@ -1132,6 +1135,36 @@ def test_predictors_lazy_source(tmp_path, predictor_cls, doc_cls):
     assert all(type(page._page).__name__ == "_SourcePage" for page in out.pages)
     assert all(np.array_equal(page.page, image) for page, image in zip(out.pages, pages))
     assert type(predictor(source[:0])) is doc_cls
+
+
+def test_predictors_stream_early_exit_stops_decoding():
+    """Stopping a stream early does not wait for the next chunk to be fully decoded in the background"""
+    pages = _value_pages(4)
+    decoded = []
+    closed = threading.Event()
+
+    def _slow_pages():
+        try:
+            for idx in range(1000):
+                time.sleep(0.02)
+                decoded.append(idx)
+                yield pages[idx % len(pages)]
+        finally:
+            closed.set()
+
+    predictor = _value_predictor(OCRPredictor, page_chunk_size=8)
+    stream = predictor.stream(_slow_pages())
+    first = next(stream)
+    assert first.page_idx == 0
+    stream.close()
+    # the first chunk (8 pages), plus at most the pages decoded ahead before the stop
+    assert len(decoded) < 16
+    # no page is decoded after the stream is closed, and the input is closed
+    count = len(decoded)
+    time.sleep(0.1)
+    assert len(decoded) == count
+    assert closed.is_set()
+    assert not [thread for thread in threading.enumerate() if thread.name.startswith("doctr-prefetch")]
 
 
 def test_predictors_prefetch_only_lazy_inputs(tmp_path, monkeypatch):

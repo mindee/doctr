@@ -43,6 +43,10 @@ class DocumentFile:
     @classmethod
     def from_pdf(cls, file: AbstractFile, lazy: Literal[True], **kwargs: Any) -> PDFSource: ...
 
+    @overload
+    @classmethod
+    def from_pdf(cls, file: AbstractFile, lazy: bool, **kwargs: Any) -> list[np.ndarray] | PDFSource: ...
+
     @classmethod
     def from_pdf(cls, file: AbstractFile, lazy: bool = False, **kwargs: Any) -> list[np.ndarray] | PDFSource:
         """Read a PDF file
@@ -71,6 +75,10 @@ class DocumentFile:
     @overload
     @classmethod
     def from_url(cls, url: str, lazy: Literal[True], **kwargs: Any) -> PDFSource: ...
+
+    @overload
+    @classmethod
+    def from_url(cls, url: str, lazy: bool, **kwargs: Any) -> list[np.ndarray] | PDFSource: ...
 
     @classmethod
     def from_url(cls, url: str, lazy: bool = False, **kwargs: Any) -> list[np.ndarray] | PDFSource:
@@ -107,6 +115,12 @@ class DocumentFile:
     def from_images(
         cls, files: Sequence[AbstractFile] | AbstractFile, lazy: Literal[True], **kwargs: Any
     ) -> ImageSource: ...
+
+    @overload
+    @classmethod
+    def from_images(
+        cls, files: Sequence[AbstractFile] | AbstractFile, lazy: bool, **kwargs: Any
+    ) -> list[np.ndarray] | ImageSource: ...
 
     @classmethod
     def from_images(
@@ -149,6 +163,16 @@ class DocumentFile:
         pdf_kwargs: dict[str, Any] | None = ...,
         image_kwargs: dict[str, Any] | None = ...,
     ) -> ConcatSource: ...
+
+    @overload
+    @classmethod
+    def from_files(
+        cls,
+        files: Sequence[AbstractFile] | AbstractFile,
+        lazy: bool,
+        pdf_kwargs: dict[str, Any] | None = ...,
+        image_kwargs: dict[str, Any] | None = ...,
+    ) -> list[np.ndarray] | ConcatSource: ...
 
     @classmethod
     def from_files(
