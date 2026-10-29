@@ -37,9 +37,9 @@ def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
         bbox: a bounding box
 
     Returns:
-        a polygon
+        a polygon with the top left, top right, bottom right and bottom left corners
     """
-    return bbox[0], (bbox[1][0], bbox[0][1]), (bbox[0][0], bbox[1][1]), bbox[1]
+    return bbox[0], (bbox[1][0], bbox[0][1]), bbox[1], (bbox[0][0], bbox[1][1])
 
 
 def polygon_to_bbox(polygon: Polygon4P) -> BoundingBox:
