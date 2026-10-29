@@ -16,7 +16,7 @@ def test_bbox_to_polygon():
 
 
 def test_polygon_to_bbox():
-    assert geometry.polygon_to_bbox(((0, 0), (1, 0), (0, 1), (1, 1))) == ((0, 0), (1, 1))
+    assert geometry.polygon_to_bbox(((0, 0), (1, 0), (1, 1), (0, 1))) == ((0, 0), (1, 1))
 
 
 def test_order_points():
