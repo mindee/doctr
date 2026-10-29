@@ -528,10 +528,12 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">ImageOps</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torchvision.transforms.functional</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_tensor</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils.common_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractPath</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">_pil_to_rgb_array</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"tensor_from_pil"</span><span class="p">,</span> <span class="s2">"read_img_as_tensor"</span><span class="p">,</span> <span class="s2">"decode_img_as_tensor"</span><span class="p">,</span> <span class="s2">"tensor_from_numpy"</span><span class="p">,</span> <span class="s2">"get_img_shape"</span><span class="p">]</span>
 
@@ -570,9 +572,8 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"insupported value for dtype"</span><span class="p">)</span>
 
     <span class="k">with</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"r"</span><span class="p">)</span> <span class="k">as</span> <span class="n">pil_img</span><span class="p">:</span>
-        <span class="c1"># Apply the EXIF orientation before decoding, to stay consistent with `read_img_as_numpy`</span>
-        <span class="c1"># (OpenCV applies EXIF orientation automatically, PIL does not)</span>
-        <span class="k">return</span> <span class="n">tensor_from_pil</span><span class="p">(</span><span class="n">ImageOps</span><span class="o">.</span><span class="n">exif_transpose</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">"RGB"</span><span class="p">),</span> <span class="n">dtype</span><span class="p">)</span></div>
+        <span class="c1"># Apply the EXIF orientation and place transparent pixels on white, like `read_img_as_numpy`</span>
+        <span class="k">return</span> <span class="n">tensor_from_numpy</span><span class="p">(</span><span class="n">_pil_to_rgb_array</span><span class="p">(</span><span class="n">pil_img</span><span class="p">),</span> <span class="n">dtype</span><span class="p">)</span></div>
 
 
 
@@ -592,7 +593,7 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"insupported value for dtype"</span><span class="p">)</span>
 
     <span class="k">with</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">img_content</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"r"</span><span class="p">)</span> <span class="k">as</span> <span class="n">pil_img</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">tensor_from_pil</span><span class="p">(</span><span class="n">ImageOps</span><span class="o">.</span><span class="n">exif_transpose</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">"RGB"</span><span class="p">),</span> <span class="n">dtype</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">tensor_from_numpy</span><span class="p">(</span><span class="n">_pil_to_rgb_array</span><span class="p">(</span><span class="n">pil_img</span><span class="p">),</span> <span class="n">dtype</span><span class="p">)</span></div>
 
 
 
