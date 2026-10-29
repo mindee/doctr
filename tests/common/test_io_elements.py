@@ -1,4 +1,5 @@
 import json
+import pickle
 from xml.etree.ElementTree import ElementTree
 
 import numpy as np
@@ -598,6 +599,43 @@ def test_kiepage():
     img = kie_page.synthesize()
     assert isinstance(img, np.ndarray)
     assert img.shape == (*page_size, 3)
+
+
+def _legacy_page(page_cls, image, children):
+    """Rebuild a page the way a previous release pickled it: its image stored as a plain `page` attribute"""
+    page = page_cls(image, children, 0, image.shape[:2], {"value": 0.0, "confidence": None}, None)
+    state = dict(page.__dict__)
+    state["page"] = state.pop("_page")
+    legacy = page_cls.__new__(page_cls)
+    legacy.__dict__.update(state)
+    return legacy
+
+
+@pytest.mark.parametrize(
+    "page_cls, children",
+    [(elements.Page, []), (elements.KIEPage, {CLASS_NAME: []})],
+)
+def test_page_legacy_pickle(page_cls, children):
+    image = np.random.randint(0, 255, (30, 20, 3), dtype=np.uint8)
+    legacy = _legacy_page(page_cls, image, children)
+    # what `pickle` stores for such a page: the `page` entry of its instance dict, no `_page`
+    assert "page" in legacy.__reduce_ex__(4)[2]
+    assert "_page" not in legacy.__reduce_ex__(4)[2]
+
+    restored = pickle.loads(pickle.dumps(legacy))
+    assert np.array_equal(restored.page, image)
+    assert restored.synthesize().shape == (*image.shape[:2], 3)
+
+    # setting the image afterwards replaces the legacy entry
+    new_image = np.zeros_like(image)
+    restored.page = new_image
+    assert "page" not in restored.__dict__
+    assert restored.page is new_image
+    assert np.array_equal(pickle.loads(pickle.dumps(restored)).page, new_image)
+
+    # a page without any image still behaves like a missing attribute
+    empty = page_cls.__new__(page_cls)
+    assert not hasattr(empty, "page")
 
 
 def test_document():

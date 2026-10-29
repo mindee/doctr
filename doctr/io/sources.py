@@ -12,7 +12,6 @@ from itertools import accumulate
 from pathlib import Path
 from typing import Any, overload
 
-import cv2
 import numpy as np
 import pypdfium2 as pdfium
 
@@ -369,24 +368,3 @@ class _SourcePage:
 
     def __call__(self) -> np.ndarray:
         return self.source[self.idx]
-
-
-class _EncodedImage:
-    """Losslessly compressed in-memory image, decoded on demand (used for pages that cannot be re-read from their
-    source as-is, e.g. straightened pages)"""
-
-    __slots__ = ("data", "shape")
-
-    def __init__(self, image: np.ndarray) -> None:
-        self.shape = image.shape
-        # Channel order is irrelevant here: the image is decoded exactly as it was encoded
-        ok, buffer = cv2.imencode(".png", image, [cv2.IMWRITE_PNG_COMPRESSION, 1])
-        if not ok:  # pragma: no cover
-            raise ValueError("unable to encode the page image")
-        self.data = buffer.tobytes()
-
-    def __call__(self) -> np.ndarray:
-        image = cv2.imdecode(np.frombuffer(self.data, np.uint8), cv2.IMREAD_UNCHANGED)
-        if image is None:  # pragma: no cover
-            raise ValueError("unable to decode the page image")
-        return image.reshape(self.shape)

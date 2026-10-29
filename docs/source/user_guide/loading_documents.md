@@ -142,7 +142,9 @@ result = predictor(doc)  # one call, a bounded memory footprint
 The predictor processes a page source chunk by chunk (`page_chunk_size` pages at a time, 32 by default), and decodes
 the next chunk in a background thread while the models run on the current one. The pages of the returned
 {class}`~doctr.io.Document` only keep a reference to their image: `result.pages[i].page` renders it again on access,
-so `show()` and the figure exports keep working.
+so `show()` and the figure exports keep working. Pages transformed by the predictor (with `straighten_pages=True`)
+cannot be rendered again from the source: as for a list of pages, each of them keeps its straightened image in memory.
+Lists of pages already held in memory are simply processed chunk by chunk, without a background thread.
 
 The same goes for images, folders and mixed inputs:
 

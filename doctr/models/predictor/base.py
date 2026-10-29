@@ -9,7 +9,7 @@ from typing import Any
 import numpy as np
 
 from doctr.io.elements import Document, KIEPage, Page
-from doctr.io.sources import PageSource, _EncodedImage, _SourcePage
+from doctr.io.sources import PageSource, _SourcePage
 from doctr.models.builder import DocumentBuilder
 from doctr.utils.geometry import (
     extract_crops,
@@ -115,9 +115,11 @@ class _OCRPredictor:
     ) -> Iterator[Page | KIEPage]:
         """Predict on a document of any length, yielding the pages one by one as soon as they are processed
 
-        The pages are processed by chunks of `page_chunk_size`, and the next chunk is decoded in a background thread
-        while the current one goes through the models. Only the pages of the chunks in flight are held in memory,
-        so that a 1000+ page PDF or a folder of 100k images can be processed with a constant memory footprint.
+        The pages are processed by chunks of `page_chunk_size`. For lazy page sources and iterators, the next chunk
+        is decoded in a background thread while the current one goes through the models, and only the pages of the
+        chunks in flight are held in memory, so that a 1000+ page PDF or a folder of 100k images can be processed
+        with a bounded memory footprint. In-memory inputs (lists, tuples, arrays) have nothing to decode: they are
+        chunked directly, without a background thread.
 
         >>> from doctr.io import DocumentFile
         >>> from doctr.models import ocr_predictor
@@ -130,25 +132,30 @@ class _OCRPredictor:
             pages: a list of pages, a lazy page source (cf. `DocumentFile.from_pdf(..., lazy=True)`) or any
                 iterable of pages (e.g. a generator)
             page_chunk_size: the number of pages processed at once (defaults to the `page_chunk_size` of the predictor)
-            prefetch_pages: whether the next chunk of pages is decoded in a background thread
+            prefetch_pages: whether the next chunk of pages is decoded in a background thread (only applies to lazy
+                page sources and iterators: in-memory inputs are never prefetched)
             **kwargs: keyword arguments forwarded to the sub-predictors (as for a regular call)
 
         Returns:
             an iterator over the predicted pages, in the input order. `page_idx` is the index of the page in the
             whole input. For lazy page sources, the predicted pages hold a reference to their image instead of the
-            image itself: `page.page` decodes it again on access.
+            image itself: `page.page` decodes it again on access. Pages transformed by the pipeline (e.g. with
+            `straighten_pages=True`) cannot be read again from the source: they keep their transformed image, as
+            for in-memory inputs.
         """
         chunk_size = self.page_chunk_size if page_chunk_size is None else page_chunk_size
         source = pages if isinstance(pages, PageSource) else None
+        # Pages already held in memory gain nothing from a background thread: it would only slice the list
+        in_memory = isinstance(pages, (list, tuple, np.ndarray))
         offset = 0
-        for chunk in prefetch(chunked(pages, chunk_size), enabled=prefetch_pages):
+        for chunk in prefetch(chunked(pages, chunk_size), enabled=prefetch_pages and not in_memory):
             result = self._predict_pages(chunk, **kwargs)
             for local_idx, (page, image) in enumerate(zip(result.pages, chunk)):
                 page.page_idx = offset + local_idx
-                if source is not None:
-                    # Unchanged pages are decoded again from the source on access, transformed ones (e.g.
-                    # straightened) are kept losslessly compressed
-                    page.page = _SourcePage(source, page.page_idx) if page.page is image else _EncodedImage(page.page)
+                # Unchanged pages are decoded again from the source on access. Transformed ones (e.g. straightened)
+                # keep their image, exactly as for in-memory inputs
+                if source is not None and page.page is image:
+                    page.page = _SourcePage(source, page.page_idx)
                 yield page
             offset += len(chunk)
 

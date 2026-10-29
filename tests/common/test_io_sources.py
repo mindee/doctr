@@ -5,6 +5,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 import pytest
+from PIL import Image
 
 from doctr import io
 from doctr.io import sources
@@ -141,6 +142,28 @@ def test_image_source_invalid_image_names_the_file(image_folder):
         io.ImageSource([b"not an image"])[0]
 
 
+def test_image_source_transparent_images(tmp_path):
+    """Lazy sources decode with `read_img_as_numpy`: transparent pixels land on white, exactly as when eager"""
+    rgba = np.zeros((20, 30, 4), dtype=np.uint8)  # fully transparent black background
+    rgba[5:15, 5:25] = (200, 10, 10, 255)  # opaque red box
+    Image.fromarray(rgba, "RGBA").save(tmp_path / "a_rgba.png")
+    Image.fromarray(rgba, "RGBA").save(tmp_path / "b_rgba.webp", lossless=True)
+    Image.fromarray(rgba, "RGBA").convert("P").save(tmp_path / "c_palette.png", transparency=0)
+
+    lazy = io.DocumentFile.from_images(tmp_path, lazy=True)
+    eager = io.DocumentFile.from_images(sorted(tmp_path.iterdir()))
+    assert len(lazy) == 3
+    for page, ref in zip(lazy, eager):
+        assert np.array_equal(page, ref)
+        assert page[0, 0].tolist() == [255, 255, 255]
+        assert page[10, 10].tolist() == [200, 10, 10]
+
+    # bytes inputs, mixed documents and decoding options go through the same path
+    content = (tmp_path / "a_rgba.png").read_bytes()
+    assert io.DocumentFile.from_files([content], lazy=True)[0][0, 0].tolist() == [255, 255, 255]
+    assert io.ImageSource([content], rgb_output=False)[0][10, 10].tolist() == [10, 10, 200]
+
+
 def test_slicing(mock_pdf):
     source = io.PDFSource(mock_pdf)
     view = source[1:]
@@ -251,14 +274,6 @@ def test_page_image_on_demand(mock_pdf):
     # picklable, so that results can be sent across processes
     restored = pickle.loads(pickle.dumps(sources._SourcePage(source, 0)))
     assert np.array_equal(restored(), source[0])
-
-
-@pytest.mark.parametrize("shape", [(30, 40, 3), (30, 40), (30, 40, 4)])
-def test_encoded_image(shape):
-    image = np.random.randint(0, 255, shape, dtype=np.uint8)
-    encoded = sources._EncodedImage(image)
-    assert len(encoded.data) > 0
-    assert np.array_equal(encoded(), image)
 
 
 # Iteration helpers

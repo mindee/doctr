@@ -1134,9 +1134,44 @@ def test_predictors_lazy_source(tmp_path, predictor_cls, doc_cls):
     assert type(predictor(source[:0])) is doc_cls
 
 
+def test_predictors_prefetch_only_lazy_inputs(tmp_path, monkeypatch):
+    """In-memory inputs are chunked directly: only lazy sources and iterators are prefetched in a background thread"""
+    from doctr.models.predictor import base as predictor_base
+
+    calls = []
+    _prefetch = predictor_base.prefetch
+
+    def _recording_prefetch(seq, enabled=True):
+        calls.append(enabled)
+        return _prefetch(seq, enabled=enabled)
+
+    monkeypatch.setattr(predictor_base, "prefetch", _recording_prefetch)
+
+    pages = _value_pages(5)
+    for idx, page in enumerate(pages):
+        cv2.imwrite(str(tmp_path / f"page_{idx}.png"), page)
+    predictor = _value_predictor(OCRPredictor, page_chunk_size=2)
+    expected = _value_predictor(OCRPredictor)(pages).export()
+
+    for in_memory in (pages, tuple(pages)):
+        calls.clear()
+        assert predictor(in_memory).export() == expected
+        assert calls == [False]
+
+    for lazy in (iter(pages), DocumentFile.from_images(tmp_path, lazy=True)):
+        calls.clear()
+        assert predictor(lazy).export() == expected
+        assert calls == [True]
+
+    # explicitly disabled
+    calls.clear()
+    list(predictor.stream(iter(pages), prefetch_pages=False))
+    assert calls == [False]
+
+
 def test_predictors_lazy_source_transformed_pages(tmp_path):
-    """Pages modified by the pipeline (e.g. straightened) cannot be read again from the source: they are kept
-    losslessly compressed"""
+    """Pages modified by the pipeline (e.g. straightened) cannot be read again from the source: they keep their
+    transformed image, exactly as for in-memory inputs"""
 
     class _TransformingPredictor(OCRPredictor):
         def _predict_pages(self, pages, **kwargs):
@@ -1152,8 +1187,11 @@ def test_predictors_lazy_source_transformed_pages(tmp_path):
 
     predictor = _TransformingPredictor(_ValueDetPredictor(), _ValueRecoPredictor(), page_chunk_size=2)
     out = predictor(DocumentFile.from_images(tmp_path, lazy=True))
-    assert all(type(page._page).__name__ == "_EncodedImage" for page in out.pages)
+    assert all(type(page._page) is np.ndarray for page in out.pages)
     assert all(np.array_equal(page.page, image[::-1]) for page, image in zip(out.pages, pages))
+    # same pages as an in-memory run
+    eager = predictor(pages)
+    assert all(np.array_equal(lazy.page, ref.page) for lazy, ref in zip(out.pages, eager.pages))
 
 
 def test_predictors_invalid_page_chunk_size():

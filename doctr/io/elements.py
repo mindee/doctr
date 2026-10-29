@@ -49,11 +49,20 @@ PageImage = np.ndarray | Callable[[], np.ndarray]
 
 
 def _get_page_image(self: Any) -> np.ndarray:
-    image = self._page
+    state = self.__dict__
+    if "_page" in state:
+        image = state["_page"]
+    elif "page" in state:
+        # Pages pickled by a previous release store their image under `page` (a plain instance attribute back then)
+        image = state["page"]
+    else:
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute 'page'")
     return image() if callable(image) else image
 
 
 def _set_page_image(self: Any, image: PageImage) -> None:
+    # Drop the legacy entry of a page unpickled from a previous release, so that it cannot shadow the new image
+    self.__dict__.pop("page", None)
     self._page = image
 
 
