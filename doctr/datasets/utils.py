@@ -111,10 +111,11 @@ def decode_sequence(
     """
     if not isinstance(input_seq, (Sequence, np.ndarray)):
         raise TypeError("Invalid sequence type")
-    if isinstance(input_seq, np.ndarray) and (
-        not np.issubdtype(input_seq.dtype, np.integer) or (input_seq.size > 0 and input_seq.max() >= len(mapping))
-    ):
-        raise AssertionError("Input must be an array of int, with max less than mapping size")
+    if isinstance(input_seq, np.ndarray) and not np.issubdtype(input_seq.dtype, np.integer):
+        raise AssertionError("Input must be an array of int, with values between 0 and the mapping size")
+    # A negative index would silently wrap around to the end of the mapping (e.g. an EOS of -1 read as a char)
+    if len(input_seq) > 0 and (min(input_seq) < 0 or max(input_seq) >= len(mapping)):
+        raise AssertionError("Input must be an array of int, with values between 0 and the mapping size")
 
     return "".join(map(mapping.__getitem__, input_seq))
 
