@@ -442,6 +442,14 @@ def test_block():
     }
 
 
+def test_block_artefacts_only():
+    artefacts = _mock_artefacts()
+    block = elements.Block(artefacts=artefacts)
+    assert block.lines == []
+    assert block.geometry == ((0, 0), (1, 1))
+    assert block.render() == ""
+
+
 def test_block_rotated_lines_from_dict():
     # Rotated geometries read back from an export are nested lists, not numpy arrays
     polygon = [[0.1, 0.1], [0.4, 0.2], [0.35, 0.4], [0.05, 0.3]]
