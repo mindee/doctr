@@ -145,8 +145,9 @@ def get_colors(num_colors: int) -> list[tuple[float, float, float]]:
         colors: list of generated colors
     """
     colors = []
-    for i in np.arange(0.0, 360.0, 360.0 / num_colors):
-        hue = i / 360.0
+    # Integer steps give exactly num_colors hues (a float step can add one more, close to 360°, i.e. red again)
+    for i in range(num_colors):
+        hue = i / num_colors
         lightness = (50 + np.random.rand() * 10) / 100.0
         saturation = (90 + np.random.rand() * 10) / 100.0
         colors.append(colorsys.hls_to_rgb(hue, lightness, saturation))
