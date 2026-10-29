@@ -12,7 +12,7 @@ import torch
 import doctr.cli.main as cli
 from doctr import __version__
 from doctr.datasets.generator.base import synthesize_text_img
-from doctr.io import ConcatSource, DocumentFile, FigureEncoder
+from doctr.io import ConcatSource, DocumentFile, FigureEncoder, Page
 from doctr.io.exporters import DocumentExportsMixin
 from doctr.models import ocr_predictor
 from doctr.models.builder import DocumentBuilder
@@ -777,3 +777,48 @@ def test_main_one_invalid_input_among_several(text_images, tmp_path):
             "--output",
             str(tmp_path / "results.json"),
         ])
+
+
+def test_main_invalid_input_fails_before_loading_models(monkeypatch, text_images, tmp_path):
+    # inputs are opened (and images checked from their header) before the models are built
+    def _no_predictor(args):
+        raise AssertionError("the predictor must not be built")
+
+    monkeypatch.setattr(cli, "_build_predictor", _no_predictor)
+    not_an_image = tmp_path / "scan.png"
+    not_an_image.write_text("not an image")
+    for invalid in ("non_existent_file.pdf", str(not_an_image)):
+        with pytest.raises(SystemExit) as exc_info:
+            cli.main(["--input_path", text_images[0], invalid, "--output", str(tmp_path / "results.json")])
+        assert exc_info.value.code == 1
+
+
+class _StreamingModel:
+    """Minimal predictor: decodes the pages of the document as it streams them, then optionally fails"""
+
+    def __init__(self, error=None):
+        self.error = error
+
+    def stream(self, doc):
+        for page in doc:
+            if self.error is not None:
+                raise self.error
+            yield Page(page, [], 0, page.shape[:2])
+
+
+def test_predict_reports_corrupted_images(text_images, tmp_path, caplog):
+    # a valid header with corrupted content passes `_load_document` and is only detected while processing
+    truncated = tmp_path / "truncated.png"
+    truncated.write_bytes(Path(text_images[0]).read_bytes()[:60])
+    args = cli._parse_args(["--input_path", text_images[0], str(truncated), "--quiet"])
+    doc = cli._load_document(args)
+    with pytest.raises(SystemExit) as exc_info:
+        cli._predict(_StreamingModel(), doc, args)
+    assert exc_info.value.code == 1
+    assert "truncated.png" in caplog.text
+
+    # other errors (e.g. from the models) are not reported as unreadable files
+    doc = cli._load_document(cli._parse_args(["--input_path", text_images[0], "--quiet"]))
+    with pytest.raises(ValueError, match="model failure"):
+        cli._predict(_StreamingModel(ValueError("model failure")), doc, args)
+    assert len(cli._predict(_StreamingModel(), doc, args).pages) == 1

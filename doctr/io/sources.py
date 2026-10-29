@@ -12,14 +12,16 @@ from itertools import accumulate
 from pathlib import Path
 from typing import Any, overload
 
+import cv2
 import numpy as np
 import pypdfium2 as pdfium
+from PIL import Image
 
 from doctr.utils.common_types import AbstractFile
 
 from .image import read_img_as_numpy
 
-__all__ = ["PageSource", "PDFSource", "ImageSource", "ConcatSource", "IMAGE_EXTENSIONS"]
+__all__ = ["PageSource", "PDFSource", "ImageSource", "ConcatSource", "PageDecodeError", "IMAGE_EXTENSIONS"]
 
 # File extensions recognized as images when a directory is expanded
 IMAGE_EXTENSIONS: tuple[str, ...] = (
@@ -47,6 +49,29 @@ _OPEN_PDF_SOURCES: "weakref.WeakSet[PDFSource]" = weakref.WeakSet()
 def _close_pdf_sources() -> None:  # pragma: no cover
     for source in list(_OPEN_PDF_SOURCES):
         source.close()
+
+
+class PageDecodeError(ValueError):
+    """Raised when a page of a source cannot be decoded (e.g. an unreadable or corrupted image file).
+
+    It subclasses `ValueError`, so that code catching the errors of the eager readers keeps working.
+    """
+
+
+def _check_image_header(path: Path) -> None:
+    """Fail fast on files that are not images: only their header is read (a few microseconds per file), so that
+    an invalid file is reported when the source is created rather than after hours of processing. A file with a
+    valid header but a corrupted body is still only detected when it is decoded.
+    """
+    if cv2.haveImageReader(str(path)):
+        return
+    # Formats read with Pillow by `read_img_as_numpy` (e.g. images with transparency)
+    try:
+        with Image.open(path):
+            return
+    except (OSError, ValueError, Image.DecompressionBombError):
+        pass
+    raise PageDecodeError(f"unable to read the image {path}: unknown or invalid image format")
 
 
 class PageSource(Sequence[np.ndarray]):
@@ -228,6 +253,10 @@ class ImageSource(PageSource):
     >>> doc = ImageSource(["path/to/page1.png", "path/to/page2.png"])
     >>> doc = ImageSource("path/to/a/folder")  # every image of the folder, sorted by name
 
+    Missing files and files that are not images (checked from their header only) are reported when the source is
+    created. An image that still cannot be decoded raises a :class:`~doctr.io.PageDecodeError` naming the file
+    when it is accessed.
+
     Args:
         files: the path to an image file, to a directory of images, or an image as bytes, or a collection of those
         **kwargs: additional parameters to :meth:`doctr.io.image.read_img_as_numpy`
@@ -239,10 +268,13 @@ class ImageSource(PageSource):
             if isinstance(file, (str, Path)):
                 path = Path(file)
                 if path.is_dir():
-                    self.files.extend(_list_files(path, IMAGE_EXTENSIONS))
+                    for image_path in _list_files(path, IMAGE_EXTENSIONS):
+                        _check_image_header(image_path)
+                        self.files.append(image_path)
                     continue
                 if not path.is_file():
                     raise FileNotFoundError(f"unable to access {file}")
+                _check_image_header(path)
             elif not isinstance(file, bytes):
                 raise TypeError(f"unsupported object type for an image file: {type(file).__name__}")
             self.files.append(file)
@@ -258,7 +290,7 @@ class ImageSource(PageSource):
         except ValueError as e:
             # Images are decoded lazily: point to the faulty file among possibly thousands of them
             name = file if isinstance(file, (str, Path)) else f"<bytes #{idx}>"
-            raise ValueError(f"unable to read the image {name!s}: {e}") from e
+            raise PageDecodeError(f"unable to read the image {name!s}: {e}") from e
 
 
 class ConcatSource(PageSource):

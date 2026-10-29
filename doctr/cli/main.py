@@ -14,7 +14,7 @@ from typing import Any
 import torch
 from tqdm import tqdm
 
-from doctr.io import ConcatSource, Document, DocumentFile, PageSource
+from doctr.io import ConcatSource, Document, DocumentFile, PageDecodeError, PageSource
 from doctr.io.figures import IMAGE_FORMATS, IMAGE_MODES, FigureEncoder
 from doctr.models import ocr_predictor
 from doctr.models._utils import _CONFIDENCE_AGGREGATIONS
@@ -144,8 +144,9 @@ def _predict(model: Any, doc: ConcatSource, args: argparse.Namespace) -> Documen
         pages = list(
             tqdm(model.stream(doc), total=len(doc), unit="page", desc="OCR", disable=args.quiet, file=sys.stderr)
         )
-    except (FileNotFoundError, ValueError) as e:
-        # Images are only decoded when they are processed
+    except (FileNotFoundError, PageDecodeError) as e:
+        # Invalid files are reported by `_load_document`: only a corrupted image (valid header, unreadable content)
+        # or an input deleted in the meantime gets here. Other errors (e.g. raised by the models) propagate as-is.
         logger.error(f"File could not be read as a valid image or PDF: {e}")
         sys.exit(1)
     finally:
@@ -387,10 +388,11 @@ def main(argv=None):
     _setup_logging(args.quiet)
 
     fmt = _resolve_format(args)
-    model = _build_predictor(args)
 
-    # load the document
+    # open the inputs first (pages are decoded on demand): missing or invalid files fail before the models load
     doc = _load_document(args)
+
+    model = _build_predictor(args)
 
     # perform OCR
     logger.info(f"Performing OCR on {len(doc)} page(s)...")

@@ -393,6 +393,10 @@ class _OCRPredictor:
         (`(N, 4)` straight boxes or `(N, 4, 2)` polygons), and returns them in the same format. It can move,
         resize, add or remove boxes: only the returned boxes are cropped and read by the recognition model.
 
+        Inputs longer than `page_chunk_size`, lazy page sources and iterators are processed chunk by chunk: hooks are
+        then called once per chunk, with the pages of that chunk only. A hook must therefore not rely on the number
+        of pages it receives, nor use a list position as the page index in the whole document.
+
         Args:
             hook: a callable that takes as input the `loc_preds` and returns the modified `loc_preds`
         """

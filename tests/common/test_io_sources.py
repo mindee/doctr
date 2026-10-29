@@ -133,12 +133,28 @@ def test_image_source(image_folder):
         io.ImageSource([123])
 
 
-def test_image_source_invalid_image_names_the_file(image_folder):
-    source = io.ImageSource([image_folder / "page_0.png", image_folder / "notes.txt"])
+def test_image_source_invalid_image_names_the_file(image_folder, tmp_path):
+    # files that are not images fail when the source is built, from their header only
+    with pytest.raises(io.PageDecodeError, match="notes.txt"):
+        io.ImageSource([image_folder / "page_0.png", image_folder / "notes.txt"])
+    # including the files found in a directory
+    (tmp_path / "page_0.png").write_bytes((image_folder / "page_0.png").read_bytes())
+    (tmp_path / "page_1.png").write_text("not an image")
+    with pytest.raises(io.PageDecodeError, match="page_1.png"):
+        io.ImageSource(tmp_path)
+    # still a `ValueError`, as raised by the eager readers
+    with pytest.raises(ValueError):
+        io.DocumentFile.from_images([image_folder / "notes.txt"])
+
+    # a valid header with corrupted content is only detected when the image is decoded
+    truncated = tmp_path / "page_1.png"
+    truncated.write_bytes((image_folder / "page_0.png").read_bytes()[:60])
+    source = io.ImageSource([image_folder / "page_0.png", truncated])
     assert source[0].ndim == 3
-    with pytest.raises(ValueError, match="notes.txt"):
+    with pytest.raises(io.PageDecodeError, match="page_1.png"):
         source[1]
-    with pytest.raises(ValueError, match="<bytes #0>"):
+    # bytes are not checked upfront
+    with pytest.raises(io.PageDecodeError, match="<bytes #0>"):
         io.ImageSource([b"not an image"])[0]
 
 

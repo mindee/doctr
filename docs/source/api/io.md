@@ -29,6 +29,8 @@ Read documents into pages, represent the predictions as a tree of elements, and 
 
    .. automethod:: locate
 
+.. autoclass:: PageDecodeError
+
 .. autofunction:: read_pdf
 
 .. autofunction:: read_img_as_numpy

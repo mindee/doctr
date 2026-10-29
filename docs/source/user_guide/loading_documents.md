@@ -123,8 +123,8 @@ pages = DocumentFile.from_files(["cover_letter.pdf", "id_front.jpg", "id_back.jp
 
 ## Long documents & large collections
 
-Every page of a list is decoded in memory: at the default resolution, an A4 page weighs about 11 MB, so a 1,000-page
-PDF would need more than 10 GB. Pass `lazy=True` to get a **page source** instead: it behaves like the list (`len`,
+Every page of a list is decoded in memory: at the default resolution (`scale=2`, 1684 x 1191 pixels), an A4 page
+weighs about 6 MB, so a 1,000-page PDF would need about 6 GB. Pass `lazy=True` to get a **page source** instead: it behaves like the list (`len`,
 indexing, slicing, iteration), but a page is only decoded when it is accessed.
 
 ```python
@@ -173,8 +173,9 @@ with open("result.txt", "w") as f:
 | {class}`~doctr.io.ConcatSource` | The concatenation of several sources (also obtained with `+`)      |
 
 :::{tip}
-Missing files and invalid PDFs are reported when the source is created. Images, on the other hand, are only decoded
-when they are processed: an unreadable image raises a `ValueError` naming the file.
+Missing files, invalid PDFs and files that are not images are reported when the source is created (images are only
+checked from their header, a few microseconds per file). Images are decoded when they are processed: one with a
+valid header but corrupted content raises a {class}`~doctr.io.PageDecodeError` (a `ValueError`) naming the file.
 :::
 
 ## Low-level readers

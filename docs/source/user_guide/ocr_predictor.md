@@ -276,6 +276,10 @@ predictor.add_hook(pad_boxes)
 Good to know:
 
 - Hooks run in the order they were added, each one receiving the output of the previous one.
+- Long inputs are processed chunk by chunk (`page_chunk_size` pages at a time, 32 by default, see
+  [](loading_documents.md#long-documents-large-collections)): hooks are then called once per chunk, with the pages of
+  that chunk only. Don't rely on the number of pages a hook receives, or on a list position as the page index in the
+  whole document.
 - Each returned box keeps the `objectness_score` of the closest detected box of its page; a box added on a page
   without any detection gets a score of `1`.
 - With the [KIE predictor](kie.md), hooks receive and return a dict with one such list per class.
