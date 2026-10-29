@@ -612,5 +612,12 @@ def test_table_cell_metric(use_polygons):
     res = metric.summary()
     assert res["recall"] == 0.0 and res["precision"] is None and res["structure_acc"] is None
 
+    # Cells on both sides but no match -> recall, precision and F1 are 0
+    metric = metrics.TableCellMetric(iou_thresh=0.5, use_polygons=use_polygons)
+    metric.update(gt_cells[:1], gt_logic[:1], gt_cells[2:], gt_logic[2:])
+    res = metric.summary()
+    assert res["recall"] == 0.0 and res["precision"] == 0.0 and res["f1"] == 0.0
+    assert res["structure_acc"] is None
+
     metric.reset()
     assert metric.num_gts == metric.num_preds == metric.matches == metric.struct_matches == 0

@@ -380,11 +380,10 @@ class TableCellMetric:
         """
         recall = self.matches / self.num_gts if self.num_gts > 0 else None
         precision = self.matches / self.num_preds if self.num_preds > 0 else None
-        f1 = (
-            2 * precision * recall / (precision + recall)
-            if precision is not None and recall is not None and (precision + recall) > 0
-            else None
-        )
+        f1 = None
+        if precision is not None and recall is not None:
+            # No match at all gives a precision and a recall of 0, so an F1 of 0
+            f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
         structure_acc = self.struct_matches / self.matches if self.matches > 0 else None
         return {"recall": recall, "precision": precision, "f1": f1, "structure_acc": structure_acc}
 
