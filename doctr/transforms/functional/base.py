@@ -26,6 +26,8 @@ def crop_boxes(
         the cropped boxes
     """
     boxes = boxes.copy()
+    if boxes.shape[0] == 0:  # nothing to crop (e.g. an image without any text)
+        return boxes
     is_box_rel = boxes.max() <= 1
     is_crop_rel = max(crop_box) <= 1
 
