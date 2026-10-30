@@ -61,6 +61,13 @@ def test_decode_sequence():
         utils.decode_sequence(np.array([2, 10]), mapping)
     with pytest.raises(AssertionError):
         utils.decode_sequence(np.array([2, 4.5]), mapping)
+    # negative indices (such as the default EOS of -1) are not wrapped around to the last chars of the mapping
+    with pytest.raises(AssertionError):
+        utils.decode_sequence(np.array([2, -1]), mapping)
+    with pytest.raises(AssertionError):
+        utils.decode_sequence([2, -1], mapping)
+    with pytest.raises(AssertionError):
+        utils.decode_sequence([2, 10], mapping)
 
     assert utils.decode_sequence([3, 4, 3, 4], mapping) == "dede"
     assert utils.decode_sequence(np.array([3, 4, 3, 4], dtype=np.int64), mapping) == "dede"
