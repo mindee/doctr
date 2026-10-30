@@ -63,11 +63,11 @@ crops are then extracted along the rotated box).
 | {class}`~doctr.datasets.IC03` | 246 / 249 | 1,156 / 1,107 | Scene text |
 | {class}`~doctr.datasets.IC13` | 229 / 233 | 849 / 1,095 | Scene text, manual download |
 | {class}`~doctr.datasets.IMGUR5K` | 7,149 / 796 | 207,901 / 22,672 | Handwritten, manual download |
-| {class}`~doctr.datasets.MJSynth` | — | 7,581,382 / 1,337,891 | Synthetic words, manual download |
-| {class}`~doctr.datasets.IIITHWS` | — | 7,141,797 / 793,533 | Handwritten words, manual download |
+| {class}`~doctr.datasets.MJSynth` | - | 7,581,382 / 1,337,891 | Synthetic words, manual download |
+| {class}`~doctr.datasets.IIITHWS` | - | 7,141,797 / 793,533 | Handwritten words, manual download |
 | {class}`~doctr.datasets.WILDRECEIPT` | 1,268 / 472 | 49,377 / 19,598 | Receipts, manual download |
 | {class}`~doctr.datasets.COCOTEXT` | 13,880 / 3,261 | 59,130 / 13,258 | Natural images, legible text only, manual download |
-| {class}`~doctr.datasets.DocArtefacts` | 2,700 / 300 | — | Object detection: QR codes, bar codes, logos, photos |
+| {class}`~doctr.datasets.DocArtefacts` | 2,700 / 300 | - | Object detection: QR codes, bar codes, logos, photos |
 
 Datasets marked *manual download* must be fetched from their authors' website first: pass the paths of the
 extracted files to the constructor (see the [API reference](../api/datasets.md)).

@@ -276,6 +276,10 @@ predictor.add_hook(pad_boxes)
 Good to know:
 
 - Hooks run in the order they were added, each one receiving the output of the previous one.
+- Long inputs are processed chunk by chunk (`page_chunk_size` pages at a time, 32 by default, see
+  [](loading_documents.md#long-documents--large-collections)): hooks are then called once per chunk, with the pages of
+  that chunk only. Don't rely on the number of pages a hook receives, or on a list position as the page index in the
+  whole document.
 - Each returned box keeps the `objectness_score` of the closest detected box of its page; a box added on a page
   without any detection gets a score of `1`.
 - With the [KIE predictor](kie.md), hooks receive and return a dict with one such list per class.
@@ -286,21 +290,30 @@ Good to know:
 - **Reuse the predictor**: building it is the expensive part.
 - **Batch your pages**: one call on a list of pages is faster than one call per page, as the models process
   several pages and word crops at once (see `det_bs` and `reco_bs` above).
-- **Free memory between documents**: the predictor returns plain Python objects, so drop the results you no
-  longer need.
+- **Open long documents lazily**: with `lazy=True`, pages are only decoded when they are processed, and the predictor
+  works chunk by chunk (`page_chunk_size` pages at a time). A 1,000-page PDF or a folder of 100k images can then be
+  passed in a single call (see [](loading_documents.md#long-documents--large-collections)).
+- **Stream the results**: {meth}`~doctr.models.predictor.OCRPredictor.stream` yields the pages as soon as they are
+  processed, so that the results can be written as you go.
 
 ```python
-from pathlib import Path
-
 from doctr.io import DocumentFile
 from doctr.models import ocr_predictor
 
-predictor = ocr_predictor(pretrained=True)
+predictor = ocr_predictor(pretrained=True, page_chunk_size=32)
 
-for path in sorted(Path("invoices").glob("*.pdf")):
-    result = predictor(DocumentFile.from_pdf(path))
-    path.with_suffix(".txt").write_text(result.render())
+# Every PDF and image of a folder, as one lazy document
+doc = DocumentFile.from_files("invoices/", lazy=True)
+
+for page in predictor.stream(doc):
+    # The source of the page in `doc.sources`: each PDF, and each run of consecutive images, is one source
+    source_idx, page_idx = doc.locate(page.page_idx)
+    print(f"source #{source_idx}, page {page_idx + 1}: {page.render()[:80]}")
 ```
+
+Inputs longer than `page_chunk_size` pages, page sources and iterators (e.g. a generator of frames) are all processed
+chunk by chunk, and `page_idx` is always the index of the page in the whole input. Hooks are therefore called once
+per chunk, with the location predictions of its pages.
 
 ## Next steps
 

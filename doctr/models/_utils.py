@@ -4,16 +4,17 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import heapq
-from collections.abc import Callable, Sequence
-from math import floor, isnan
+from collections.abc import Callable, Iterable, Sequence
+from math import ceil, floor, isnan
 from statistics import median_low
-from typing import Any, Literal, TypeAlias
+from typing import Any, Literal, TypeAlias, TypeVar
 
 import cv2
 import numpy as np
 from langdetect import LangDetectException, detect_langs
 
 from doctr.utils.geometry import rotate_image
+from doctr.utils.multithreading import prefetch_chunks
 
 __all__ = [
     "ConfidenceAggregation",
@@ -357,3 +358,63 @@ def invert_data_structure(
         return {k: [dic[k] for dic in x] for k in x[0]}
     else:
         raise TypeError(f"Expected input to be either a dict or a list, got {type(x)} instead.")
+
+
+_Output = TypeVar("_Output")
+
+
+def merge_items(outputs: list[list[Any]]) -> list[Any]:
+    """Concatenate the outputs of several chunks, for predictors returning one item per input"""
+    return [item for output in outputs for item in output]
+
+
+def merge_columns(outputs: list[Any]) -> Any:
+    """Concatenate the outputs of several chunks column by column, for predictors returning several aligned lists
+    (e.g. `[class_idxs, classes, probs]`, or `(preds, seg_maps)`): the container type is kept"""
+    columns = [merge_items([output[col] for output in outputs]) for col in range(len(outputs[0]))]
+    return tuple(columns) if isinstance(outputs[0], tuple) else columns
+
+
+def predict_by_chunks(
+    predict: Callable[[list[np.ndarray]], _Output],
+    inputs: Sequence[np.ndarray] | Iterable[np.ndarray],
+    chunk_size: int,
+    batch_size: int = 1,
+    merge: Callable[[list[_Output]], _Output] = merge_items,  # type: ignore[assignment]
+) -> _Output:
+    """Run a predictor on inputs of any length: a lazy page source (cf. `DocumentFile.from_pdf(..., lazy=True)`), a
+    list, a tuple or any iterable of images
+
+    Lists and tuples of at most `chunk_size` images, as well as arrays (a batch already in memory), are processed at
+    once, exactly as before. Anything else is processed chunk by chunk, the next chunk of a lazy source being decoded
+    in a background thread, so that the memory footprint does not grow with the number of inputs.
+
+    The chunk size is rounded up to a multiple of `batch_size`: the model then processes the same batches as in a
+    single pass, so that chunking does not change the predictions (a predictor transforming its inputs before batching,
+    e.g. the recognition predictor splitting wide crops, does so within each chunk).
+
+    Args:
+        predict: the prediction function, taking a list of images
+        inputs: the images
+        chunk_size: the maximum number of images decoded and processed at once
+        batch_size: the batch size of the model
+        merge: the function concatenating the outputs of the chunks
+
+    Returns:
+        the output of `predict` on the whole input
+    """
+    if isinstance(inputs, np.ndarray):
+        return predict(inputs)  # type: ignore[arg-type]
+    if isinstance(inputs, (list, tuple)) and len(inputs) <= chunk_size:
+        return predict(list(inputs))
+    size = ceil(chunk_size / batch_size) * batch_size
+    outputs = []
+    chunks = prefetch_chunks(inputs, size)
+    try:
+        for chunk in chunks:
+            outputs.append(predict(chunk))
+    finally:
+        # Stop decoding ahead on error
+        chunks.close()
+    # An empty input yields no chunk: let the predictor return its empty output
+    return merge(outputs) if outputs else predict([])

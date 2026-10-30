@@ -35,9 +35,11 @@ def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = False,
     kwargs["batch_size"] = kwargs.get("batch_size", 2)
     kwargs.setdefault("preserve_aspect_ratio", True)
     kwargs.setdefault("symmetric_pad", True)
+    chunk_size = kwargs.pop("chunk_size", 32)
     predictor = TablePredictor(
         PreProcessor(_model.cfg["input_shape"][1:], **kwargs),
         _model,
+        chunk_size=chunk_size,
     )
     return predictor
 
@@ -67,6 +69,8 @@ def table_predictor(
             running the model on it
         symmetric_pad: if True, pad the image symmetrically instead of padding at the bottom-right
         batch_size: number of samples the model processes in parallel
+        chunk_size: maximum number of table images decoded and processed at once (32 by default): longer inputs and
+            lazy page sources (cf. `DocumentFile.from_images(..., lazy=True)`) are processed chunk by chunk
         **kwargs: optional keyword arguments passed to the architecture
 
     Returns:

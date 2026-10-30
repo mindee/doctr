@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+from collections.abc import Callable
 from typing import Any
 
 import numpy as np
@@ -39,6 +40,37 @@ __all__ = [
 def _empty_page_image(page: np.ndarray | None) -> np.ndarray:
     """Return the given page image, or an empty placeholder when the page was restored from an export."""
     return page if page is not None else np.zeros((0, 0, 3), dtype=np.uint8)
+
+
+# A page image, or a zero-argument callable decoding it on demand. Predictions made on a lazy page source
+# (cf. `doctr.io.PageSource`) only keep a reference to their page, so that their memory footprint does not grow
+# with the image of every page of a long document.
+PageImage = np.ndarray | Callable[[], np.ndarray]
+
+
+def _get_page_image(self: Any) -> np.ndarray:
+    state = self.__dict__
+    if "_page" in state:
+        image = state["_page"]
+    elif "page" in state:
+        # Pages pickled by a previous release store their image under `page` (a plain instance attribute back then)
+        image = state["page"]
+    else:
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute 'page'")
+    return image() if callable(image) else image
+
+
+def _set_page_image(self: Any, image: PageImage) -> None:
+    # Drop the legacy entry of a page unpickled from a previous release, so that it cannot shadow the new image
+    self.__dict__.pop("page", None)
+    self._page = image
+
+
+_page_image_property = property(
+    _get_page_image,
+    _set_page_image,
+    doc="the page image as a numpy array (decoded on access when the page was predicted from a lazy page source)",
+)
 
 
 class Element(NestedObject):
@@ -441,7 +473,7 @@ class Page(PageExportsMixin, Element):
     """Implements a page element as a collection of blocks
 
     Args:
-        page: image encoded as a numpy array in uint8
+        page: image encoded as a numpy array in uint8, or a callable returning it (decoded on access)
         blocks: list of block elements
         page_idx: the index of the page in the input raw document
         dimensions: the page size in pixels in format (height, width)
@@ -457,9 +489,11 @@ class Page(PageExportsMixin, Element):
     layout: list[LayoutElement] = []
     tables: list[Table] = []
 
+    page = _page_image_property
+
     def __init__(
         self,
-        page: np.ndarray,
+        page: PageImage,
         blocks: list[Block],
         page_idx: int,
         dimensions: tuple[int, int],
@@ -533,7 +567,7 @@ class KIEPage(KIEPageExportsMixin, Element):
 
     Args:
         predictions: Dictionary with list of block elements for each detection class
-        page: image encoded as a numpy array in uint8
+        page: image encoded as a numpy array in uint8, or a callable returning it (decoded on access)
         page_idx: the index of the page in the input raw document
         dimensions: the page size in pixels in format (height, width)
         orientation: a dictionary with the value of the rotation angle in degress and confidence of the prediction
@@ -546,9 +580,11 @@ class KIEPage(KIEPageExportsMixin, Element):
     predictions: dict[str, list[Prediction]] = {}
     layout: list[LayoutElement] = []
 
+    page = _page_image_property
+
     def __init__(
         self,
-        page: np.ndarray,
+        page: PageImage,
         predictions: dict[str, list[Prediction]],
         page_idx: int,
         dimensions: tuple[int, int],
