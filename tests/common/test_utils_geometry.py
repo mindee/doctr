@@ -185,6 +185,25 @@ def test_rotate_image():
     assert rotated.shape[:-1] == (64, 128)
     assert rotated[0, :, 0].sum() <= 1
 
+    # Grayscale images (H, W) and (H, W, 1) are rotated like each channel of a color one
+    img = np.random.default_rng(0).random((32, 64, 3), dtype=np.float32)
+    for kwargs, shape in [
+        ({}, (32, 64)),
+        ({"expand": True}, (60, 120)),
+        ({"expand": True, "preserve_origin_shape": True}, (32, 64)),
+    ]:
+        color = geometry.rotate_image(img, 30.0, **kwargs)
+        rotated = geometry.rotate_image(img[..., 0], 30.0, **kwargs)
+        assert rotated.shape == shape
+        assert np.array_equal(rotated, color[..., 0])
+        # The trailing channel axis is kept
+        rotated = geometry.rotate_image(img[..., :1], 30.0, **kwargs)
+        assert rotated.shape == (*shape, 1)
+        assert np.array_equal(rotated, color[..., :1])
+    rotated = geometry.rotate_image(img[..., :1], 90.0, expand=True)
+    assert rotated.shape == (64, 128, 1)
+    assert np.array_equal(rotated, geometry.rotate_image(img, 90.0, expand=True)[..., :1])
+
 
 def test_remove_image_padding():
     img = np.ones((32, 64, 3), dtype=np.float32)

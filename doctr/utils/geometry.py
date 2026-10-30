@@ -330,6 +330,11 @@ def rotate_boxes(
     return rotated_boxes
 
 
+def _pad_width(image: np.ndarray, h_pad: int, w_pad: int) -> tuple[tuple[int, int], ...]:
+    """Pad widths centering an image of shape (H, W) or (H, W, C) in a canvas larger by h_pad x w_pad"""
+    return ((h_pad // 2, h_pad - h_pad // 2), (w_pad // 2, w_pad - w_pad // 2)) + ((0, 0),) * (image.ndim - 2)
+
+
 def rotate_image(
     image: np.ndarray,
     angle: float,
@@ -339,7 +344,7 @@ def rotate_image(
     """Rotate an image counterclockwise by an given angle.
 
     Args:
-        image: numpy tensor to rotate
+        image: array of shape (H, W) or (H, W, C)
         angle: rotation angle in degrees, between -90 and +90
         expand: whether the image should be padded before the rotation
         preserve_origin_shape: if expand is set to True, resizes the final output to the original image size
@@ -355,7 +360,7 @@ def rotate_image(
             int(max(0, ceil(exp_shape[0] - image.shape[0]))),
             int(max(0, ceil(exp_shape[1] - image.shape[1]))),
         )
-        exp_img = np.pad(image, ((h_pad // 2, h_pad - h_pad // 2), (w_pad // 2, w_pad - w_pad // 2), (0, 0)))
+        exp_img = np.pad(image, _pad_width(image, h_pad, w_pad))
     else:
         exp_img = image
 
@@ -371,10 +376,13 @@ def rotate_image(
             # Pad height
             else:
                 h_pad, w_pad = int(rot_img.shape[1] * image.shape[0] / image.shape[1] - rot_img.shape[0]), 0
-            rot_img = np.pad(rot_img, ((h_pad // 2, h_pad - h_pad // 2), (w_pad // 2, w_pad - w_pad // 2), (0, 0)))
+            rot_img = np.pad(rot_img, _pad_width(rot_img, h_pad, w_pad))
         if preserve_origin_shape:
             # rescale
-            rot_img = cv2.resize(rot_img, image.shape[:-1][::-1], interpolation=cv2.INTER_LINEAR)
+            rot_img = cv2.resize(rot_img, image.shape[1::-1], interpolation=cv2.INTER_LINEAR)
+
+    if rot_img.ndim < image.ndim:  # cv2 drops a singleton channel axis
+        rot_img = rot_img[..., None]
 
     return rot_img
 
