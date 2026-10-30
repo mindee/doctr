@@ -4,6 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 import logging
 import math
+import re
 from functools import lru_cache
 from typing import Any, NamedTuple
 
@@ -13,9 +14,20 @@ from PIL import Image, ImageDraw, ImageFont
 
 from .fonts import get_font
 
+try:
+    # Shapes Arabic and orders right-to-left text, which Pillow can only do when built with Raqm
+    import khatt
+except ImportError:  # pragma: no cover
+    khatt = None  # type: ignore[assignment]
+
 __all__ = ["synthesize_page", "synthesize_kie_page"]
 
 logger = logging.getLogger(__name__)
+
+# Hebrew, Arabic, Syriac, Thaana, N'Ko and the Arabic presentation forms
+_RTL_PATTERN = re.compile("[֐-ࣿיִ-﷿ﹰ-ﻼ]")
+# Arabic glyphs for a font that has none of its own
+_RTL_FALLBACK_FONTS = ["noto-naskh"]
 
 
 class _Word(NamedTuple):
@@ -62,15 +74,36 @@ def _polygon_angle(polygon: list[tuple[float, float]], w: int, h: int) -> float:
     return -math.degrees(math.atan2((y1 - y0) * h, (x1 - x0) * w))
 
 
+def _shaping_font(font: ImageFont.FreeTypeFont | ImageFont.ImageFont, text: str) -> tuple[str, int] | None:
+    """Font file and size to draw a word with khatt, or None to draw it with Pillow.
+
+    khatt draws the right-to-left words, as long as their font was loaded from a file.
+    """
+    if khatt is None or not isinstance(font, ImageFont.FreeTypeFont) or _RTL_PATTERN.search(text) is None:
+        return None
+    if not isinstance(font.path, str):
+        return None
+    return font.path, round(font.size)
+
+
+def _bbox(font: ImageFont.FreeTypeFont | ImageFont.ImageFont, text: str) -> tuple[float, float, float, float]:
+    """Ink box of a word drawn at the origin with the "la" anchor."""
+    shaping = _shaping_font(font, text)
+    if shaping is not None:
+        path, size = shaping
+        return khatt.text_bbox(text, font=path, size_px=size, fallback_fonts=_RTL_FALLBACK_FONTS)
+    return font.getbbox(text)
+
+
 def _text_width(font: ImageFont.FreeTypeFont | ImageFont.ImageFont, text: str, stroke: int = 0) -> int:
     """Width from the drawing origin to the right edge of the ink, so the left bearing counts."""
-    bbox = font.getbbox(text)
+    bbox = _bbox(font, text)
     return max(math.ceil(bbox[2]) + 2 * stroke, 1)
 
 
 def _text_height(font: ImageFont.FreeTypeFont | ImageFont.ImageFont, text: str) -> int:
     """Height from the top of the ink to the bottom, so the ascender counts."""
-    bbox = font.getbbox(text)
+    bbox = _bbox(font, text)
     return max(int(bbox[3]) - int(bbox[1]), 1)
 
 
@@ -147,7 +180,7 @@ def _stroke(font_size: int, bold: bool) -> int:
 
 
 def _draw_word(
-    d: ImageDraw.ImageDraw,
+    image: Image.Image,
     xy: tuple[int, int],
     text: str,
     font: ImageFont.FreeTypeFont | ImageFont.ImageFont,
@@ -160,6 +193,22 @@ def _draw_word(
     `stroke` outlines the glyphs in their own colour, which is how a heading is set in bold without
     a second font file
     """
+    shaping = _shaping_font(font, text)
+    if shaping is not None:
+        path, size = shaping
+        khatt.draw_text(
+            image,
+            xy,
+            text,
+            font=path,
+            size_px=size,
+            fill=fill,
+            anchor=anchor,
+            stroke_width=stroke,
+            fallback_fonts=_RTL_FALLBACK_FONTS,
+        )
+        return
+    d = ImageDraw.Draw(image)
     try:
         try:
             d.text(xy, text, font=font, fill=fill, anchor=anchor, stroke_width=stroke, stroke_fill=fill)
@@ -190,7 +239,7 @@ def _paste_word(
         (_text_width(font, text, stroke) + 2 * pad, _text_vspan(font, text) + 2 * pad + 2 * stroke),
         (0, 0, 0, 0),
     )
-    _draw_word(ImageDraw.Draw(patch), (pad, pad + stroke), text, font, fill, anchor="la", stroke=stroke)
+    _draw_word(patch, (pad, pad + stroke), text, font, fill, anchor="la", stroke=stroke)
     if squeeze < 1.0:
         patch = patch.resize((max(round(patch.width * squeeze), 1), patch.height), Image.Resampling.BICUBIC)
         pad = round(pad * squeeze)
@@ -351,7 +400,6 @@ def _split_rows(words: list[_Word]) -> list[list[_Word]]:
 
 def _place_word(
     response: Image.Image,
-    d: ImageDraw.ImageDraw,
     text: str,
     font: ImageFont.FreeTypeFont | ImageFont.ImageFont,
     position: tuple[int, int],
@@ -365,7 +413,7 @@ def _place_word(
         _paste_word(response, text, font, position, fill, angle, squeeze, stroke)
     else:
         # "lm" anchor: vertically centered on the baseline, no ascender-offset drift
-        _draw_word(d, position, text, font, fill, anchor="lm", stroke=stroke)
+        _draw_word(response, position, text, font, fill, anchor="lm", stroke=stroke)
 
 
 def _synthesize_line(
@@ -414,10 +462,9 @@ def _synthesize_row(
             break
         font_size = max(int(font_size * 2 * line_squeeze), min_font_size)
 
-    d = ImageDraw.Draw(response)
     for word, offset, squeeze in zip(words, placed, squeezes):
         x, y = round(ox + offset * ux), round(oy + offset * uy)
-        _place_word(response, d, word.value, font, (x, y), text_color, angle, squeeze * line_squeeze, stroke)
+        _place_word(response, word.value, font, (x, y), text_color, angle, squeeze * line_squeeze, stroke)
 
 
 def _synthesize_value(
@@ -443,7 +490,7 @@ def _synthesize_value(
     stroke = _stroke(font_size, bold)
     # stay inside the box, do not run into the next field
     squeeze = min(1.0, box_w / _text_width(font, text, stroke))
-    _place_word(response, ImageDraw.Draw(response), text, font, (x, y), text_color, angle, squeeze, stroke)
+    _place_word(response, text, font, (x, y), text_color, angle, squeeze, stroke)
 
 
 def _draw_confidence(
@@ -479,7 +526,7 @@ def _draw_confidence(
     # The label goes above the box it belongs to, and inside it when the box is against the top of
     # the page: clamping to the page edge instead would draw the label over its own outline.
     prob_y = ymin - prob_height - 2 if ymin - prob_height - 2 >= 0 else ymin + 3
-    _draw_word(d, (int(prob_x), int(prob_y)), prob_text, prob_font, color, anchor="lt")
+    _draw_word(response, (int(prob_x), int(prob_y)), prob_text, prob_font, color, anchor="lt")
 
 
 def _region_kind(kind: str) -> str:
@@ -510,7 +557,7 @@ def _draw_region(
     if label:
         size = _fit_font_size(label, max(xmax - xmin, 1), max((ymax - ymin) // 4, 1), font_family, 8, 20)
         font = _cached_font(font_family, size)
-        _draw_word(d, ((xmin + xmax) // 2, (ymin + ymax) // 2), label, font, color, anchor="mm")
+        _draw_word(response, ((xmin + xmax) // 2, (ymin + ymax) // 2), label, font, color, anchor="mm")
 
 
 def _entry_geometry(
