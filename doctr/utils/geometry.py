@@ -425,7 +425,9 @@ def straighten_page(
     pt, pb = h_pad // 2, h_pad - h_pad // 2
     pl, pr = w_pad // 2, w_pad - w_pad // 2
 
-    exp_img = np.pad(page, ((pt, pb), (pl, pr), (0, 0)))
+    # A grayscale page (H, W) has no channel axis to leave unpadded
+    channels = ((0, 0),) * (page.ndim - 2)
+    exp_img = np.pad(page, ((pt, pb), (pl, pr), *channels))
     ph_pad, pw_pad = exp_img.shape[:2]
 
     # Rotate around the padded image center
@@ -436,10 +438,10 @@ def straighten_page(
     if h_pad > 0 or w_pad > 0:
         if (rotated.shape[0] / rotated.shape[1]) > (h / w):
             w_pad2 = int(rotated.shape[0] * w / h - rotated.shape[1])
-            rotated = np.pad(rotated, ((0, 0), (0, w_pad2), (0, 0)))
+            rotated = np.pad(rotated, ((0, 0), (0, w_pad2), *channels))
         else:
             h_pad2 = int(rotated.shape[1] * h / w - rotated.shape[0])
-            rotated = np.pad(rotated, ((0, h_pad2), (0, 0), (0, 0)))
+            rotated = np.pad(rotated, ((0, h_pad2), (0, 0), *channels))
 
     # Analytic crop: project the four content corners through the rotation matrix
     corners = np.array(
