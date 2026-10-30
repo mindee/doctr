@@ -448,6 +448,9 @@ def test_block_artefacts_only():
     assert block.lines == []
     assert block.geometry == ((0, 0), (1, 1))
     assert block.render() == ""
+    # The objectness score is the confidence of the artefacts, which keeps the export valid JSON
+    assert block.objectness_score == 0.8
+    json.loads(json.dumps(block.export(), allow_nan=False))
 
 
 def test_block_rotated_lines_from_dict():
