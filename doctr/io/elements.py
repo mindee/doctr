@@ -337,6 +337,8 @@ class Line(Element):
         geometry: BoundingBox | np.ndarray | None = None,
         objectness_score: float | None = None,
     ) -> None:
+        if geometry is None and not words:
+            raise ValueError("the geometry of a line without any word can not be resolved, please pass it")
         # Compute the objectness score of the line
         if objectness_score is None:
             objectness_score = float(np.mean([w.objectness_score for w in words]))
@@ -401,6 +403,8 @@ class Block(Element):
             lines = []
         if artefacts is None:
             artefacts = []
+        if geometry is None and not lines and not artefacts:
+            raise ValueError("the geometry of a block without any line or artefact can not be resolved, please pass it")
         # Compute the objectness score of the block
         if objectness_score is None:
             # A block without any word (only artefacts) takes the confidence of its artefacts, instead of NaN
