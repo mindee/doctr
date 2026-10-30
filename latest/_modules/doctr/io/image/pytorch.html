@@ -601,11 +601,11 @@
 <span class="w">    </span><span class="sd">"""Read an image file as a PyTorch tensor</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        npy_img: image encoded as a numpy array of shape (H, W, C) in np.uint8</span>
+<span class="sd">        npy_img: image encoded as a numpy array of shape (H, W) or (H, W, C) in np.uint8</span>
 <span class="sd">        dtype: the desired data type of the output tensor. If it is float-related, values will be divided by 255.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        same image as a tensor of shape (C, H, W)</span>
+<span class="sd">        same image as a tensor of shape (C, H, W), with C = 1 for a grayscale image</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"insupported value for dtype"</span><span class="p">)</span>
@@ -613,7 +613,8 @@
     <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
         <span class="n">img</span> <span class="o">=</span> <span class="n">to_tensor</span><span class="p">(</span><span class="n">npy_img</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">img</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">npy_img</span><span class="p">)</span>
+        <span class="c1"># A grayscale image gets a channel axis, like `to_tensor` gives it for float32</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">npy_img</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="k">if</span> <span class="n">npy_img</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">npy_img</span><span class="p">)</span>
         <span class="c1"># put it from HWC to CHW format</span>
         <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">permute</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">:</span>
