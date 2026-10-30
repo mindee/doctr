@@ -93,6 +93,10 @@ def test_encode_crop(image_format):
     decoded = cv2.imdecode(np.frombuffer(encode_crop(rgba, image_format), dtype=np.uint8), cv2.IMREAD_COLOR)
     assert decoded[..., 2].mean() > decoded[..., 0].mean()
 
+    # A float crop (values in [0, 1]) is encoded like the same crop in uint8, instead of a black image
+    if image_format == "png":
+        assert encode_crop(crop.astype(np.float32) / 255, image_format) == encode_crop(crop, image_format)
+
     with pytest.raises(ValueError):
         encode_crop(crop, image_format="gif")
 
