@@ -212,7 +212,9 @@ def nms(boxes: np.ndarray, thresh: float = 0.5) -> list[int]:
         w = np.maximum(0.0, xx2 - xx1)
         h = np.maximum(0.0, yy2 - yy1)
         inter = w * h
-        ovr = inter / (areas[i] + areas[order[1:]] - inter)
+        union = areas[i] + areas[order[1:]] - inter
+        # Two boxes without any area (e.g. collapsed to a point) do not overlap, instead of 0 / 0 suppressing one
+        ovr = np.divide(inter, union, out=np.zeros_like(inter), where=union > 0)
 
         inds = np.where(ovr <= thresh)[0]
         order = order[inds + 1]
