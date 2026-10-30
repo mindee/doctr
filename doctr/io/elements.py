@@ -401,9 +401,11 @@ class Block(Element):
             lines = []
         if artefacts is None:
             artefacts = []
-        # Compute the objectness score of the line
+        # Compute the objectness score of the block
         if objectness_score is None:
-            objectness_score = float(np.mean([w.objectness_score for line in lines for w in line.words]))
+            # A block without any word (only artefacts) takes the confidence of its artefacts, instead of NaN
+            scores = [w.objectness_score for line in lines for w in line.words] or [a.confidence for a in artefacts]
+            objectness_score = float(np.mean(scores))
         # Resolve the geometry using the smallest enclosing bounding box
         if geometry is None:
             line_boxes = [word.geometry for line in lines for word in line.words]
