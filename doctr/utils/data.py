@@ -26,14 +26,22 @@ USER_AGENT = "mindee/doctr"
 
 
 def _urlretrieve(url: str, filename: Path | str, chunk_size: int = 1024) -> None:
-    with open(filename, "wb") as fh:
-        with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": USER_AGENT})) as response:
-            with tqdm(total=response.length) as pbar:
-                for chunk in iter(lambda: response.read(chunk_size), ""):
-                    if not chunk:
-                        break
-                    pbar.update(chunk_size)
-                    fh.write(chunk)
+    # Download to a temporary file first: an interrupted download must not leave a truncated file
+    # behind, which would then be reused as is by the next call when there is no hash to check
+    tmp_path = Path(f"{filename}.part")
+    try:
+        with open(tmp_path, "wb") as fh:
+            with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": USER_AGENT})) as response:
+                with tqdm(total=response.length) as pbar:
+                    for chunk in iter(lambda: response.read(chunk_size), ""):
+                        if not chunk:
+                            break
+                        pbar.update(chunk_size)
+                        fh.write(chunk)
+        os.replace(tmp_path, filename)
+    except BaseException:
+        tmp_path.unlink(missing_ok=True)
+        raise
 
 
 def _check_integrity(file_path: str | Path, hash_prefix: str) -> bool:

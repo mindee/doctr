@@ -1,3 +1,4 @@
+import io
 import logging
 import os
 from pathlib import PosixPath
@@ -5,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from doctr.utils.data import download_from_url
+from doctr.utils.data import _urlretrieve, download_from_url
 
 
 @patch("doctr.utils.data._urlretrieve")
@@ -45,3 +46,31 @@ def test_download_from_url_error_creating_directory_with_env_var(mkdir_mock, cap
     assert (
         "Failed creating cache directory at /test using path from 'DOCTR_CACHE_DIR' environment variable."
     ) in caplog.text
+
+
+class _Response(io.BytesIO):
+    """A response that drops the connection after `fail_after` bytes, if set"""
+
+    def __init__(self, content, fail_after=None):
+        super().__init__(content)
+        self.length = len(content)
+        self.fail_after = fail_after
+
+    def read(self, size=-1):
+        if self.fail_after is not None and self.tell() >= self.fail_after:
+            raise ConnectionResetError("connection dropped")
+        return super().read(size)
+
+
+def test_urlretrieve_interrupted_leaves_no_file(tmp_path):
+    file_path = tmp_path / "model.pt"
+    with patch("urllib.request.urlopen", return_value=_Response(b"x" * 4096, fail_after=2048)):
+        with pytest.raises(ConnectionResetError):
+            _urlretrieve("https://example.com/model.pt", file_path)
+    # No truncated file is left behind to be reused by the next download
+    assert list(tmp_path.iterdir()) == []
+
+    with patch("urllib.request.urlopen", return_value=_Response(b"x" * 4096)):
+        _urlretrieve("https://example.com/model.pt", file_path)
+    assert file_path.read_bytes() == b"x" * 4096
+    assert list(tmp_path.iterdir()) == [file_path]
