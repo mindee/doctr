@@ -39,7 +39,7 @@ class WordGenerator(_WordGenerator):
 
     Args:
         vocab: vocabulary to take the character from
-        min_chars: minimum number of characters in a word
+        min_chars: minimum number of characters in a word, at least 1
         max_chars: maximum number of characters in a word
         num_samples: number of samples that will be generated iterating over the dataset
         cache_samples: whether generated images should be cached firsthand
