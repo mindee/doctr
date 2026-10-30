@@ -185,6 +185,13 @@ def test_rotate_image():
     assert rotated.shape[:-1] == (64, 128)
     assert rotated[0, :, 0].sum() <= 1
 
+    # Grayscale images are expanded like color ones
+    rotated = geometry.rotate_image(img[..., 0], 30.0, expand=True)
+    assert rotated.shape == (60, 120)
+    assert np.array_equal(rotated, geometry.rotate_image(img, 30.0, expand=True)[..., 0])
+    rotated = geometry.rotate_image(img[..., 0], 30.0, expand=True, preserve_origin_shape=True)
+    assert rotated.shape == (32, 64)
+
 
 def test_remove_image_padding():
     img = np.ones((32, 64, 3), dtype=np.float32)
