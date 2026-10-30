@@ -344,7 +344,7 @@ def rotate_image(
     """Rotate an image counterclockwise by an given angle.
 
     Args:
-        image: numpy tensor to rotate
+        image: array of shape (H, W) or (H, W, C)
         angle: rotation angle in degrees, between -90 and +90
         expand: whether the image should be padded before the rotation
         preserve_origin_shape: if expand is set to True, resizes the final output to the original image size
@@ -380,6 +380,9 @@ def rotate_image(
         if preserve_origin_shape:
             # rescale
             rot_img = cv2.resize(rot_img, image.shape[1::-1], interpolation=cv2.INTER_LINEAR)
+
+    if rot_img.ndim < image.ndim:  # cv2 drops a singleton channel axis
+        rot_img = rot_img[..., None]
 
     return rot_img
 
