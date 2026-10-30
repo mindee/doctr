@@ -54,6 +54,8 @@ def test_estimate_orientation(mock_image, mock_bitmap, mock_tilted_payslip):
 
     mock_tilted_payslip = reader.read_img_as_numpy(mock_tilted_payslip)
     assert estimate_orientation(mock_tilted_payslip) == -30
+    # A float image (values in [0, 1]) gives the same angle as the same image in uint8
+    assert estimate_orientation(mock_tilted_payslip.astype(np.float32) / 255) == -30
 
     rotated = geometry.rotate_image(mock_tilted_payslip, -30, expand=True)
     angle_rotated = estimate_orientation(rotated)
