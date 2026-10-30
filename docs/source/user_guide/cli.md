@@ -65,7 +65,7 @@ Run `doctr-cli --help` for the full list with default values.
 
 | Argument          | Default | Description                                                                                 |
 | ----------------- | ------- | ------------------------------------------------------------------------------------------- |
-| `--input_path`    | —       | **Required.** One or more images, PDF files, folders of those, or `http(s)://` URLs of web pages |
+| `--input_path`    | -       | **Required.** One or more images, PDF files, folders of those, or `http(s)://` URLs of web pages |
 | `--pdf_password`  | `None`  | Password of encrypted PDF files                                                             |
 | `--pdf_scale`     | `2`     | PDF rendering scale (1 corresponds to 72 dpi)                                               |
 
