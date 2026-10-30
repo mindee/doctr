@@ -110,6 +110,11 @@ def test_remap_boxes():
     target = np.asarray([[[0.25, 0.375], [0.25, 0.625], [0.75, 0.375], [0.75, 0.625]]])
     assert np.all(pred == target)
 
+    # Integer boxes are remapped like float ones, instead of being truncated to 0
+    pred = geometry.remap_boxes(np.asarray([[[0, 0], [1, 0], [1, 1], [0, 1]]]), (10, 10), (20, 20))
+    target = np.asarray([[[0.25, 0.25], [0.75, 0.25], [0.75, 0.75], [0.25, 0.75]]])
+    assert np.all(pred == target)
+
     with pytest.raises(ValueError):
         geometry.remap_boxes(
             np.asarray([[[0.25, 0.25], [0.25, 0.75], [0.75, 0.25], [0.75, 0.75]]]), (80, 40, 150), (160, 40)
