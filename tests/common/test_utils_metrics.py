@@ -364,6 +364,15 @@ def test_nms():
     to_keep = metrics.nms(np.asarray(boxes), thresh=0.2)
     assert to_keep == [0, 2]
 
+    # Boxes without any area do not overlap, so none of them is suppressed
+    boxes = [
+        [0.1, 0.1, 0.1, 0.1, 0.95],
+        [0.5, 0.5, 0.5, 0.5, 0.90],
+        [0.5, 0.2, 0.6, 0.2, 0.85],
+    ]
+    to_keep = metrics.nms(np.asarray(boxes), thresh=0.2)
+    assert to_keep == [0, 1, 2]
+
 
 @pytest.mark.parametrize(
     "gt_boxes, gt_labels, pred_boxes, pred_labels, pred_scores, expected_keys",
