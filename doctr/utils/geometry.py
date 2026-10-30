@@ -542,6 +542,8 @@ def extract_crops(img: np.ndarray, boxes: np.ndarray) -> list[np.ndarray]:
         _boxes = _boxes.round().astype(int)
         # Add last index
         _boxes[:, 2:] += 1
+    # A box starting before the image would slice from its end: crop its visible part instead (empty if none)
+    _boxes = np.maximum(_boxes, 0)
 
     return [np.ascontiguousarray(img[box[1] : box[3], box[0] : box[2]]) for box in _boxes]
 

@@ -331,6 +331,16 @@ def test_extract_crops(mock_pdf):
     identical_crops = geometry.extract_crops(gradient_img, np.array([same_box, same_box, same_box], dtype=np.float32))
     assert all(np.array_equal(crop, identical_crops[0]) for crop in identical_crops)
 
+    # A box starting before the image is cropped to its visible part, instead of an empty crop
+    for box, expected in (
+        ([-0.2, -0.1, 0.3, 0.4], gradient_img[:41, :31]),  # relative, the last index is included
+        ([-20, -10, 30, 40], gradient_img[:40, :30]),  # absolute
+    ):
+        assert np.array_equal(geometry.extract_crops(gradient_img, np.array([box]))[0], expected)
+    # A box entirely before the image gives an empty crop
+    for box in ([-0.5, -0.5, -0.2, -0.2], [-50, -50, -20, -20]):
+        assert geometry.extract_crops(gradient_img, np.array([box]))[0].size == 0
+
     # No box
     assert geometry.extract_crops(doc_img, np.zeros((0, 4))) == []
 
