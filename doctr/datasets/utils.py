@@ -148,7 +148,7 @@ def encode_sequences(
 
     if not isinstance(target_size, int) or dynamic_seq_length:
         # Maximum string length + EOS
-        max_length = max(len(w) for w in sequences) + 1
+        max_length = max((len(w) for w in sequences), default=0) + 1
         if isinstance(sos, int):
             max_length += 1
         if isinstance(pad, int):
