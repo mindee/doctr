@@ -24,6 +24,27 @@ def test_download_from_url_customizing_cache_dir(mkdir_mock, urlretrieve_mock):
     urlretrieve_mock.assert_called_with("test_url", PosixPath("/test/test_url"))
 
 
+@pytest.mark.parametrize("file_name", ["checkpoint-10.pt", "model-face.pt", "my-.zip"])
+@patch("doctr.utils.data._urlretrieve")
+def test_download_from_url_without_hash_in_file_name(urlretrieve_mock, file_name, tmp_path):
+    # a short run of hex digits after a dash is part of the name, not the hash of the file
+    file_path = tmp_path / file_name
+    file_path.write_bytes(b"weights")
+    assert download_from_url(f"https://example.com/{file_name}", cache_dir=str(tmp_path)) == file_path
+    urlretrieve_mock.assert_not_called()
+    assert file_path.read_bytes() == b"weights"
+
+
+@patch("doctr.utils.data._urlretrieve")
+def test_download_from_url_with_hash_in_file_name(urlretrieve_mock, tmp_path):
+    file_path = tmp_path / "db_resnet50-79bd7d70.pt"
+    file_path.write_bytes(b"weights")
+    with pytest.raises(ValueError, match="corrupted download"):
+        download_from_url("https://example.com/db_resnet50-79bd7d70.pt", cache_dir=str(tmp_path))
+    urlretrieve_mock.assert_called_once()
+    assert not file_path.exists()
+
+
 @patch.dict(os.environ, {"HOME": "/"}, clear=True)
 @patch("pathlib.Path.mkdir", side_effect=OSError)
 def test_download_from_url_error_creating_directory(mkdir_mock, caplog):
