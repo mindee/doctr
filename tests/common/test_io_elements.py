@@ -225,6 +225,10 @@ def test_line():
     line = elements.Line.from_dict(state_dict)
     assert line.export() == state_dict
 
+    # Without any word, the geometry can not be resolved
+    with pytest.raises(ValueError, match="line without any word"):
+        elements.Line([])
+
 
 def test_artefact():
     artefact_type = "qr_code"
@@ -448,6 +452,11 @@ def test_block_artefacts_only():
     assert block.lines == []
     assert block.geometry == ((0, 0), (1, 1))
     assert block.render() == ""
+
+    # Without any line or artefact, the geometry can not be resolved
+    for kwargs in ({}, {"lines": [], "artefacts": []}):
+        with pytest.raises(ValueError, match="block without any line or artefact"):
+            elements.Block(**kwargs)
     # The objectness score is the confidence of the artefacts, which keeps the export valid JSON
     assert block.objectness_score == 0.8
     json.loads(json.dumps(block.export(), allow_nan=False))
