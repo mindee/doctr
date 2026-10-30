@@ -149,7 +149,7 @@ def encode_crop(crop: np.ndarray, image_format: str = "png", quality: int = 95) 
     """Encode an RGB(A) crop into an image file format
 
     Args:
-        crop: the crop to encode
+        crop: the crop to encode, in np.uint8 or as floats in [0, 1]
         image_format: one of 'png', 'jpg', 'jpeg' or 'webp'
         quality: quality of the lossy formats, between 0 and 100
 
@@ -166,11 +166,14 @@ def encode_crop(crop: np.ndarray, image_format: str = "png", quality: int = 95) 
     elif extension == ".webp":
         params = [int(cv2.IMWRITE_WEBP_QUALITY), int(quality)]
     array = crop
+    if np.issubdtype(array.dtype, np.floating):
+        # Float pages hold values in [0, 1] (like the predictors expect), the image formats need 8-bit values
+        array = (array * 255).round().clip(0, 255).astype(np.uint8)
     # docTR pages are RGB, OpenCV expects BGR
-    if crop.ndim == 3 and crop.shape[2] == 3:
-        array = cv2.cvtColor(crop, cv2.COLOR_RGB2BGR)
-    elif crop.ndim == 3 and crop.shape[2] == 4:
-        array = cv2.cvtColor(crop, cv2.COLOR_RGBA2BGRA)
+    if array.ndim == 3 and array.shape[2] == 3:
+        array = cv2.cvtColor(array, cv2.COLOR_RGB2BGR)
+    elif array.ndim == 3 and array.shape[2] == 4:
+        array = cv2.cvtColor(array, cv2.COLOR_RGBA2BGRA)
     success, buffer = cv2.imencode(extension, array, params)
     if not success:  # pragma: no cover
         raise RuntimeError(f"failed to encode a figure crop as '{image_format}'")
