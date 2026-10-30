@@ -268,7 +268,8 @@ def remap_boxes(loc_preds: np.ndarray, orig_shape: tuple[int, int], dest_shape: 
         raise ValueError(f"Image_shape length should be 2, was found at: {len(orig_shape)}")
     orig_height, orig_width = orig_shape
     dest_height, dest_width = dest_shape
-    mboxes = loc_preds.copy()
+    # The remapped coordinates are fractional, so integer boxes (e.g. a whole page) are remapped in floating point
+    mboxes = loc_preds.astype(np.result_type(loc_preds.dtype, np.float32))
     mboxes[:, :, 0] = ((loc_preds[:, :, 0] * orig_width) + (dest_width - orig_width) / 2) / dest_width
     mboxes[:, :, 1] = ((loc_preds[:, :, 1] * orig_height) + (dest_height - orig_height) / 2) / dest_height
 
