@@ -132,7 +132,7 @@ def estimate_orientation(
      lines of the document and the assumption that they should be horizontal.
 
     Args:
-        img: the img or bitmap to analyze (H, W, C)
+        img: the img (in np.uint8, or as floats in [0, 1]) or bitmap to analyze (H, W, C)
         general_page_orientation: the general orientation of the page (angle [0, 90, 180, 270 (-90)], confidence)
             estimated by a model
         n_ct: the number of contours used for the orientation estimation
@@ -147,6 +147,9 @@ def estimate_orientation(
 
     # Convert image to grayscale if necessary
     if img.shape[-1] == 3:
+        if np.issubdtype(img.dtype, np.floating):
+            # Otsu thresholding needs 8-bit values: a float image holds values in [0, 1]
+            img = (img * 255).round().clip(0, 255).astype(np.uint8)
         gray_img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
         gray_img = cv2.medianBlur(gray_img, 5)
         thresh = cv2.threshold(gray_img, thresh=0, maxval=255, type=cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
