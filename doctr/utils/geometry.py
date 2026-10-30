@@ -179,8 +179,10 @@ def rotate_abs_points(points: np.ndarray, angle: float = 0.0) -> np.ndarray:
         Rotated points
     """
     angle_rad = angle * np.pi / 180.0  # compute radian angle for np functions
+    # Integer points need a float matrix, otherwise its cosine and sine are truncated to 0 or 1
     rotation_mat = np.array(
-        [[np.cos(angle_rad), -np.sin(angle_rad)], [np.sin(angle_rad), np.cos(angle_rad)]], dtype=points.dtype
+        [[np.cos(angle_rad), -np.sin(angle_rad)], [np.sin(angle_rad), np.cos(angle_rad)]],
+        dtype=np.result_type(points.dtype, np.float32),
     )
     return np.matmul(points, rotation_mat.T)
 
@@ -295,8 +297,8 @@ def rotate_boxes(
     Returns:
         A batch of rotated boxes (N, 4, 2): or a batch of straight bounding boxes
     """
-    # Change format of the boxes to rotated boxes
-    _boxes = loc_preds.copy()
+    # Change format of the boxes to rotated boxes (in floating point, so that integer boxes can be rotated)
+    _boxes = loc_preds.astype(np.result_type(loc_preds.dtype, np.float32))
     if _boxes.ndim == 2:
         _boxes = np.stack(
             [
