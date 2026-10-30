@@ -69,6 +69,13 @@ def test_visualize_kie_page():
     assert len(fig.axes[0].texts) == 0
 
 
+@pytest.mark.parametrize("num_colors", [0, 1, 3, 161, 175])
+def test_get_colors(num_colors):
+    colors = visualization.get_colors(num_colors)
+    assert len(colors) == num_colors
+    assert all(len(color) == 3 and all(0 <= c <= 1 for c in color) for color in colors)
+
+
 def test_draw_boxes():
     image = np.ones((256, 256, 3), dtype=np.float32)
     boxes = [
