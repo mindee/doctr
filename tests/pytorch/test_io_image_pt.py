@@ -3,7 +3,7 @@ import pytest
 import torch
 from PIL import Image
 
-from doctr.io import decode_img_as_tensor, read_img_as_tensor, tensor_from_numpy
+from doctr.io import decode_img_as_tensor, read_img_as_tensor, tensor_from_numpy, tensor_from_pil
 
 
 def test_read_img_as_tensor(mock_image_path):
@@ -52,6 +52,17 @@ def test_tensor_from_numpy(mock_image_stream):
     assert out.dtype == torch.float16
     out = tensor_from_numpy(np.zeros((256, 256, 3), dtype=np.uint8), dtype=torch.uint8)
     assert out.dtype == torch.uint8
+
+    # A grayscale image gets a single channel, whatever the dtype
+    gray = np.random.default_rng(0).integers(0, 256, (32, 64), dtype=np.uint8)
+    expected = tensor_from_numpy(gray)
+    assert expected.shape == (1, 32, 64)
+    for dtype in (torch.float16, torch.uint8):
+        out = tensor_from_numpy(gray, dtype=dtype)
+        assert out.dtype == dtype
+        assert out.shape == (1, 32, 64)
+        assert torch.allclose(out.float() / (255 if dtype == torch.uint8 else 1), expected, atol=1e-3)
+    assert torch.equal(tensor_from_pil(Image.fromarray(gray), dtype=torch.uint8)[0], torch.from_numpy(gray))
 
 
 def test_read_img_as_tensor_exif_orientation(tmpdir_factory):
