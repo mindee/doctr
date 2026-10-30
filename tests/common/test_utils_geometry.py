@@ -332,6 +332,9 @@ def test_extract_crops(mock_pdf):
         ([-20, -10, 30, 40], gradient_img[:40, :30]),  # absolute
     ):
         assert np.array_equal(geometry.extract_crops(gradient_img, np.array([box]))[0], expected)
+    # A box entirely before the image gives an empty crop
+    for box in ([-0.5, -0.5, -0.2, -0.2], [-50, -50, -20, -20]):
+        assert geometry.extract_crops(gradient_img, np.array([box]))[0].size == 0
 
     # No box
     assert geometry.extract_crops(doc_img, np.zeros((0, 4))) == []
