@@ -75,10 +75,8 @@ def _polygon_angle(polygon: list[tuple[float, float]], w: int, h: int) -> float:
 
 
 def _shaping_font(font: ImageFont.FreeTypeFont | ImageFont.ImageFont, text: str) -> tuple[str, int] | None:
-    """Font file and size to draw a word with khatt, or None to draw it with Pillow.
-
-    khatt draws the right-to-left words, as long as their font was loaded from a file.
-    """
+    """Font file and size to draw a right-to-left word with khatt, or None to draw the word with Pillow."""
+    # khatt opens the font by its path, so a font loaded from memory stays with Pillow
     if khatt is None or not isinstance(font, ImageFont.FreeTypeFont) or _RTL_PATTERN.search(text) is None:
         return None
     if not isinstance(font.path, str):
