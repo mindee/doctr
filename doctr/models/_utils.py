@@ -354,9 +354,9 @@ def invert_data_structure(
         dictionary of list when x is a list of dictionaries or a list of dictionaries when x is dictionary of lists
     """
     if isinstance(x, dict):
-        assert len({len(v) for v in x.values()}) == 1, "All the lists in the dictionary should have the same length."
+        assert len({len(v) for v in x.values()}) <= 1, "All the lists in the dictionary should have the same length."
         return [dict(zip(x, t)) for t in zip(*x.values())]
     elif isinstance(x, list):
-        return {k: [dic[k] for dic in x] for k in x[0]}
+        return {k: [dic[k] for dic in x] for k in x[0]} if x else {}
     else:
         raise TypeError(f"Expected input to be either a dict or a list, got {type(x)} instead.")
