@@ -74,3 +74,22 @@ def test_urlretrieve_interrupted_leaves_no_file(tmp_path):
         _urlretrieve("https://example.com/model.pt", file_path)
     assert file_path.read_bytes() == b"x" * 4096
     assert list(tmp_path.iterdir()) == [file_path]
+
+
+def test_urlretrieve_concurrent_downloads(tmp_path):
+    file_path = tmp_path / "model.pt"
+
+    class _InterleavedResponse(_Response):
+        """A response that runs a whole second download of the same file while the first one is in progress"""
+
+        def read(self, size=-1):
+            if self.tell() == 2048:
+                with patch("urllib.request.urlopen", return_value=_Response(b"y" * 4096)):
+                    _urlretrieve("https://example.com/model.pt", file_path)
+            return super().read(size)
+
+    with patch("urllib.request.urlopen", return_value=_InterleavedResponse(b"x" * 4096)):
+        _urlretrieve("https://example.com/model.pt", file_path)
+    # Both downloads complete, the last one to finish wins and no temporary file is left behind
+    assert file_path.read_bytes() == b"x" * 4096
+    assert list(tmp_path.iterdir()) == [file_path]

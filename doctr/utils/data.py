@@ -11,6 +11,7 @@ import os
 import re
 import urllib.error
 import urllib.request
+import uuid
 from pathlib import Path
 
 from tqdm.auto import tqdm
@@ -27,8 +28,9 @@ USER_AGENT = "mindee/doctr"
 
 def _urlretrieve(url: str, filename: Path | str, chunk_size: int = 1024) -> None:
     # Download to a temporary file first: an interrupted download must not leave a truncated file
-    # behind, which would then be reused as is by the next call when there is no hash to check
-    tmp_path = Path(f"{filename}.part")
+    # behind, which would then be reused as is by the next call when there is no hash to check.
+    # The name is unique to each call, so that concurrent downloads of the same file do not share it
+    tmp_path = Path(f"{filename}.{uuid.uuid4().hex}.part")
     try:
         with open(tmp_path, "wb") as fh:
             with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": USER_AGENT})) as response:
