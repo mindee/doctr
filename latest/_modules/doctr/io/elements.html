@@ -881,6 +881,8 @@
         <span class="n">geometry</span><span class="p">:</span> <span class="n">BoundingBox</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">objectness_score</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">geometry</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">words</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"the geometry of a line without any word can not be resolved, please pass it"</span><span class="p">)</span>
         <span class="c1"># Compute the objectness score of the line</span>
         <span class="k">if</span> <span class="n">objectness_score</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">objectness_score</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">w</span><span class="o">.</span><span class="n">objectness_score</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">words</span><span class="p">]))</span>
@@ -951,6 +953,8 @@
             <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">artefacts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">artefacts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">geometry</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">lines</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">artefacts</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"the geometry of a block without any line or artefact can not be resolved, please pass it"</span><span class="p">)</span>
         <span class="c1"># Compute the objectness score of the block</span>
         <span class="k">if</span> <span class="n">objectness_score</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># A block without any word (only artefacts) takes the confidence of its artefacts, instead of NaN</span>
