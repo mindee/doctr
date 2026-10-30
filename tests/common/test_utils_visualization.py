@@ -50,6 +50,16 @@ def test_visualize_json_exports():
         visualization.create_obj_patch([[0.1, 0.1], [0.2]], (100, 100))
 
 
+def test_polygon_patch_keeps_geometry():
+    geometry = np.array([[0.1, 0.1], [0.4, 0.1], [0.4, 0.2], [0.1, 0.2]])
+    patch = visualization.create_obj_patch(geometry, (100, 200))
+    np.testing.assert_allclose(patch.get_xy()[:4], [[20, 10], [80, 10], [80, 20], [20, 20]])
+    # The relative geometry passed in is not scaled in place
+    np.testing.assert_allclose(geometry, [[0.1, 0.1], [0.4, 0.1], [0.4, 0.2], [0.1, 0.2]])
+    patch = visualization.polygon_patch(geometry, (100, 200), preserve_aspect_ratio=True)
+    np.testing.assert_allclose(patch.get_xy()[:4], [[20, 20], [80, 20], [80, 40], [20, 40]])
+
+
 def test_visualize_kie_page():
     pages = _mock_kie_pages()
     image = np.ones((300, 200, 3))
