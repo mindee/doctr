@@ -162,6 +162,21 @@ def test_rotate_boxes():
     rotated = geometry.rotate_boxes(boxes, angle=+90, orig_shape=(1, 1), min_angle=0)
     assert np.allclose(rotated, np.array([[[0, 1.0], [0, 0.4], [0.2, 0.4], [0.2, 1.0]]]))
 
+    # Integer boxes are rotated like float ones
+    boxes = np.array([[0, 0, 1, 1]])
+    rotated = geometry.rotate_boxes(boxes, angle=30, orig_shape=(1, 1))
+    assert np.allclose(rotated, geometry.rotate_boxes(boxes.astype(np.float32), angle=30, orig_shape=(1, 1)))
+
+
+def test_rotate_abs_points():
+    points = np.array([[10.0, 0.0], [0.0, 10.0]])
+    rotated = geometry.rotate_abs_points(points, 90.0)
+    assert np.allclose(rotated, np.array([[0.0, 10.0], [-10.0, 0.0]]))
+    # Integer points are rotated like float ones, instead of being collapsed to the origin
+    rotated = geometry.rotate_abs_points(points.astype(int), 30.0)
+    assert np.allclose(rotated, geometry.rotate_abs_points(points, 30.0))
+    assert np.allclose(rotated[0], [10 * np.cos(np.pi / 6), 5.0])
+
 
 def test_rotate_image():
     img = np.ones((32, 64, 3), dtype=np.float32)
