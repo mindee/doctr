@@ -189,6 +189,11 @@ class _WordGenerator(AbstractDataset):
         img_transforms: Callable[[Any], Any] | None = None,
         sample_transforms: Callable[[Sample], Sample] | None = None,
     ) -> None:
+        # An empty word can not be drawn: checked here, instead of failing on random samples during training
+        if not 1 <= min_chars <= max_chars:
+            raise ValueError(
+                f"expected 1 <= min_chars <= max_chars, but got min_chars={min_chars} and max_chars={max_chars}"
+            )
         self.vocab = vocab
         self.wordlen_range = (min_chars, max_chars)
         self._num_samples = num_samples

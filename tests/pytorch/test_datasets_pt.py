@@ -511,6 +511,11 @@ def test_wordgenerator(monkeypatch):
     assert isinstance(sample.image, torch.Tensor)
     assert len(sample.target) == 4
 
+    # An empty word can not be drawn, so the word length range is checked upfront
+    for min_chars, max_chars in ((0, 3), (-1, 3), (4, 2)):
+        with pytest.raises(ValueError, match="expected 1 <= min_chars <= max_chars"):
+            datasets.WordGenerator(vocab="ab", min_chars=min_chars, max_chars=max_chars, num_samples=4)
+
 
 @pytest.mark.parametrize("rotate", [True, False])
 @pytest.mark.parametrize(
