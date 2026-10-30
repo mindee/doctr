@@ -402,11 +402,16 @@ def test_straighten_page_projected_corner_clamp():
     assert max(errors) < 0.6, f"Max remap error {max(errors):.4f}px exceeds 0.6px threshold"
 
 
-@pytest.mark.parametrize("angle", [10, -30])
+@pytest.mark.parametrize("angle", [0, 10, -30])
 def test_straighten_page_grayscale(angle):
     page = np.random.default_rng(0).integers(0, 256, (120, 200, 3), dtype=np.uint8)
     straightened, m_inv = geometry.straighten_page(page, angle)
     # A grayscale page is straightened like each channel of a color one
     gray_straightened, gray_m_inv = geometry.straighten_page(np.ascontiguousarray(page[..., 0]), angle)
     assert np.array_equal(gray_straightened, straightened[..., 0])
+    assert np.array_equal(gray_m_inv, m_inv)
+    # A (H, W, 1) page keeps its channel axis
+    gray_straightened, gray_m_inv = geometry.straighten_page(page[..., :1], angle)
+    assert gray_straightened.shape == (*straightened.shape[:2], 1)
+    assert np.array_equal(gray_straightened, straightened[..., :1])
     assert np.array_equal(gray_m_inv, m_inv)

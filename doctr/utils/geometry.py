@@ -407,7 +407,7 @@ def straighten_page(
     and the inverse affine matrix that maps straightened-page coordinates back to the original page.
 
     Args:
-        page: the original page image (H, W, C)
+        page: the original page image (H, W) or (H, W, C)
         angle: rotation angle in degrees (between -90 and +90)
 
     Returns:
@@ -433,6 +433,8 @@ def straighten_page(
     # Rotate around the padded image center
     rot_mat = cv2.getRotationMatrix2D((pw_pad / 2, ph_pad / 2), angle, 1.0)
     rotated = cv2.warpAffine(exp_img, rot_mat, (pw_pad, ph_pad))
+    if rotated.ndim < exp_img.ndim:  # cv2 drops a singleton channel axis
+        rotated = rotated[..., None]
 
     # Aspect-ratio padding (applied only on right/bottom so analytic crop stays simple)
     if h_pad > 0 or w_pad > 0:
