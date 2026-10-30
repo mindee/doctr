@@ -1,6 +1,7 @@
 from copy import deepcopy
 from math import hypot
 
+import cv2
 import numpy as np
 import pytest
 
@@ -9,11 +10,13 @@ from doctr.utils import geometry
 
 
 def test_bbox_to_polygon():
-    assert geometry.bbox_to_polygon(((0, 0), (1, 1))) == ((0, 0), (1, 0), (0, 1), (1, 1))
+    assert geometry.bbox_to_polygon(((0, 0), (1, 1))) == ((0, 0), (1, 0), (1, 1), (0, 1))
+    # the corners go around the box, so the polygon is not self-intersecting
+    assert cv2.contourArea(np.array(geometry.bbox_to_polygon(((0, 0), (10, 10))), dtype=np.float32)) == 100
 
 
 def test_polygon_to_bbox():
-    assert geometry.polygon_to_bbox(((0, 0), (1, 0), (0, 1), (1, 1))) == ((0, 0), (1, 1))
+    assert geometry.polygon_to_bbox(((0, 0), (1, 0), (1, 1), (0, 1))) == ((0, 0), (1, 1))
 
 
 def test_order_points():
