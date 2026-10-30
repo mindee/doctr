@@ -96,11 +96,13 @@ def polygon_patch(
 
     # Unpack
     height, width = page_dimensions
-    geometry[:, 0] = geometry[:, 0] * (max(width, height) if preserve_aspect_ratio else width)
-    geometry[:, 1] = geometry[:, 1] * (max(width, height) if preserve_aspect_ratio else height)
+    if preserve_aspect_ratio:
+        width = height = max(height, width)
+    # Scale a copy, so that the caller's geometry (e.g. the one of a word) stays relative
+    abs_geometry = geometry * (width, height)
 
     return patches.Polygon(
-        geometry,
+        abs_geometry,
         fill=fill,
         linewidth=linewidth,
         edgecolor=(*color, alpha),
