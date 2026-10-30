@@ -117,7 +117,7 @@ def crop_detection(
     xmax, ymax = int(round(crop_box[2] * w)), int(round(crop_box[3] * h))
     cropped_img = F.crop(img, ymin, xmin, ymax - ymin, xmax - xmin)
     # Crop the box
-    boxes = crop_boxes(boxes, crop_box if boxes.max() <= 1 else (xmin, ymin, xmax, ymax))
+    boxes = crop_boxes(boxes, crop_box if boxes.size == 0 or boxes.max() <= 1 else (xmin, ymin, xmax, ymax))
 
     return cropped_img, boxes
 

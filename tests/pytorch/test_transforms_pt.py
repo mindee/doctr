@@ -408,6 +408,12 @@ def test_crop_detection():
     with pytest.raises(AssertionError):
         crop_detection(img, abs_boxes, (2, 6, 24, 56))
 
+    # An image without any box (e.g. no text) is still cropped, and keeps no box
+    img = torch.ones((3, 50, 50), dtype=torch.float32)
+    c_img, c_boxes = crop_detection(img, np.zeros((0, 4), dtype=np.float32), (0.24, 0.46, 1.0, 1.0))
+    assert c_img.shape == (3, 27, 38)
+    assert c_boxes.shape == (0, 4)
+
 
 @pytest.mark.parametrize(
     "target",
