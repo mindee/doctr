@@ -729,6 +729,24 @@ def test_create_shadow_mask_covers_every_direction(monkeypatch, direction, expec
 
 
 @pytest.mark.parametrize(
+    "target_shape,contour_draw,direction_draw",
+    [
+        [(64, 64), [0.05, 0.2, 0.95, 0.22, 0.18, 0.0], [0.62]],
+        [(8, 8), [0.38, 0.04, 0.94, 0.22, 0.55, 0.05], [0.43]],
+    ],
+)
+def test_create_shadow_mask_base_and_tip_on_the_same_pixel(monkeypatch, target_shape, contour_draw, direction_draw):
+    # With these draws, a corner of the shadow base and the tip corner next to it are rounded to the same pixel
+    draws = [np.array(contour_draw), np.array(direction_draw)]
+    monkeypatch.setattr(np.random, "rand", lambda *shape: draws.pop(0))
+
+    mask = create_shadow_mask(target_shape)
+
+    assert mask.shape == target_shape
+    assert np.all((mask >= 0.0) & (mask <= 1.0))
+
+
+@pytest.mark.parametrize(
     "p,preserve_aspect_ratio,symmetric_pad,target",
     [
         [1, True, False, np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32)],
