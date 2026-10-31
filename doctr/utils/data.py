@@ -22,7 +22,8 @@ logger = logging.getLogger(__name__)
 
 
 # matches bfd8deac from resnet18-bfd8deac.ckpt
-HASH_REGEX = re.compile(r"-([a-f0-9]*)\.")
+# Hash prefix at the end of a file name (e.g. "db_resnet50-79bd7d70.pt"), shorter runs like "-10." are not hashes
+HASH_REGEX = re.compile(r"-([a-f0-9]{8,})\.")
 USER_AGENT = "mindee/doctr"
 
 
