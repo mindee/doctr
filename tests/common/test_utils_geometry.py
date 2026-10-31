@@ -79,6 +79,11 @@ def test_detach_scores():
     ])
     target2 = np.array([0.9, 0.8])
     assert np.all(pred[0] == target1) and np.all(pred[1] == target2)
+    # no pages
+    assert geometry.detach_scores([]) == ([], [])
+    # a page without any box
+    loc_preds, obj_scores = geometry.detach_scores([np.zeros((0, 5))])
+    assert loc_preds[0].shape == (0, 4) and obj_scores[0].shape == (0,)
 
 
 def test_resolve_enclosing_bbox():

@@ -121,6 +121,8 @@ def detach_scores(boxes: list[np.ndarray]) -> tuple[list[np.ndarray], list[np.nd
             return boxes[:, :-1], boxes[:, -1]
         return boxes[:, :-1], boxes[:, -1, -1]
 
+    if len(boxes) == 0:
+        return [], []
     loc_preds, obj_scores = zip(*(_detach(box) for box in boxes))
     return list(loc_preds), list(obj_scores)
 
