@@ -89,6 +89,8 @@ def test_decode_sequence():
         [["cba", "a"], "abcdef", 5, 7, -1, None, False, False, (2, 5), [[7, 2, 1, 0, -1], [7, 0, -1, -1, -1]]],
         [["cba", "a"], "abcdef", 6, 7, -1, None, True, False, (2, 5), [[7, 2, 1, 0, -1], [7, 0, -1, -1, -1]]],
         [["cba", "a"], "abcdef", None, 7, -1, 9, False, False, (2, 6), [[7, 2, 1, 0, -1, 9], [7, 0, -1, 9, 9, 9]]],
+        [[], "abcdef", None, None, -1, None, False, False, (0, 1), []],  # empty batch
+        [[], "abcdef", 4, None, -1, None, True, False, (0, 1), []],  # empty batch with a dynamic length
     ],
 )
 def test_encode_sequences(sequences, vocab, target_size, sos, eos, pad, dynamic_len, error, out_shape, gts):
