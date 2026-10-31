@@ -151,6 +151,12 @@ def test_convert_list_dict():
 
     assert converted_dic == tar_dict
     assert converted_list == dic
+    # empty inputs
+    assert invert_data_structure({}) == []
+    assert invert_data_structure([]) == {}
+    assert invert_data_structure({"k1": [], "k2": []}) == []
+    with pytest.raises(AssertionError):
+        invert_data_structure({"k1": [0], "k2": []})
 
 
 @pytest.mark.parametrize(
