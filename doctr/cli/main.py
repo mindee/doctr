@@ -11,10 +11,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 import torch
+from tqdm import tqdm
 
-from doctr.io import DocumentFile
+from doctr.io import ConcatSource, Document, DocumentFile, PageDecodeError, PageSource
 from doctr.io.figures import IMAGE_FORMATS, IMAGE_MODES, FigureEncoder
 from doctr.models import ocr_predictor
 from doctr.models._utils import _CONFIDENCE_AGGREGATIONS
@@ -95,26 +95,33 @@ def _resolve_format(args: argparse.Namespace) -> str:
     return SUFFIX_ALIASES.get(Path(args.output).suffix.lower(), "json")
 
 
-def _load_document(args: argparse.Namespace) -> list[np.ndarray]:
-    """Load every input into a single list of pages
+def _load_document(args: argparse.Namespace) -> ConcatSource:
+    """Open every input as a single lazy document: pages are only decoded when they are processed
 
     Args:
         args: the parsed command-line arguments
 
     Returns:
-        the list of pages decoded as numpy ndarray of shape H x W x 3
+        the concatenation of the inputs, decoding its pages on demand
     """
     pdf_kwargs: dict[str, Any] = {"scale": args.pdf_scale, "password": args.pdf_password}
 
-    pages: list[np.ndarray] = []
+    sources: list[PageSource] = []
     for input_path in args.input_path:
         try:
             if input_path.lower().startswith(("http://", "https://")):
-                pages.extend(DocumentFile.from_url(input_path, **pdf_kwargs))
+                sources.append(DocumentFile.from_url(input_path, lazy=True, **pdf_kwargs))
             elif input_path.lower().endswith(".pdf"):
-                pages.extend(DocumentFile.from_pdf(input_path, **pdf_kwargs))
+                sources.append(DocumentFile.from_pdf(input_path, lazy=True, **pdf_kwargs))
+            elif Path(input_path).is_dir():
+                # A folder is expanded to the PDFs and the images it contains (non-recursively, sorted by name)
+                folder = DocumentFile.from_files(input_path, lazy=True, pdf_kwargs=pdf_kwargs)
+                if len(folder) == 0:
+                    logger.error(f"No PDF or image found in {input_path}")
+                    sys.exit(1)
+                sources.append(folder)
             else:
-                pages.extend(DocumentFile.from_images(input_path))
+                sources.append(DocumentFile.from_images(input_path, lazy=True))
             logger.info(f"Document loaded successfully from {input_path}")
         except FileNotFoundError:
             logger.error(f"File not found: {input_path}")
@@ -126,7 +133,32 @@ def _load_document(args: argparse.Namespace) -> list[np.ndarray]:
             logger.error(f"Error occurred while loading the document: {e}")
             sys.exit(1)
 
-    return pages
+    return ConcatSource(sources)
+
+
+def _predict(model: Any, doc: ConcatSource, args: argparse.Namespace) -> Document:
+    """Run the predictor on the document chunk by chunk, with a progress bar
+
+    Args:
+        model: the predictor
+        doc: the lazy document
+        args: the parsed command-line arguments
+
+    Returns:
+        the predicted document
+    """
+    try:
+        pages = list(
+            tqdm(model.stream(doc), total=len(doc), unit="page", desc="OCR", disable=args.quiet, file=sys.stderr)
+        )
+    except (FileNotFoundError, PageDecodeError) as e:
+        # Invalid files are reported by `_load_document`: only a corrupted image (valid header, unreadable content)
+        # or an input deleted in the meantime gets here. Other errors (e.g. raised by the models) propagate as-is.
+        logger.error(f"File could not be read as a valid image or PDF: {e}")
+        sys.exit(1)
+    finally:
+        doc.close()
+    return Document(pages=pages)
 
 
 def _resolve_device(device: str | None) -> torch.device:
@@ -227,6 +259,7 @@ def _build_predictor(args: argparse.Namespace) -> Any:
         "disable_page_orientation": args.disable_page_orientation,
         "disable_crop_orientation": args.disable_crop_orientation,
         "preserve_original_coords": args.preserve_original_coords,
+        "page_chunk_size": args.page_chunk_size,
         # `DocumentBuilder` keyword args
         "resolve_lines": args.resolve_lines,
         "resolve_blocks": args.resolve_blocks,
@@ -362,14 +395,15 @@ def main(argv=None):
     _setup_logging(args.quiet)
 
     fmt = _resolve_format(args)
-    model = _build_predictor(args)
 
-    # load the document
+    # open the inputs first (pages are decoded on demand): missing or invalid files fail before the models load
     doc = _load_document(args)
 
+    model = _build_predictor(args)
+
     # perform OCR
-    logger.info("Performing OCR...")
-    result = model(doc)
+    logger.info(f"Performing OCR on {len(doc)} page(s)...")
+    result = _predict(model, doc, args)
 
     # save results to the requested format
     _save_results(result, fmt, args)
@@ -389,7 +423,7 @@ def _parse_args(argv=None):
         type=str,
         nargs="+",
         required=True,
-        help="path to one or more input image / PDF files, or URLs of web pages to render as PDF",
+        help="paths to images, PDFs or folders of those (non-recursive, sorted by name), or URLs of web pages",
     )
     parser.add_argument("--pdf_password", type=str, default=None, help="password to unlock encrypted PDF files")
     parser.add_argument("--pdf_scale", type=int, default=2, help="PDF rendering scale (1 corresponds to 72dpi)")
@@ -459,6 +493,12 @@ def _parse_args(argv=None):
     )
     parser.add_argument("--det_bs", type=int, default=2, help="batch size for detection")
     parser.add_argument("--reco_bs", type=int, default=128, help="batch size for recognition")
+    parser.add_argument(
+        "--page_chunk_size",
+        type=int,
+        default=32,
+        help="number of pages decoded & processed at once: bounds the memory footprint on long documents",
+    )
     parser.add_argument("--detect_orientation", action="store_true", help="automatically detect page orientation")
     parser.add_argument("--detect_language", action="store_true", help="detect language of the text")
     parser.add_argument("--detect_layout", action="store_true", help="attach the detected layout regions to each page")
@@ -572,6 +612,9 @@ def _parse_args(argv=None):
         value = getattr(args, name)
         if value is not None and not 0.0 <= value <= 1.0:
             parser.error(f"--{name} must be between 0 and 1")
+
+    if args.page_chunk_size < 1:
+        parser.error("--page_chunk_size must be a positive integer")
 
     return args
 

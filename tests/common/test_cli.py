@@ -12,7 +12,7 @@ import torch
 import doctr.cli.main as cli
 from doctr import __version__
 from doctr.datasets.generator.base import synthesize_text_img
-from doctr.io import DocumentFile, FigureEncoder
+from doctr.io import ConcatSource, DocumentFile, FigureEncoder, Page
 from doctr.io.exporters import DocumentExportsMixin
 from doctr.models import ocr_predictor
 from doctr.models.builder import DocumentBuilder
@@ -95,6 +95,7 @@ def test_parse_args_defaults():
     assert args.symmetric_pad is True
     assert args.det_bs == 2
     assert args.reco_bs == 128
+    assert args.page_chunk_size == 32
     assert args.detect_orientation is False
     assert args.detect_language is False
     assert args.detect_layout is False
@@ -238,6 +239,7 @@ def test_parse_args_version(capsys):
         ["--box_thresh", "-0.1"],
         ["--bin_thresh", "high"],
         ["--confidence_aggregation", "average"],
+        ["--page_chunk_size", "0"],
     ],
 )
 def test_parse_args_invalid_values(argv):
@@ -421,6 +423,8 @@ def test_build_predictor_forwards_every_option(recorded_predictor):
         "4",
         "--reco_bs",
         "64",
+        "--page_chunk_size",
+        "8",
         "--confidence_aggregation",
         "geometric_mean",
         "--detect_orientation",
@@ -461,6 +465,7 @@ def test_build_predictor_forwards_every_option(recorded_predictor):
         "disable_page_orientation": True,
         "disable_crop_orientation": True,
         "preserve_original_coords": True,
+        "page_chunk_size": 8,
         "resolve_lines": False,
         "resolve_blocks": True,
         "paragraph_break": 0.1,
@@ -472,6 +477,7 @@ def test_build_predictor_forwards_every_option(recorded_predictor):
     assert model.layout_predictor is not None
     assert model.table_predictor is not None
     assert model.det_predictor.pre_processor.batch_size == 4
+    assert model.page_chunk_size == 8
     assert model.reco_predictor.pre_processor.batch_size == 64
     assert model.reco_predictor.model.postprocessor.confidence_aggregation == "geometric_mean"
 
@@ -559,7 +565,8 @@ def test_set_thresholds_without_postprocessor(monkeypatch, predictor, caplog):
 def test_load_document_concatenates_inputs(text_images, mock_pdf):
     pages = cli._load_document(cli._parse_args(["--input_path", *text_images, mock_pdf]))
 
-    # 2 images + the 2 pages of the mock PDF
+    # 2 images + the 2 pages of the mock PDF, decoded on demand
+    assert isinstance(pages, ConcatSource)
     assert len(pages) == 4
     assert all(isinstance(page, np.ndarray) and page.ndim == 3 for page in pages)
 
@@ -575,7 +582,7 @@ def test_load_document_forwards_pdf_options(monkeypatch, mock_pdf):
 
     args = cli._parse_args(["--input_path", mock_pdf, "--pdf_scale", "4", "--pdf_password", "secret"])
     assert len(cli._load_document(args)) == 1
-    assert recorder == {"file": mock_pdf, "scale": 4, "password": "secret"}
+    assert recorder == {"file": mock_pdf, "lazy": True, "scale": 4, "password": "secret"}
 
 
 def test_load_document_from_url(monkeypatch):
@@ -590,6 +597,28 @@ def test_load_document_from_url(monkeypatch):
     args = cli._parse_args(["--input_path", "https://www.mindee.com"])
     assert len(cli._load_document(args)) == 1
     assert recorder["url"] == "https://www.mindee.com"
+    assert recorder["lazy"] is True
+
+
+def test_load_document_expands_folders(text_images, mock_pdf, tmp_path):
+    folder = tmp_path / "mixed"
+    folder.mkdir()
+    (folder / "a.pdf").write_bytes(Path(mock_pdf).read_bytes())
+    for path in text_images:
+        (folder / Path(path).name).write_bytes(Path(path).read_bytes())
+    (folder / "notes.txt").write_text("ignored")
+
+    doc = cli._load_document(cli._parse_args(["--input_path", str(folder), text_images[0], "--pdf_scale", "1"]))
+    # the 2 pages of the PDF and the 2 images of the folder (sorted by name), then the image passed explicitly
+    assert len(doc) == 5
+    # nested concatenations are flattened: the PDF of the folder is the first source
+    assert doc.sources[0].scale == 1
+
+
+def test_load_document_empty_folder(tmp_path, caplog):
+    with pytest.raises(SystemExit):
+        cli._load_document(cli._parse_args(["--input_path", str(tmp_path)]))
+    assert "No PDF or image found" in caplog.text
 
 
 # Exporting the predictions
@@ -769,3 +798,48 @@ def test_main_one_invalid_input_among_several(text_images, tmp_path):
             "--output",
             str(tmp_path / "results.json"),
         ])
+
+
+def test_main_invalid_input_fails_before_loading_models(monkeypatch, text_images, tmp_path):
+    # inputs are opened (and images checked from their header) before the models are built
+    def _no_predictor(args):
+        raise AssertionError("the predictor must not be built")
+
+    monkeypatch.setattr(cli, "_build_predictor", _no_predictor)
+    not_an_image = tmp_path / "scan.png"
+    not_an_image.write_text("not an image")
+    for invalid in ("non_existent_file.pdf", str(not_an_image)):
+        with pytest.raises(SystemExit) as exc_info:
+            cli.main(["--input_path", text_images[0], invalid, "--output", str(tmp_path / "results.json")])
+        assert exc_info.value.code == 1
+
+
+class _StreamingModel:
+    """Minimal predictor: decodes the pages of the document as it streams them, then optionally fails"""
+
+    def __init__(self, error=None):
+        self.error = error
+
+    def stream(self, doc):
+        for page in doc:
+            if self.error is not None:
+                raise self.error
+            yield Page(page, [], 0, page.shape[:2])
+
+
+def test_predict_reports_corrupted_images(text_images, tmp_path, caplog):
+    # a valid header with corrupted content passes `_load_document` and is only detected while processing
+    truncated = tmp_path / "truncated.png"
+    truncated.write_bytes(Path(text_images[0]).read_bytes()[:60])
+    args = cli._parse_args(["--input_path", text_images[0], str(truncated), "--quiet"])
+    doc = cli._load_document(args)
+    with pytest.raises(SystemExit) as exc_info:
+        cli._predict(_StreamingModel(), doc, args)
+    assert exc_info.value.code == 1
+    assert "truncated.png" in caplog.text
+
+    # other errors (e.g. from the models) are not reported as unreadable files
+    doc = cli._load_document(cli._parse_args(["--input_path", text_images[0], "--quiet"]))
+    with pytest.raises(ValueError, match="model failure"):
+        cli._predict(_StreamingModel(ValueError("model failure")), doc, args)
+    assert len(cli._predict(_StreamingModel(), doc, args).pages) == 1

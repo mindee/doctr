@@ -169,7 +169,8 @@ def ocr_predictor(
             taking the 1D array of probabilities and returning a float. If None (default), the method of the
             recognition model is kept ("min" for CRNN, VIPTR, SAR and MASTER, "mean" for ViTSTR and PARSeq).
             A recognition model instance passed as `reco_arch` is modified.
-        kwargs: keyword args of `OCRPredictor`
+        kwargs: keyword args of `OCRPredictor` (e.g. `page_chunk_size`, the maximum number of pages processed
+            at once on long documents)
 
     Returns:
         OCR predictor
@@ -327,7 +328,8 @@ def kie_predictor(
             taking the 1D array of probabilities and returning a float. If None (default), the method of the
             recognition model is kept ("min" for CRNN, VIPTR, SAR and MASTER, "mean" for ViTSTR and PARSeq).
             A recognition model instance passed as `reco_arch` is modified.
-        kwargs: keyword args of `OCRPredictor`
+        kwargs: keyword args of `OCRPredictor` (e.g. `page_chunk_size`, the maximum number of pages processed
+            at once on long documents)
 
     Returns:
         KIE predictor

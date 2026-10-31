@@ -5,13 +5,16 @@ import numpy as np
 import pytest
 import requests
 
-from doctr.io import reader
+from doctr.io import read_img_as_numpy
 from doctr.models._utils import (
     aggregate_confidence,
     estimate_orientation,
     get_language,
     invert_data_structure,
     mask_boxes,
+    merge_columns,
+    merge_items,
+    predict_by_chunks,
 )
 from doctr.models.predictor.base import _OCRPredictor
 from doctr.utils import geometry
@@ -24,7 +27,7 @@ def mock_image(tmpdir_factory):
     tmp_path = str(tmpdir_factory.mktemp("data").join("mock_bitmap.jpg"))
     with open(tmp_path, "wb") as f:
         f.write(file.getbuffer())
-    image = reader.read_img_as_numpy(tmp_path)
+    image = read_img_as_numpy(tmp_path)
     return image
 
 
@@ -52,7 +55,7 @@ def test_estimate_orientation(mock_image, mock_bitmap, mock_tilted_payslip):
     angle_rotated = estimate_orientation(rotated)
     assert abs(angle_rotated) == 0
 
-    mock_tilted_payslip = reader.read_img_as_numpy(mock_tilted_payslip)
+    mock_tilted_payslip = read_img_as_numpy(mock_tilted_payslip)
     assert estimate_orientation(mock_tilted_payslip) == -30
     # A float image (values in [0, 1]) gives the same angle as the same image in uint8
     assert estimate_orientation(mock_tilted_payslip.astype(np.float32) / 255) == -30
@@ -240,3 +243,56 @@ def test_align_hook_output():
         _OCRPredictor._align_hook_output(boxes, boxes[0], scores)
     with pytest.raises(ValueError, match="format of the boxes"):
         _OCRPredictor._align_hook_output(boxes, [boxes[0][:, :2], boxes[1]], scores)
+
+
+class _RecordingPredict:
+    """Fake prediction function: one item per input, recording the size of every call"""
+
+    def __init__(self):
+        self.calls = []
+
+    def __call__(self, inputs):
+        self.calls.append(len(inputs))
+        return [int(x[0, 0, 0]) for x in inputs]
+
+
+def _images(num):
+    return [np.full((2, 2, 3), idx, dtype=np.uint8) for idx in range(num)]
+
+
+def test_predict_by_chunks():
+    images = _images(10)
+
+    # short lists & tuples: a single call, as before
+    predict = _RecordingPredict()
+    assert predict_by_chunks(predict, images, chunk_size=10) == list(range(10))
+    assert predict_by_chunks(predict, tuple(images), chunk_size=10) == list(range(10))
+    assert predict.calls == [10, 10]
+
+    # longer inputs & iterators: chunk by chunk, the chunk size being rounded up to a multiple of the batch size
+    for inputs in (images, iter(images), (image for image in images)):
+        predict = _RecordingPredict()
+        assert predict_by_chunks(predict, inputs, chunk_size=3, batch_size=2) == list(range(10))
+        assert predict.calls == [4, 4, 2]
+
+    # an array is a batch already in memory: passed as is
+    predict = _RecordingPredict()
+    assert predict_by_chunks(predict, np.stack(images), chunk_size=2) == list(range(10))
+    assert predict.calls == [10]
+
+    # an empty input still reaches the predictor, which returns its own empty output
+    predict = _RecordingPredict()
+    assert predict_by_chunks(predict, iter([]), chunk_size=2) == []
+    assert predict.calls == [0]
+
+
+def test_merge_outputs():
+    assert merge_items([[1, 2], [3]]) == [1, 2, 3]
+    # orientation predictors: aligned lists
+    assert merge_columns([[[0], [90], [0.5]], [[1, 2], [180, 270], [0.6, 0.7]]]) == [
+        [0, 1, 2],
+        [90, 180, 270],
+        [0.5, 0.6, 0.7],
+    ]
+    # detection with `return_maps=True`: a tuple
+    assert merge_columns([(["a"], ["map_a"]), (["b"], ["map_b"])]) == (["a", "b"], ["map_a", "map_b"])

@@ -45,7 +45,7 @@ def _orientation_predictor(
 ) -> OrientationPredictor:
     if disabled:
         # Case where the orientation predictor is disabled
-        return OrientationPredictor(None, None)
+        return OrientationPredictor(None, None, chunk_size=kwargs.get("chunk_size", 32))
 
     if isinstance(arch, str):
         if arch not in ORIENTATION_ARCHS:
@@ -64,9 +64,13 @@ def _orientation_predictor(
     kwargs["mean"] = kwargs.get("mean", _model.cfg["mean"])
     kwargs["std"] = kwargs.get("std", _model.cfg["std"])
     kwargs["batch_size"] = kwargs.get("batch_size", 128 if model_type == "crop" else 4)
+    # Crops are much smaller than pages: many more of them fit in memory at once
+    chunk_size = kwargs.pop("chunk_size", 1024 if model_type == "crop" else 32)
     input_shape = _model.cfg["input_shape"][1:]
     predictor = OrientationPredictor(
-        PreProcessor(input_shape, preserve_aspect_ratio=True, symmetric_pad=True, **kwargs), _model
+        PreProcessor(input_shape, preserve_aspect_ratio=True, symmetric_pad=True, **kwargs),
+        _model,
+        chunk_size=chunk_size,
     )
     return predictor
 
@@ -86,6 +90,8 @@ def crop_orientation_predictor(
         arch: name of the architecture to use (e.g. 'mobilenet_v3_small_crop_orientation')
         pretrained: If True, returns a model pre-trained on our recognition crops dataset
         batch_size: number of samples the model processes in parallel
+        chunk_size: maximum number of crops decoded and processed at once (1024 by default): longer inputs and
+            lazy page sources (cf. `DocumentFile.from_images(..., lazy=True)`) are processed chunk by chunk
         **kwargs: keyword arguments to be passed to the OrientationPredictor
 
     Returns:
@@ -109,6 +115,8 @@ def page_orientation_predictor(
         arch: name of the architecture to use (e.g. 'mobilenet_v3_small_page_orientation')
         pretrained: If True, returns a model pre-trained on our recognition crops dataset
         batch_size: number of samples the model processes in parallel
+        chunk_size: maximum number of pages decoded and processed at once (32 by default): longer inputs and
+            lazy page sources (cf. `DocumentFile.from_images(..., lazy=True)`) are processed chunk by chunk
         **kwargs: keyword arguments to be passed to the OrientationPredictor
 
     Returns:

@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+from collections.abc import Iterable, Sequence
 from typing import Any
 
 import numpy as np
@@ -39,6 +40,9 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         preserve_original_coords: if True and straighten_pages is True, bounding boxes are mapped back to the
             original page coordinates. Useful for redaction and annotation.
         layout_predictor: optional layout detection module
+        page_chunk_size: the maximum number of pages processed at once (32 by default). Longer inputs, lazy page
+            sources (cf. `DocumentFile.from_pdf(..., lazy=True)`) and iterators are processed chunk by chunk, with a
+            memory footprint that does not grow with the number of pages. See also :meth:`stream`.
         **kwargs: keyword args of `DocumentBuilder`
     """
 
@@ -75,6 +79,25 @@ class KIEPredictor(nn.Module, _KIEPredictor):
 
     @torch.inference_mode()
     def forward(
+        self,
+        pages: Sequence[np.ndarray] | Iterable[np.ndarray],
+        **kwargs: Any,
+    ) -> Document:
+        """Predict on a document
+
+        Args:
+            pages: a list of pages (numpy arrays of shape H x W x C), a lazy page source
+                (cf. `DocumentFile.from_pdf(..., lazy=True)`) or any iterable of pages. Inputs longer than
+                `page_chunk_size` are processed chunk by chunk, with a bounded memory footprint.
+            **kwargs: keyword arguments forwarded to the sub-predictors
+
+        Returns:
+            the predicted document
+        """
+        return self._run(pages, **kwargs)
+
+    @torch.inference_mode()
+    def _predict_pages(
         self,
         pages: list[np.ndarray],
         **kwargs: Any,
