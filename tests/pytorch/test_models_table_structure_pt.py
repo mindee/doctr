@@ -115,6 +115,8 @@ def test_table_structure_zoo(arch_name, assume_straight_pages):
         assert all(np.asarray(cell["geometry"]).shape == expected_shape for cell in page["cells"])
         assert all({"score", "row_start", "row_end", "col_start", "col_end"} <= set(cell) for cell in page["cells"])
         assert all(0 <= cell["score"] <= 1 for cell in page["cells"])
+    # No page, like the detection and recognition predictors
+    assert predictor([]) == []
 
 
 @pytest.mark.parametrize(

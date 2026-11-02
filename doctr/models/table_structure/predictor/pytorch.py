@@ -35,6 +35,9 @@ class TablePredictor(nn.Module):
 
     @torch.inference_mode()
     def forward(self, pages: list[np.ndarray], **kwargs: Any) -> list[dict[str, Any]]:
+        if len(pages) == 0:
+            return []
+
         # Extract parameters from the preprocessor
         preserve_aspect_ratio = self.pre_processor.resize.preserve_aspect_ratio
         symmetric_pad = self.pre_processor.resize.symmetric_pad

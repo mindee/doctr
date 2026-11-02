@@ -116,6 +116,8 @@ def test_layout_zoo(arch_name):
     assert all(sample["boxes"].shape[1] == 4 for sample in out)
     assert all(len(sample["class_names"]) == len(sample["scores"]) == sample["boxes"].shape[0] for sample in out)
     assert all(all(isinstance(score, float) and 0 <= score <= 1 for score in sample["scores"]) for sample in out)
+    # No page, like the detection and recognition predictors
+    assert predictor([]) == []
 
 
 @pytest.mark.parametrize(
