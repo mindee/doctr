@@ -759,6 +759,20 @@ def test_random_resize(p, preserve_aspect_ratio, symmetric_pad, target):
     assert out_target.shape == target.shape
 
 
+@pytest.mark.parametrize("preserve_aspect_ratio", [False, True])
+@pytest.mark.parametrize("input_shape", [(3, 1, 50), (3, 3, 40), (3, 10, 3), (3, 2, 2)])
+def test_random_resize_small_image(input_shape, preserve_aspect_ratio):
+    # A side scaled below one pixel is kept at one pixel
+    transfo = RandomResize(scale_range=(0.1, 0.3), preserve_aspect_ratio=preserve_aspect_ratio, p=1)
+    target = np.array([[0.1, 0.1, 0.5, 0.5]], dtype=np.float32)
+
+    data = transfo(Sample(image=torch.rand(input_shape), target=target))
+
+    assert data.image.shape[0] == input_shape[0]
+    assert all(size >= 1 for size in data.image.shape[-2:])
+    assert data.target.shape == target.shape
+
+
 # ----------------------------------------------------------------------------
 # End-to-end tests for SampleCompose with geometric and photometric transforms
 # ----------------------------------------------------------------------------

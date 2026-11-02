@@ -433,7 +433,11 @@ class RandomResize(torch.nn.Module):
         if torch.rand(1) < self.p:
             scale_h = np.random.uniform(*self.scale_range)
             scale_w = np.random.uniform(*self.scale_range)
-            new_size = (int(sample.image.shape[-2] * scale_h), int(sample.image.shape[-1] * scale_w))
+            # A side scaled below one pixel is kept at one pixel, as an image can not be resized to zero pixels
+            new_size = (
+                max(1, int(sample.image.shape[-2] * scale_h)),
+                max(1, int(sample.image.shape[-1] * scale_w)),
+            )
 
             res = self._resize(
                 new_size,
