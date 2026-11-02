@@ -278,6 +278,11 @@ def test_rotate_sample():
     rotated_img, rotated_geoms = rotate_sample(img, rel_polys, 90, True)
     assert torch.all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
 
+    # No geometry: the image is still rotated and an empty array of polygons is returned
+    for empty_geoms in (np.zeros((0, 4), dtype=np.float32), np.zeros((0, 4, 2), dtype=np.float32)):
+        rotated_img, rotated_geoms = rotate_sample(img, empty_geoms, 90, True)
+        assert torch.all(rotated_img == expected_img) and rotated_geoms.shape == (0, 4, 2)
+
     with pytest.raises(AssertionError):
         rotate_sample(img, boxes[None, ...], 90, False)
 
