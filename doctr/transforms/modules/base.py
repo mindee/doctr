@@ -230,6 +230,8 @@ class RandomRotate(NestedObject):
             r_mask, _ = F.rotate_sample(
                 mask.unsqueeze(0), np.array([[0, 0, 1, 1]], dtype=np.float32), angle, self.expand
             )
+            # Remove the axis added for the rotation, so the mask keeps its shape like in the other transforms
+            r_mask = r_mask.squeeze(0)
 
         if target is None:
             return sample.replace(image=self._rotate_image_only(img, angle), mask=r_mask)

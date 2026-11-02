@@ -335,7 +335,10 @@ def test_random_rotate():
     data = rotator(Sample(image=input_t, mask=input_m, target=boxes))
     r_img, r_mask = data.image, data.mask
     assert r_img.ndim == input_t.ndim
-    assert r_mask.ndim - 1 == input_m.ndim  # Mask should be 2D
+    assert r_mask.shape == r_img.shape[-2:]  # Mask should be 2D
+    # Without expansion, the mask keeps the same shape as the input mask
+    data = RandomRotate(max_angle=10.0)(Sample(image=input_t, mask=input_m, target=boxes))
+    assert data.mask.shape == input_m.shape
 
     # Empty targets with a mask: the image is still rotated and stays aligned with its mask
     rotator = RandomRotate(max_angle=30.0, expand=True)
