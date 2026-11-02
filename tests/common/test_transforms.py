@@ -150,6 +150,8 @@ def test_randomapply():
         np.array([[1, 63], [1, 42]]).astype(np.int32),
         # Normal
         np.array([[1, 63], [12, 42]]).astype(np.int32),
+        # Both points coincide (no direction): the first point is kept
+        np.array([[56, 54], [56, 54]]).astype(np.int32),
     ],
 )
 def test_expand_line(line):
