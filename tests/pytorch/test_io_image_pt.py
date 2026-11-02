@@ -109,4 +109,3 @@ def test_img_as_tensor_16_bit(tmpdir_factory):
     for img in (read_img_as_tensor(path, dtype=torch.uint8), decode_img_as_tensor(img_stream, dtype=torch.uint8)):
         assert img.shape == (3, 4, 4)
         assert img[:, 0].tolist() == [[0, 36, 195, 255]] * 3
-
