@@ -90,6 +90,17 @@ def test_polygon_iou(rbox1, rbox2, iou, abs_tol):
         metrics.polygon_iou(np.zeros((2, 5), dtype=float), np.ones((3, 4), dtype=float))
 
 
+def test_polygon_iou_misordered_points():
+    # A box whose points are not in order around it (e.g. a wrong annotation) crossed itself and made shapely raise
+    box = np.array([[[0, 0], [1, 0], [1, 1], [0, 1]]], dtype=float)
+    crossed = np.array([[[0, 0], [1, 1], [1, 0], [0, 1]]], dtype=float)
+    assert metrics.polygon_iou(crossed, box) == pytest.approx(np.ones((1, 1)))
+    assert metrics.polygon_iou(box, crossed) == pytest.approx(np.ones((1, 1)))
+    # Polygons in order are left as they are
+    half = np.array([[[0, 0], [0.5, 0], [0.5, 1], [0, 1]]], dtype=float)
+    assert metrics.polygon_iou(half, box) == pytest.approx(np.full((1, 1), 0.5))
+
+
 @pytest.mark.parametrize(
     "gts, preds, iou_thresh, recall, precision, mean_iou",
     [

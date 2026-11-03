@@ -7,7 +7,9 @@
 import numpy as np
 from anyascii import anyascii
 from scipy.optimize import linear_sum_assignment
-from shapely import STRtree, area, intersection, polygons
+from shapely import STRtree, area, intersection, is_valid, polygons
+
+from .geometry import order_points
 
 __all__ = [
     "TextMatch",
@@ -151,6 +153,16 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
     return iou_mat
 
 
+def _polygons(polys: np.ndarray) -> np.ndarray:
+    """Build the shapely polygons of (N, 4, 2) boxes, putting back in order the points of a self-intersecting box
+    (e.g. annotated in the wrong order), which shapely can not intersect"""
+    geoms = polygons(polys)
+    invalid = ~is_valid(geoms)
+    if invalid.any():
+        geoms[invalid] = polygons(np.stack([order_points(poly) for poly in polys[invalid]]))
+    return geoms
+
+
 def polygon_iou(polys_1: np.ndarray, polys_2: np.ndarray) -> np.ndarray:
     """Computes the IoU between two sets of rotated bounding boxes
 
@@ -168,8 +180,8 @@ def polygon_iou(polys_1: np.ndarray, polys_2: np.ndarray) -> np.ndarray:
     if n == 0 or m == 0:
         return np.zeros((n, m), dtype=np.float32)
 
-    geoms_1 = polygons(polys_1)
-    geoms_2 = polygons(polys_2)
+    geoms_1 = _polygons(polys_1)
+    geoms_2 = _polygons(polys_2)
 
     iou_mat = np.zeros((n, m), dtype=np.float32)
     idcs_1, idcs_2 = STRtree(geoms_2).query(geoms_1)
