@@ -71,12 +71,14 @@ def rotate_sample(
     rotated_img = rotated_img[:3]  # when expand=True, it expands to RGBA channels
     # Get absolute coords
     _geoms = deepcopy(geoms)
+    # Relative coordinates are scaled to the image size (an empty array has no coordinates to scale)
+    is_relative = _geoms.size == 0 or np.max(_geoms) <= 1
     if _geoms.shape[1:] == (4,):
-        if np.max(_geoms) <= 1:
+        if is_relative:
             _geoms[:, [0, 2]] *= img.shape[-1]
             _geoms[:, [1, 3]] *= img.shape[-2]
     elif _geoms.shape[1:] == (4, 2):
-        if np.max(_geoms) <= 1:
+        if is_relative:
             _geoms[..., 0] *= img.shape[-1]
             _geoms[..., 1] *= img.shape[-2]
     else:
