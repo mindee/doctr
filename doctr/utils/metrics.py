@@ -7,9 +7,7 @@
 import numpy as np
 from anyascii import anyascii
 from scipy.optimize import linear_sum_assignment
-from shapely import STRtree, area, intersection, is_valid, polygons
-
-from .geometry import order_points
+from shapely import STRtree, area, convex_hull, intersection, is_valid, polygons
 
 __all__ = [
     "TextMatch",
@@ -153,14 +151,21 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
     return iou_mat
 
 
-def _polygons(polys: np.ndarray) -> np.ndarray:
-    """Build the shapely polygons of (N, 4, 2) boxes, putting back in order the points of a self-intersecting box
-    (e.g. annotated in the wrong order), which shapely can not intersect"""
+def _check_gt_polygons(polys: np.ndarray) -> None:
+    """Raise a `ValueError` for ground-truth boxes (N, 4, 2) whose points cross each other, i.e. are not in order.
+
+    Degenerate boxes (repeated or collinear points) are accepted: their IoU is 0.
+    """
+    if polys.ndim != 3 or polys.shape[0] == 0:
+        return
     geoms = polygons(polys)
-    invalid = ~is_valid(geoms)
-    if invalid.any():
-        geoms[invalid] = polygons(np.stack([order_points(poly) for poly in polys[invalid]]))
-    return geoms
+    # An invalid polygon with a non-zero hull area is a real box whose points are out of order
+    crossed = np.flatnonzero(~is_valid(geoms) & (area(convex_hull(geoms)) > 0))
+    if crossed.size > 0:
+        raise ValueError(
+            f"Ground truth boxes at indices {crossed.tolist()} are self-intersecting "
+            "(points not in TL, TR, BR, BL order); please fix the annotations."
+        )
 
 
 def polygon_iou(polys_1: np.ndarray, polys_2: np.ndarray) -> np.ndarray:
@@ -180,8 +185,8 @@ def polygon_iou(polys_1: np.ndarray, polys_2: np.ndarray) -> np.ndarray:
     if n == 0 or m == 0:
         return np.zeros((n, m), dtype=np.float32)
 
-    geoms_1 = _polygons(polys_1)
-    geoms_2 = _polygons(polys_2)
+    geoms_1 = polygons(polys_1)
+    geoms_2 = polygons(polys_2)
 
     iou_mat = np.zeros((n, m), dtype=np.float32)
     idcs_1, idcs_2 = STRtree(geoms_2).query(geoms_1)
@@ -286,6 +291,8 @@ class LocalizationConfusion:
             gts: a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones
             preds: a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones
         """
+        if self.use_polygons:
+            _check_gt_polygons(gts)
         if gts.shape[0] > 0 and preds.shape[0] > 0:
             # Compute IoU
             if self.use_polygons:
@@ -370,6 +377,8 @@ class TableCellMetric:
             pred_cells: predicted cells, shape (M, 4) or (M, 4, 2) when `use_polygons=True`
             pred_logic: predicted logical coordinates, shape (M, 4)
         """
+        if self.use_polygons:
+            _check_gt_polygons(gt_cells)
         self.num_gts += gt_cells.shape[0]
         self.num_preds += pred_cells.shape[0]
         if gt_cells.shape[0] == 0 or pred_cells.shape[0] == 0:
@@ -473,6 +482,8 @@ class OCRMetric:
             gt_labels: a list of N string labels
             pred_labels: a list of M string labels
         """
+        if self.use_polygons:
+            _check_gt_polygons(gt_boxes)
         if gt_boxes.shape[0] != len(gt_labels) or pred_boxes.shape[0] != len(pred_labels):
             raise AssertionError(
                 "there should be the same number of boxes and string both for the ground truth and the predictions"
@@ -602,6 +613,8 @@ class DetectionMetric:
             gt_labels: an array of class indices of shape (N,)
             pred_labels: an array of class indices of shape (M,)
         """
+        if self.use_polygons:
+            _check_gt_polygons(gt_boxes)
         if gt_boxes.shape[0] != gt_labels.shape[0] or pred_boxes.shape[0] != pred_labels.shape[0]:
             raise AssertionError(
                 "there should be the same number of boxes and string both for the ground truth and the predictions"
@@ -730,6 +743,8 @@ class ObjectDetectionMetric:
         pred_labels: np.ndarray,
         pred_scores: np.ndarray,
     ) -> None:
+        if self.use_polygons:
+            _check_gt_polygons(gt_boxes)
         if (
             gt_boxes.shape[0] != gt_labels.shape[0]
             or pred_boxes.shape[0] != pred_labels.shape[0]
