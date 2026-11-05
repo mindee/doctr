@@ -296,8 +296,8 @@ def _build_table_target(
     cells: np.ndarray,
     logic: np.ndarray,
     output_size: tuple[int, int],
-    max_objects: int = 300,
-    max_corners: int = 1200,
+    max_objects: int = 3000,
+    max_corners: int = 12000,
 ) -> dict[str, np.ndarray]:
     """Render the dense TableCenterNet targets (for a single image) consumed by `TableCenterNet.compute_loss`.
 
@@ -313,11 +313,12 @@ def _build_table_target(
     """
     out_h, out_w = output_size
     hm = np.zeros((2, out_h, out_w), np.float32)
-    reg = np.zeros((max_objects * 5, 2), np.float32)
+    # Center offsets live in the first `max_objects` slots, corner offsets right after them
+    reg = np.zeros((max_objects + max_corners, 2), np.float32)
     ct2cn = np.zeros((max_objects, 8), np.float32)
     cn2ct = np.zeros((max_corners, 8), np.float32)
-    reg_ind = np.zeros((max_objects * 5,), np.int64)
-    reg_mask = np.zeros((max_objects * 5,), np.float32)
+    reg_ind = np.zeros((max_objects + max_corners,), np.int64)
+    reg_mask = np.zeros((max_objects + max_corners,), np.float32)
     ct_ind = np.zeros((max_objects,), np.int64)
     ct_mask = np.zeros((max_objects,), np.float32)
     cn_ind = np.zeros((max_corners,), np.int64)
@@ -327,9 +328,13 @@ def _build_table_target(
     lc_span = np.zeros((max_objects, 2), np.float32)
 
     corner_dict: dict[str, int] = {}
+    drawn_corners: set[str] = set()
     cells_logic_coords: list = []
 
-    for i in range(min(len(cells), max_objects)):
+    # Every cell is drawn on the heat-maps and the logical map, even beyond `max_objects`: otherwise the
+    # extra cells are trained as background and the model learns to stop detecting after ~max_objects cells.
+    for i in range(len(cells)):
+        slotted = i < max_objects  # whether this cell also gets regression targets
         corners = cells[i].reshape(8).astype(np.float32).copy()
         corners[0::2] = np.clip(corners[0::2], 0, out_w - 1)
         corners[1::2] = np.clip(corners[1::2], 0, out_h - 1)
@@ -345,11 +350,12 @@ def _build_table_target(
         center = np.array([(max_x + min_x) / 2.0, (max_y + min_y) / 2.0], np.float32)
         ci = center.astype(np.int32)
         flat = ci[1] * out_w + ci[0]
-        reg[i] = center - ci
-        reg_ind[i], reg_mask[i] = flat, 1
-        ct_ind[i], ct_mask[i] = flat, 1
         _draw_umich_gaussian(hm[0], ci, radius)
-        ct2cn[i] = center[[0, 1, 0, 1, 0, 1, 0, 1]] - corners
+        if slotted:
+            reg[i] = center - ci
+            reg_ind[i], reg_mask[i] = flat, 1
+            ct_ind[i], ct_mask[i] = flat, 1
+            ct2cn[i] = center[[0, 1, 0, 1, 0, 1, 0, 1]] - corners
 
         start_col, end_col, start_row, end_row = (int(v) + 1 for v in logic[i])
         x1, y1, x2, y2, x3, y3, x4, y4 = corners.tolist()
@@ -360,6 +366,15 @@ def _build_table_target(
             (x4, y4, start_col, end_row + 1),
         ]
         cells_logic_coords.append(clc)
+        if not slotted:
+            # Heat-map only for the corners of the cells beyond `max_objects`
+            for j in range(4):
+                cint = corners[j * 2 : j * 2 + 2].astype(np.int32)
+                key = f"{cint[0]}_{cint[1]}"
+                if key not in drawn_corners:
+                    drawn_corners.add(key)
+                    _draw_umich_gaussian(hm[1], cint, 2)
+            continue
         for j, (x, y, _c, _r) in enumerate(clc):
             lc_ind[i, j] = int(y) * out_w + int(x)
         lc_span[i] = (end_col - start_col + 1, end_row - start_row + 1)
@@ -372,14 +387,20 @@ def _build_table_target(
             if key not in corner_dict:
                 nc = len(corner_dict)
                 if nc >= max_corners:
-                    break
+                    # No regression slot left: still draw the corner so it is not trained as background
+                    if key not in drawn_corners:
+                        drawn_corners.add(key)
+                        _draw_umich_gaussian(hm[1], cint, 2)
+                    continue
                 corner_dict[key] = nc
                 reg[max_objects + nc] = np.abs(corner - cint)
                 reg_ind[max_objects + nc] = cint[1] * out_w + cint[0]
                 reg_mask[max_objects + nc] = 1
                 cn_ind[nc] = cint[1] * out_w + cint[0]
                 cn_mask[nc] = 1
-                _draw_umich_gaussian(hm[1], cint, 2)
+                if key not in drawn_corners:
+                    drawn_corners.add(key)
+                    _draw_umich_gaussian(hm[1], cint, 2)
                 cn2ct[nc][si : si + 2] = corner - center
                 ct_cn_ind[4 * i + j] = nc * 4 + j
             else:
@@ -441,8 +462,8 @@ class _TableCenterNet(BaseModel):
     by `compute_loss` are produced here, while `TableCenterNetPostProcessor` decodes the model output.
     """
 
-    max_objects: int = 300
-    max_corners: int = 1200
+    max_objects: int = 3000
+    max_corners: int = 12000
     assume_straight_pages: bool = False
 
     def build_target(

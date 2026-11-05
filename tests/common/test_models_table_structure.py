@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from doctr.models.table_structure.tablecenternet import TableCenterNetPostProcessor, _TableCenterNet
+from doctr.models.table_structure.tablecenternet.base import _build_table_target
 
 
 def _grid_target(rows: int, cols: int, use_polygons: bool) -> dict[str, np.ndarray]:
@@ -133,6 +134,54 @@ def test_tablecenternet_build_target_box_polygon_equivalence():
     assert box_dense.keys() == polygon_dense.keys()
     for key in box_dense:
         np.testing.assert_array_equal(box_dense[key], polygon_dense[key])
+
+
+def test_tablecenternet_build_target_defaults_fit_dense_tables():
+    model = _TableCenterNet()
+    # The defaults must leave room for dense (A4) tables and every corner of `max_objects` cells
+    assert model.max_objects >= 1000
+    assert model.max_corners >= 4 * model.max_objects
+    dense = model.build_target([_grid_target(40, 25, use_polygons=False)], (256, 256))  # 1000 cells
+    assert dense["ct_mask"][0].sum() == 1000
+    assert dense["reg"].shape[1] == model.max_objects + model.max_corners
+
+
+def test_tablecenternet_build_target_beyond_max_objects():
+    rows, cols, out_h, out_w = 10, 10, 128, 128
+    target = _grid_target(rows, cols, use_polygons=True)
+    cells = target["cells"] * np.array([out_w, out_h], dtype=np.float32)
+    max_objects, max_corners = 30, 4 * 30
+
+    dense = _build_table_target(cells, target["logic"], (out_h, out_w), max_objects, max_corners)
+
+    assert dense["ct_mask"].sum() == max_objects
+    # every cell center and every corner is still a heat-map positive (not trained as background)
+    assert (dense["hm"][0] == 1).sum() == rows * cols
+    assert (dense["hm"][1] == 1).sum() == (rows + 1) * (cols + 1)
+    # The logical map covers the whole table, not only the first `max_objects` cells (= the first 3 rows).
+    # Values are 1-indexed and interpolated at pixel positions, so the last row/column lie in (n, n + 1]
+    assert rows < dense["lc"][1].max() <= rows + 1
+    assert cols < dense["lc"][0].max() <= cols + 1
+
+
+def test_tablecenternet_build_target_corner_slots():
+    rows, cols, out_h, out_w = 10, 10, 128, 128
+    target = _grid_target(rows, cols, use_polygons=True)
+    cells = target["cells"] * np.array([out_w, out_h], dtype=np.float32)
+    n_corners = (rows + 1) * (cols + 1)
+
+    # More corner slots than 4 * max_objects: the offset arrays are sized to fit both
+    dense = _build_table_target(cells, target["logic"], (out_h, out_w), max_objects=10, max_corners=200)
+    for key in ("reg", "reg_ind", "reg_mask"):
+        assert dense[key].shape[0] == 10 + 200
+
+    # Fewer corner slots than corners: the extra corners keep their heat-map peak
+    max_corners = 50
+    dense = _build_table_target(cells, target["logic"], (out_h, out_w), max_objects=200, max_corners=max_corners)
+    assert dense["cn_mask"].sum() == max_corners
+    assert dense["reg_mask"][200:].sum() == max_corners
+    assert (dense["hm"][1] == 1).sum() == n_corners
+    assert (dense["hm"][0] == 1).sum() == rows * cols
 
 
 @pytest.mark.parametrize(
