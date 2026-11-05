@@ -114,10 +114,11 @@ def _load_document(args: argparse.Namespace) -> ConcatSource:
             elif input_path.lower().endswith(".pdf"):
                 sources.append(DocumentFile.from_pdf(input_path, lazy=True, **pdf_kwargs))
             elif Path(input_path).is_dir():
-                # A folder is expanded to the PDFs and the images it contains (non-recursively, sorted by name)
-                folder = DocumentFile.from_files(input_path, lazy=True, pdf_kwargs=pdf_kwargs)
+                # A folder is expanded to the PDFs and the images it contains (non-recursively, sorted by name). With
+                # `--on_error skip`, the files that cannot be read are skipped with a warning naming them
+                folder = DocumentFile.from_files(input_path, lazy=True, pdf_kwargs=pdf_kwargs, on_error=args.on_error)
                 if len(folder) == 0:
-                    logger.error(f"No PDF or image found in {input_path}")
+                    logger.error(f"No readable PDF or image found in {input_path}")
                     sys.exit(1)
                 sources.append(folder)
             else:
@@ -126,8 +127,9 @@ def _load_document(args: argparse.Namespace) -> ConcatSource:
         except FileNotFoundError:
             logger.error(f"File not found: {input_path}")
             sys.exit(1)
-        except ValueError:
-            logger.error(f"File could not be read as a valid image or PDF: {input_path}")
+        except ValueError as e:
+            # The error names the faulty file, e.g. among the files of a folder
+            logger.error(f"File could not be read as a valid image or PDF: {input_path} ({e})")
             sys.exit(1)
         except Exception as e:
             logger.error(f"Error occurred while loading the document: {e}")
@@ -136,8 +138,13 @@ def _load_document(args: argparse.Namespace) -> ConcatSource:
     return ConcatSource(sources)
 
 
-def _predict(model: Any, doc: ConcatSource, args: argparse.Namespace) -> Document:
+def _predict(model: Any, doc: ConcatSource, args: argparse.Namespace) -> tuple[Document, Exception | None]:
     """Run the predictor on the document chunk by chunk, with a progress bar
+
+    Invalid files are reported by `_load_document`: only a page that cannot be decoded (e.g. an image with a valid
+    header but corrupted content) or an input deleted in the meantime fails here. With `--on_error skip`, such a page
+    is skipped with a warning. Otherwise the run stops at that page, and the pages before it are returned with the
+    error, so that they are not lost. Other errors (e.g. raised by the models) propagate as-is.
 
     Args:
         model: the predictor
@@ -145,20 +152,29 @@ def _predict(model: Any, doc: ConcatSource, args: argparse.Namespace) -> Documen
         args: the parsed command-line arguments
 
     Returns:
-        the predicted document
+        the predicted document, and the error that stopped the run (if any)
     """
-    try:
-        pages = list(
-            tqdm(model.stream(doc), total=len(doc), unit="page", desc="OCR", disable=args.quiet, file=sys.stderr)
-        )
-    except (FileNotFoundError, PageDecodeError) as e:
-        # Invalid files are reported by `_load_document`: only a corrupted image (valid header, unreadable content)
-        # or an input deleted in the meantime gets here. Other errors (e.g. raised by the models) propagate as-is.
-        logger.error(f"File could not be read as a valid image or PDF: {e}")
-        sys.exit(1)
-    finally:
-        doc.close()
-    return Document(pages=pages)
+    pages: list[Any] = []
+    skipped: list[int] = []
+    error: Exception | None = None
+    with tqdm(total=len(doc), unit="page", desc="OCR", disable=args.quiet, file=sys.stderr) as progress:
+
+        def _skip(page_idx: int, page_error: Exception) -> None:
+            skipped.append(page_idx)
+            logger.warning(f"Skipping page {page_idx + 1} of {len(doc)}: {page_error}")
+            progress.update(1)
+
+        try:
+            for page in model.stream(doc, on_error=_skip if args.on_error == "skip" else "raise"):
+                pages.append(page)
+                progress.update(1)
+        except (FileNotFoundError, PageDecodeError) as e:
+            error = e
+        finally:
+            doc.close()
+    if skipped:
+        logger.warning(f"{len(skipped)} of {len(doc)} page(s) could not be read and were skipped")
+    return Document(pages=pages), error
 
 
 def _resolve_device(device: str | None) -> torch.device:
@@ -332,12 +348,14 @@ def _export_kwargs(fmt: str, args: argparse.Namespace) -> dict[str, Any]:
     return kwargs
 
 
-def _xml_paths(output: str, num_pages: int) -> list[Path]:
+def _xml_paths(output: str, num_pages: int, page_indices: list[int] | None = None) -> list[Path]:
     """Build one output path per page, since hOCR describes a single page per file
 
     Args:
         output: the `--output` value
         num_pages: the number of exported pages
+        page_indices: the index of each exported page in the input, so that the file names keep matching the pages
+            when some of them were skipped (defaults to `range(num_pages)`)
 
     Returns:
         the list of paths to write to
@@ -345,7 +363,8 @@ def _xml_paths(output: str, num_pages: int) -> list[Path]:
     path = Path(output)
     if num_pages <= 1:
         return [path]
-    return [path.with_name(f"{path.stem}_page_{idx + 1}{path.suffix}") for idx in range(num_pages)]
+    indices = range(num_pages) if page_indices is None else page_indices
+    return [path.with_name(f"{path.stem}_page_{idx + 1}{path.suffix}") for idx in indices]
 
 
 def _save_results(result: Any, fmt: str, args: argparse.Namespace) -> None:
@@ -369,7 +388,7 @@ def _save_results(result: Any, fmt: str, args: argparse.Namespace) -> None:
     try:
         if fmt == "xml":
             # `export_as_xml` returns one (bytes, ElementTree) tuple per page
-            paths = _xml_paths(args.output, len(exported))
+            paths = _xml_paths(args.output, len(exported), [page.page_idx for page in result.pages])
             for path, (xml_bytes, _) in zip(paths, exported):
                 path.write_bytes(xml_bytes)
             logger.info(f"Results saved to {', '.join(str(path) for path in paths)}")
@@ -403,10 +422,22 @@ def main(argv=None):
 
     # perform OCR
     logger.info(f"Performing OCR on {len(doc)} page(s)...")
-    result = _predict(model, doc, args)
+    result, error = _predict(model, doc, args)
+
+    if error is not None:
+        logger.error(f"File could not be read as a valid image or PDF: {error}")
+        if not result.pages:
+            sys.exit(1)
+        # Do not lose the pages processed before the error
+        logger.error(
+            f"Saving the results of the {len(result.pages)} page(s) processed before the error "
+            "(pass `--on_error skip` to skip the pages that cannot be read)"
+        )
 
     # save results to the requested format
     _save_results(result, fmt, args)
+    if error is not None:
+        sys.exit(1)
 
 
 def _parse_args(argv=None):
@@ -498,6 +529,14 @@ def _parse_args(argv=None):
         type=int,
         default=32,
         help="number of pages decoded & processed at once: bounds the memory footprint on long documents",
+    )
+    parser.add_argument(
+        "--on_error",
+        type=str,
+        default="raise",
+        choices=["raise", "skip"],
+        help="what to do with a file of a folder or a page that cannot be read: stop with an error (the results of "
+        "the pages processed so far are still saved), or skip it with a warning",
     )
     parser.add_argument("--detect_orientation", action="store_true", help="automatically detect page orientation")
     parser.add_argument("--detect_language", action="store_true", help="detect language of the text")

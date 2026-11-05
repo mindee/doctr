@@ -12,7 +12,7 @@ import torch
 import doctr.cli.main as cli
 from doctr import __version__
 from doctr.datasets.generator.base import synthesize_text_img
-from doctr.io import ConcatSource, DocumentFile, FigureEncoder, Page
+from doctr.io import ConcatSource, Document, DocumentFile, FigureEncoder, Page, PageDecodeError
 from doctr.io.exporters import DocumentExportsMixin
 from doctr.models import ocr_predictor
 from doctr.models.builder import DocumentBuilder
@@ -96,6 +96,7 @@ def test_parse_args_defaults():
     assert args.det_bs == 2
     assert args.reco_bs == 128
     assert args.page_chunk_size == 32
+    assert args.on_error == "raise"
     assert args.detect_orientation is False
     assert args.detect_language is False
     assert args.detect_layout is False
@@ -240,6 +241,7 @@ def test_parse_args_version(capsys):
         ["--bin_thresh", "high"],
         ["--confidence_aggregation", "average"],
         ["--page_chunk_size", "0"],
+        ["--on_error", "ignore"],
     ],
 )
 def test_parse_args_invalid_values(argv):
@@ -600,7 +602,7 @@ def test_load_document_from_url(monkeypatch):
     assert recorder["lazy"] is True
 
 
-def test_load_document_expands_folders(text_images, mock_pdf, tmp_path):
+def test_load_document_expands_folders(text_images, mock_pdf, tmp_path, caplog):
     folder = tmp_path / "mixed"
     folder.mkdir()
     (folder / "a.pdf").write_bytes(Path(mock_pdf).read_bytes())
@@ -614,11 +616,29 @@ def test_load_document_expands_folders(text_images, mock_pdf, tmp_path):
     # nested concatenations are flattened: the PDF of the folder is the first source
     assert doc.sources[0].scale == 1
 
+    # files of the folder that cannot be read: the error names the file among those of the folder
+    (folder / "b_truncated.pdf").write_bytes(Path(mock_pdf).read_bytes()[:100])
+    (folder / "c_scan.png").write_text("not an image")
+    with pytest.raises(SystemExit) as exc_info:
+        cli._load_document(cli._parse_args(["--input_path", str(folder)]))
+    assert exc_info.value.code == 1
+    assert "b_truncated.pdf" in caplog.text
+    # or they are skipped with a warning naming them
+    caplog.clear()
+    with caplog.at_level(logging.WARNING, logger="doctr"):
+        doc = cli._load_document(cli._parse_args(["--input_path", str(folder), "--on_error", "skip"]))
+    assert len(doc) == 4
+    assert "b_truncated.pdf" in caplog.text and "c_scan.png" in caplog.text
+
 
 def test_load_document_empty_folder(tmp_path, caplog):
     with pytest.raises(SystemExit):
         cli._load_document(cli._parse_args(["--input_path", str(tmp_path)]))
-    assert "No PDF or image found" in caplog.text
+    assert "No readable PDF or image found" in caplog.text
+    # including a folder of files that cannot be read, once they are skipped
+    (tmp_path / "scan.png").write_text("not an image")
+    with pytest.raises(SystemExit):
+        cli._load_document(cli._parse_args(["--input_path", str(tmp_path), "--on_error", "skip"]))
 
 
 # Exporting the predictions
@@ -814,32 +834,55 @@ def test_main_invalid_input_fails_before_loading_models(monkeypatch, text_images
         assert exc_info.value.code == 1
 
 
-class _StreamingModel:
-    """Minimal predictor: decodes the pages of the document as it streams them, then optionally fails"""
+class _StreamingModel(_OCRPredictor):
+    """Minimal predictor: the actual `stream` (chunks of 2 pages), with empty predictions, optionally failing"""
 
     def __init__(self, error=None):
+        super().__init__(page_chunk_size=2)
         self.error = error
 
-    def stream(self, doc):
-        for page in doc:
-            if self.error is not None:
-                raise self.error
-            yield Page(page, [], 0, page.shape[:2])
+    def _predict_pages(self, pages, **kwargs):
+        if self.error is not None:
+            raise self.error
+        return Document(pages=[Page(page, [], idx, page.shape[:2]) for idx, page in enumerate(pages)])
 
 
-def test_predict_reports_corrupted_images(text_images, tmp_path, caplog):
+def test_predict_reports_corrupted_images(monkeypatch, text_images, tmp_path, caplog):
     # a valid header with corrupted content passes `_load_document` and is only detected while processing
     truncated = tmp_path / "truncated.png"
     truncated.write_bytes(Path(text_images[0]).read_bytes()[:60])
-    args = cli._parse_args(["--input_path", text_images[0], str(truncated), "--quiet"])
-    doc = cli._load_document(args)
-    with pytest.raises(SystemExit) as exc_info:
-        cli._predict(_StreamingModel(), doc, args)
-    assert exc_info.value.code == 1
-    assert "truncated.png" in caplog.text
+    inputs = ["--input_path", text_images[0], str(truncated), text_images[1]]
+    args = cli._parse_args([*inputs, "--quiet"])
+    result, error = cli._predict(_StreamingModel(), cli._load_document(args), args)
+    # the run stops at the faulty page, and the pages before it are kept (even within the same chunk)
+    assert isinstance(error, PageDecodeError) and "truncated.png" in str(error)
+    assert [page.page_idx for page in result.pages] == [0]
+
+    # or the faulty page is skipped with a warning, the others keeping their index in the input
+    args = cli._parse_args([*inputs, "--on_error", "skip", "--quiet"])
+    with caplog.at_level(logging.WARNING, logger="doctr"):
+        result, error = cli._predict(_StreamingModel(), cli._load_document(args), args)
+    assert error is None
+    assert [page.page_idx for page in result.pages] == [0, 2]
+    assert "truncated.png" in caplog.text and "1 of 3 page(s)" in caplog.text
 
     # other errors (e.g. from the models) are not reported as unreadable files
-    doc = cli._load_document(cli._parse_args(["--input_path", text_images[0], "--quiet"]))
+    args = cli._parse_args(["--input_path", text_images[0], "--quiet"])
     with pytest.raises(ValueError, match="model failure"):
-        cli._predict(_StreamingModel(ValueError("model failure")), doc, args)
-    assert len(cli._predict(_StreamingModel(), doc, args).pages) == 1
+        cli._predict(_StreamingModel(ValueError("model failure")), cli._load_document(args), args)
+    result, error = cli._predict(_StreamingModel(), cli._load_document(args), args)
+    assert len(result.pages) == 1 and error is None
+
+    # end to end: the results of the pages before the error are saved, and the run still fails
+    monkeypatch.setattr(cli, "_build_predictor", lambda args: _StreamingModel())
+    output = tmp_path / "results.json"
+    with pytest.raises(SystemExit) as exc_info:
+        cli.main([*inputs, "--output", str(output)])
+    assert exc_info.value.code == 1
+    assert len(json.loads(output.read_text())["pages"]) == 1
+    # skipped pages: one hOCR file per page that was read, named after its page in the input
+    cli.main([*inputs, "--on_error", "skip", "--output", str(tmp_path / "results.xml")])
+    assert sorted(path.name for path in tmp_path.glob("results_page_*.xml")) == [
+        "results_page_1.xml",
+        "results_page_3.xml",
+    ]

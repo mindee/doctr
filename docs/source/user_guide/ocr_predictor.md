@@ -276,10 +276,11 @@ predictor.add_hook(pad_boxes)
 Good to know:
 
 - Hooks run in the order they were added, each one receiving the output of the previous one.
-- Long inputs are processed chunk by chunk (`page_chunk_size` pages at a time, 32 by default, see
+- A list of pages is processed in a single pass: hooks receive all its pages at once. Lazy page sources, iterators
+  and `stream()` are processed chunk by chunk instead (`page_chunk_size` pages at a time, 32 by default, see
   [](loading_documents.md#long-documents--large-collections)): hooks are then called once per chunk, with the pages of
-  that chunk only. Don't rely on the number of pages a hook receives, or on a list position as the page index in the
-  whole document.
+  that chunk only. For those, don't rely on the number of pages a hook receives, or on a list position as the page
+  index in the whole document.
 - Each returned box keeps the `objectness_score` of the closest detected box of its page; a box added on a page
   without any detection gets a score of `1`.
 - With the [KIE predictor](kie.md), hooks receive and return a dict with one such list per class.
@@ -311,9 +312,20 @@ for page in predictor.stream(doc):
     print(f"source #{source_idx}, page {page_idx + 1}: {page.render()[:80]}")
 ```
 
-Inputs longer than `page_chunk_size` pages, page sources and iterators (e.g. a generator of frames) are all processed
-chunk by chunk, and `page_idx` is always the index of the page in the whole input. Hooks are therefore called once
-per chunk, with the location predictions of its pages.
+Page sources, iterators (e.g. a generator of frames) and `stream()` are processed chunk by chunk, and `page_idx` is
+always the index of the page in the whole input. Hooks are therefore called once per chunk, with the location
+predictions of its pages. Lists and tuples of pages are processed in a single pass, as a whole: pass them to `stream()`
+to process them chunk by chunk.
+
+On large collections, a single unreadable file should not stop the whole run: with `on_error="skip"`, the pages that
+cannot be read are left out with a warning (their `page_idx` shows as a gap), and the run goes on. A callable receives
+the index of each skipped page and the error instead:
+
+```python
+skipped = []
+for page in predictor.stream(doc, on_error=lambda page_idx, error: skipped.append((page_idx, str(error)))):
+    ...
+```
 
 ## Next steps
 

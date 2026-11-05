@@ -1,4 +1,6 @@
+import logging
 import pickle
+import re
 import threading
 from pathlib import Path
 
@@ -60,8 +62,19 @@ def test_pdf_source_fails_eagerly(tmp_path):
         io.PDFSource(123)
     corrupted = tmp_path / "corrupted.pdf"
     corrupted.write_text("not a real pdf")
-    with pytest.raises(Exception):
-        io.PDFSource(corrupted)
+    empty = tmp_path / "empty.pdf"
+    empty.write_bytes(b"")
+    # the error names the faulty file, e.g. among the files of a folder
+    for invalid in (corrupted, str(empty)):
+        with pytest.raises(io.PageDecodeError, match=Path(invalid).name) as exc_info:
+            io.PDFSource(invalid)
+        # a `ValueError` like the errors of the images, and still the `PdfiumError` raised by the eager readers
+        assert isinstance(exc_info.value, ValueError) and isinstance(exc_info.value, pdfium.PdfiumError)
+        assert exc_info.value.err_code is not None
+    with pytest.raises(io.PageDecodeError, match="<bytes>"):
+        io.PDFSource(b"not a real pdf")
+    with pytest.raises(pdfium.PdfiumError, match="corrupted.pdf"):
+        io.DocumentFile.from_pdf(corrupted)
 
 
 def test_pdf_source_handles(mock_pdf, monkeypatch):
@@ -136,6 +149,20 @@ def test_pdf_source_handle_released_on_errors(mock_pdf, monkeypatch):
     assert source._pdf is None
     with pytest.raises(RuntimeError, match="render failure"):
         list(source)
+    assert source._pdf is None
+    assert not sources._OPEN_PDF_SOURCES
+
+    # pdfium errors name the page and the file
+    def _pdfium_failure(*args, **kwargs):
+        raise pdfium.PdfiumError("Failed to render")
+
+    monkeypatch.setattr(pdfium.PdfPage, "render", _pdfium_failure)
+    with pytest.raises(io.PageDecodeError, match=rf"page 2 of the PDF .*{re.escape(Path(mock_pdf).name)}"):
+        source[1]
+    # they can be skipped while iterating, the document being released at the end
+    pages = list(source._iter_indices(range(len(source)), skip_errors=True))
+    assert all(isinstance(page, sources._UnreadablePage) for page in pages)
+    assert isinstance(pages[0].error, io.PageDecodeError)
     assert source._pdf is None
     assert not sources._OPEN_PDF_SOURCES
 
@@ -375,7 +402,7 @@ def test_document_file_lazy(mock_pdf, image_folder):
     assert io.DocumentFile.from_pdf(mock_pdf, lazy=True, scale=1).scale == 1
 
 
-def test_document_file_from_files(mock_pdf, image_folder, tmp_path):
+def test_document_file_from_files(mock_pdf, image_folder, tmp_path, caplog):
     pdf_bytes = Path(mock_pdf).read_bytes()
     image = str(image_folder / "page_0.png")
 
@@ -399,6 +426,43 @@ def test_document_file_from_files(mock_pdf, image_folder, tmp_path):
     assert len(doc) == 3
     assert doc[0].shape == (8, 8, 3)
     assert doc.sources[1].scale == 1
+
+    # files that cannot be read: a truncated PDF, a file that is not an image, a missing file
+    (folder / "c_truncated.pdf").write_bytes(pdf_bytes[:100])
+    (folder / "d_scan.png").write_text("not an image")
+    (folder / "e.png").write_bytes((image_folder / "page_1.jpg").read_bytes())
+    missing = str(folder / "missing.png")
+    with pytest.raises(io.PageDecodeError, match="c_truncated.pdf"):
+        io.DocumentFile.from_files(folder, lazy=True)
+    with pytest.raises(FileNotFoundError):
+        io.DocumentFile.from_files([image, missing], lazy=True)
+    with pytest.raises(ValueError, match="on_error"):
+        io.DocumentFile.from_files(folder, on_error="ignore")
+    # they are skipped (one by one: the other images of the folder are kept), and reported to a callable
+    skipped = []
+    doc = io.DocumentFile.from_files(
+        [folder, missing], lazy=True, on_error=lambda file, error: skipped.append((Path(file).name, type(error)))
+    )
+    assert skipped == [
+        ("c_truncated.pdf", sources._PDFError),
+        ("d_scan.png", io.PageDecodeError),
+        ("missing.png", FileNotFoundError),
+    ]
+    assert len(doc) == 4
+    assert [type(source).__name__ for source in doc.sources] == ["ImageSource", "PDFSource", "ImageSource"]
+    # or with a warning
+    with caplog.at_level(logging.WARNING, logger="doctr"):
+        assert len(io.DocumentFile.from_files(folder, lazy=True, on_error="skip")) == 4
+    assert "d_scan.png" in caplog.text
+
+    # images with a valid header but a corrupted content are only detected when decoded: when reading eagerly,
+    # they are skipped as well
+    (folder / "f_truncated.png").write_bytes((image_folder / "page_0.png").read_bytes()[:60])
+    assert len(io.DocumentFile.from_files(folder, lazy=True, on_error="skip")) == 5
+    skipped.clear()
+    pages = io.DocumentFile.from_files(folder, on_error=lambda file, error: skipped.append(Path(file).name))
+    assert len(pages) == 4
+    assert skipped == ["c_truncated.pdf", "d_scan.png", "f_truncated.png"]
 
 
 def test_is_pdf(mock_pdf):

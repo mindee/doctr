@@ -33,9 +33,9 @@ class _KIEPredictor(_OCRPredictor):
             be masked out (filled with black) before passing the pages to the detection/recognition modules.
         preserve_original_coords: if True and straighten_pages is True, bounding boxes are mapped back to the
             original page coordinates. Useful for redaction and annotation.
-        page_chunk_size: the maximum number of pages processed at once. Longer inputs, as well as lazy page sources
-            and iterators, are processed chunk by chunk so that the memory footprint does not grow with the number
-            of pages.
+        page_chunk_size: the maximum number of pages processed at once for lazy page sources, iterators and
+            `stream`, so that the memory footprint does not grow with the number of pages. Lists and tuples of pages
+            are processed in a single pass.
         kwargs: keyword args of `DocumentBuilder`
     """
 

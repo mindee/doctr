@@ -1,3 +1,4 @@
+import logging
 import threading
 import time
 
@@ -9,7 +10,7 @@ from torch import nn
 
 from doctr import models
 from doctr.file_utils import CLASS_NAME
-from doctr.io import Document, DocumentFile, FigureEncoder, crop_layout_region
+from doctr.io import Document, DocumentFile, FigureEncoder, PageDecodeError, crop_layout_region
 from doctr.io.elements import KIEDocument, KIEPage, LayoutElement, Table
 from doctr.models import detection, layout, recognition
 from doctr.models.classification import mobilenet_v3_small_crop_orientation, mobilenet_v3_small_page_orientation
@@ -1073,24 +1074,40 @@ def _value_predictor(predictor_cls, **kwargs):
 def test_predictors_chunk_long_inputs(predictor_cls, doc_cls):
     pages = _value_pages(7)
     predictor = _value_predictor(predictor_cls, page_chunk_size=3)
+    hook_calls = []
 
+    def _count_pages(loc_preds):
+        # the KIE predictor passes one list of pages per class
+        hook_calls.append(len(next(iter(loc_preds.values())) if isinstance(loc_preds, dict) else loc_preds))
+        return loc_preds
+
+    predictor.add_hook(_count_pages)
+
+    # lists & tuples of pages are in memory already: they are processed in a single pass, as before, so that hooks
+    # receive all the pages at once
     out = predictor(pages)
     assert type(out) is doc_cls
-    # processed by chunks of at most 3 pages, the results being identical to a single pass
-    assert predictor.det_predictor.calls == [3, 3, 1]
+    assert predictor.det_predictor.calls == [7]
+    assert hook_calls == [7]
     assert [page.page_idx for page in out.pages] == list(range(7))
     assert [_page_words(page) for page in out.pages] == [[str(10 * idx)] for idx in range(7)]
     assert [page.dimensions for page in out.pages] == [page.shape[:2] for page in pages]
     # in-memory pages are referenced as-is
     assert all(page.page is image for page, image in zip(out.pages, pages))
-
-    single_pass = _value_predictor(predictor_cls)
-    assert single_pass(pages).export() == out.export()
-    assert single_pass.det_predictor.calls == [7]
-
-    # any iterable of pages, e.g. a generator, is supported
-    assert predictor(page for page in pages).export() == out.export()
     assert predictor(tuple(pages)).export() == out.export()
+    assert predictor(np.stack([np.zeros((60, 80, 3), dtype=np.uint8)] * 4)).pages[3].page_idx == 3
+
+    # iterators (e.g. a generator) are processed by chunks of at most 3 pages, the results being identical to a
+    # single pass: hooks are then called once per chunk
+    predictor.det_predictor.calls.clear()
+    hook_calls.clear()
+    assert predictor(page for page in pages).export() == out.export()
+    assert predictor.det_predictor.calls == [3, 3, 1]
+    assert hook_calls == [3, 3, 1]
+    # and so are lists passed to `stream`
+    hook_calls.clear()
+    assert [page.export() for page in predictor.stream(pages)] == [page.export() for page in out.pages]
+    assert hook_calls == [3, 3, 1]
 
 
 @pytest.mark.parametrize("predictor_cls", [OCRPredictor, KIEPredictor])
@@ -1119,7 +1136,7 @@ def test_predictors_stream(predictor_cls):
     "predictor_cls, doc_cls",
     [(OCRPredictor, Document), (KIEPredictor, KIEDocument)],
 )
-def test_predictors_lazy_source(tmp_path, predictor_cls, doc_cls):
+def test_predictors_lazy_source(tmp_path, caplog, predictor_cls, doc_cls):
     pages = _value_pages(5)
     for idx, page in enumerate(pages):
         cv2.imwrite(str(tmp_path / f"page_{idx}.png"), page)
@@ -1135,6 +1152,34 @@ def test_predictors_lazy_source(tmp_path, predictor_cls, doc_cls):
     assert all(type(page._page).__name__ == "_SourcePage" for page in out.pages)
     assert all(np.array_equal(page.page, image) for page, image in zip(out.pages, pages))
     assert type(predictor(source[:0])) is doc_cls
+
+    # a page that cannot be decoded (valid header, corrupted content) is only detected while processing
+    (tmp_path / "page_2.png").write_bytes((tmp_path / "page_0.png").read_bytes()[:60])
+    source = DocumentFile.from_images(tmp_path, lazy=True)
+    stream = predictor.stream(source)
+    # the error is raised at its position, once the pages before it are yielded (even within the same chunk)
+    assert [next(stream).page_idx for _ in range(2)] == [0, 1]
+    with pytest.raises(PageDecodeError, match="page_2.png"):
+        next(stream)
+    with pytest.raises(PageDecodeError, match="page_2.png"):
+        predictor(source)
+    # or skipped: the other pages keep their index in the input, and their results
+    skipped = []
+    out = predictor(source, on_error=lambda page_idx, error: skipped.append((page_idx, type(error))))
+    assert type(out) is doc_cls
+    assert [page.page_idx for page in out.pages] == [0, 1, 3, 4]
+    assert skipped == [(2, PageDecodeError)]
+    expected = _value_predictor(predictor_cls)(pages).export()["pages"]
+    assert [page.export() for page in out.pages] == [expected[idx] for idx in (0, 1, 3, 4)]
+    assert all(np.array_equal(page.page, pages[page.page_idx]) for page in out.pages)
+    # with a warning, in slices of the source as well
+    with caplog.at_level(logging.WARNING, logger="doctr"):
+        assert [page.page_idx for page in predictor.stream(source[1:], on_error="skip")] == [0, 2, 3]
+    assert "page_2.png" in caplog.text
+    with pytest.raises(ValueError, match="on_error"):
+        next(predictor.stream(source, on_error="ignore"))
+    with pytest.raises(ValueError, match="on_error"):
+        predictor(pages, on_error="ignore")
 
 
 def test_predictors_stream_early_exit_stops_decoding():
@@ -1188,8 +1233,12 @@ def test_predictors_prefetch_only_lazy_inputs(tmp_path, monkeypatch):
     expected = _value_predictor(OCRPredictor)(pages).export()
 
     for in_memory in (pages, tuple(pages)):
+        # processed in a single pass
         calls.clear()
         assert predictor(in_memory).export() == expected
+        assert calls == []
+        # or chunked, without decoding ahead
+        assert [page.export() for page in predictor.stream(in_memory)] == expected["pages"]
         assert calls == [False]
 
     for lazy in (iter(pages), DocumentFile.from_images(tmp_path, lazy=True)):

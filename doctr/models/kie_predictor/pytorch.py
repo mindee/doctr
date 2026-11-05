@@ -40,9 +40,9 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         preserve_original_coords: if True and straighten_pages is True, bounding boxes are mapped back to the
             original page coordinates. Useful for redaction and annotation.
         layout_predictor: optional layout detection module
-        page_chunk_size: the maximum number of pages processed at once (32 by default). Longer inputs, lazy page
-            sources (cf. `DocumentFile.from_pdf(..., lazy=True)`) and iterators are processed chunk by chunk, with a
-            memory footprint that does not grow with the number of pages. See also :meth:`stream`.
+        page_chunk_size: the maximum number of pages processed at once (32 by default) for lazy page sources
+            (cf. `DocumentFile.from_pdf(..., lazy=True)`), iterators and :meth:`stream`, with a memory footprint that
+            does not grow with the number of pages. Lists and tuples of pages are processed in a single pass.
         **kwargs: keyword args of `DocumentBuilder`
     """
 
@@ -86,10 +86,11 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         """Predict on a document
 
         Args:
-            pages: a list of pages (numpy arrays of shape H x W x C), a lazy page source
-                (cf. `DocumentFile.from_pdf(..., lazy=True)`) or any iterable of pages. Inputs longer than
-                `page_chunk_size` are processed chunk by chunk, with a bounded memory footprint.
-            **kwargs: keyword arguments forwarded to the sub-predictors
+            pages: a list of pages (numpy arrays of shape H x W x C), processed in a single pass, or a lazy page
+                source (cf. `DocumentFile.from_pdf(..., lazy=True)`) or any iterable of pages, processed chunk by
+                chunk (`page_chunk_size` pages at a time) with a bounded memory footprint
+            **kwargs: keyword arguments forwarded to the sub-predictors, and `on_error` for lazy page sources
+                (cf. :meth:`stream`): "skip" leaves out the pages that cannot be read instead of raising an error
 
         Returns:
             the predicted document

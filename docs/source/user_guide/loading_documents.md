@@ -144,7 +144,7 @@ the next chunk in a background thread while the models run on the current one. T
 {class}`~doctr.io.Document` only keep a reference to their image: `result.pages[i].page` renders it again on access,
 so `show()` and the figure exports keep working. Pages transformed by the predictor (with `straighten_pages=True`)
 cannot be rendered again from the source: as for a list of pages, each of them keeps its straightened image in memory.
-Lists of pages already held in memory are simply processed chunk by chunk, without a background thread.
+Lists of pages already held in memory are processed in a single pass, as before.
 
 A page source holds no open file between accesses: iterating over it opens each PDF once for the pass, while a
 single page (`doc[i]`, or `result.pages[i].page`) opens the file for that page only. The results therefore stay tied
@@ -190,7 +190,17 @@ with open("result.txt", "w") as f:
 :::{tip}
 Missing files, invalid PDFs and files that are not images are reported when the source is created (images are only
 checked from their header, a few microseconds per file). Images are decoded when they are processed: one with a
-valid header but corrupted content raises a {class}`~doctr.io.PageDecodeError` (a `ValueError`) naming the file.
+valid header but corrupted content raises a {class}`~doctr.io.PageDecodeError` (a `ValueError`) naming the file, as
+do PDFs that cannot be opened or rendered.
+
+To skip unreadable files instead of stopping, pass `on_error="skip"` (or a callable receiving the file and the error)
+to {meth}`~doctr.io.DocumentFile.from_files`, and `on_error="skip"` to the predictor for the pages that only fail
+when they are decoded:
+
+```python
+doc = DocumentFile.from_files("path/to/scans/", lazy=True, on_error="skip")
+result = predictor(doc, on_error="skip")
+```
 :::
 
 ## Low-level readers

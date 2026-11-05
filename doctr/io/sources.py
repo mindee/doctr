@@ -53,10 +53,39 @@ def _close_pdf_sources() -> None:  # pragma: no cover
 
 
 class PageDecodeError(ValueError):
-    """Raised when a page of a source cannot be decoded (e.g. an unreadable or corrupted image file).
+    """Raised when a page of a source cannot be decoded (e.g. an unreadable or corrupted image file, or a PDF that
+    cannot be opened or rendered). The message names the faulty file.
 
     It subclasses `ValueError`, so that code catching the errors of the eager readers keeps working.
     """
+
+
+class _PDFError(PageDecodeError, pdfium.PdfiumError):
+    """A PDF that cannot be opened or rendered: a `PageDecodeError` naming the file, which is still the
+    `pypdfium2.PdfiumError` raised by the eager readers so far"""
+
+    def __init__(self, msg: str, err_code: int | None = None) -> None:
+        super().__init__(msg)
+        self.err_code = err_code
+
+
+# Errors of a page that cannot be read: a corrupted file, or an input removed after the source was created. These are
+# the errors that `on_error="skip"` skips (cf. `OCRPredictor.stream`, `DocumentFile.from_files`)
+_PAGE_ERRORS: tuple[type[Exception], ...] = (PageDecodeError, FileNotFoundError)
+
+
+class _UnreadablePage:
+    """Placeholder yielded instead of a page that cannot be read, when iterating with `skip_errors=True`"""
+
+    __slots__ = ("error",)
+
+    def __init__(self, error: Exception) -> None:
+        self.error = error
+
+
+def _file_name(file: Any) -> str:
+    """Name of an input in error messages"""
+    return str(file) if isinstance(file, (str, Path)) else "<bytes>"
 
 
 def _check_image_header(path: Path) -> None:
@@ -121,11 +150,28 @@ class PageSource(Sequence[np.ndarray]):
         """
         return nullcontext()
 
-    def _iter_indices(self, indices: Iterable[int]) -> Iterator[np.ndarray]:
-        """Decode the pages at the given (non-negative, in-range) indices, in this order"""
+    def _iter_indices(self, indices: Iterable[int], skip_errors: bool = False) -> Iterator[Any]:
+        """Decode the pages at the given (non-negative, in-range) indices, in this order
+
+        Args:
+            indices: the page indices
+            skip_errors: if True, a page that cannot be read (cf. `_PAGE_ERRORS`) is replaced by an `_UnreadablePage`
+                holding the error, and the iteration goes on. Otherwise the error is raised.
+
+        Returns:
+            an iterator over the pages (and `_UnreadablePage` placeholders if `skip_errors` is True)
+        """
         with self._session():
             for idx in indices:
-                yield self._load(idx)
+                if not skip_errors:
+                    yield self._load(idx)
+                    continue
+                try:
+                    page = self._load(idx)
+                except _PAGE_ERRORS as e:
+                    yield _UnreadablePage(e)
+                else:
+                    yield page
 
     def __iter__(self) -> Iterator[np.ndarray]:
         return self._iter_indices(range(len(self)))
@@ -244,7 +290,11 @@ class PDFSource(PageSource):
     def _open(self) -> pdfium.PdfDocument:
         if self._pdf is None:
             file = str(self.file) if isinstance(self.file, Path) else self.file
-            self._pdf = pdfium.PdfDocument(file, password=self.password)
+            try:
+                self._pdf = pdfium.PdfDocument(file, password=self.password)
+            except pdfium.PdfiumError as e:
+                # e.g. a truncated, empty or password-protected file: point to it among possibly thousands of PDFs
+                raise _PDFError(f"unable to open the PDF {_file_name(self.file)}: {e}", e.err_code) from e
             _OPEN_PDF_SOURCES.add(self)
         return self._pdf
 
@@ -277,6 +327,10 @@ class PDFSource(PageSource):
                     bitmap = page.render(scale=self.scale, rev_byteorder=self.rgb_mode, **self.render_kwargs)
                     # The bitmap buffer is allocated by Python: the array safely outlives the pdfium page & document
                     return bitmap.to_numpy()
+                except pdfium.PdfiumError as e:
+                    raise _PDFError(
+                        f"unable to render page {idx + 1} of the PDF {_file_name(self.file)}: {e}", e.err_code
+                    ) from e
                 finally:
                     page.close()
             finally:
@@ -303,8 +357,7 @@ class PDFSource(PageSource):
         return state
 
     def __repr__(self) -> str:
-        name = self.file if isinstance(self.file, (str, Path)) else "<bytes>"
-        return f"{self.__class__.__name__}({name!s}, num_pages={len(self)})"
+        return f"{self.__class__.__name__}({_file_name(self.file)}, num_pages={len(self)})"
 
 
 class ImageSource(PageSource):
@@ -397,13 +450,13 @@ class ConcatSource(PageSource):
         source_idx, page_idx = self.locate(idx)
         return self.sources[source_idx][page_idx]
 
-    def _iter_indices(self, indices: Iterable[int]) -> Iterator[np.ndarray]:
+    def _iter_indices(self, indices: Iterable[int], skip_errors: bool = False) -> Iterator[Any]:
         # Consecutive pages of the same input are read within one session of that input: a PDF is opened once for
         # them and closed before moving on, so that at most one underlying document is open at a time
         for source_idx, run in groupby(indices, key=lambda idx: bisect_right(self._offsets, idx) - 1):
             source, offset = self.sources[source_idx], self._offsets[source_idx]
             if isinstance(source, PageSource):
-                yield from source._iter_indices(idx - offset for idx in run)
+                yield from source._iter_indices((idx - offset for idx in run), skip_errors=skip_errors)
             else:
                 yield from (source[idx - offset] for idx in run)
 
@@ -437,8 +490,8 @@ class _PageView(PageSource):
         # `with view:` keeps the resources of the source for the block
         return self.source._session()
 
-    def _iter_indices(self, indices: Iterable[int]) -> Iterator[np.ndarray]:
-        return self.source._iter_indices(self.indices[idx] for idx in indices)
+    def _iter_indices(self, indices: Iterable[int], skip_errors: bool = False) -> Iterator[Any]:
+        return self.source._iter_indices((self.indices[idx] for idx in indices), skip_errors=skip_errors)
 
 
 def _list_files(folder: Path, extensions: Sequence[str]) -> list[Path]:
