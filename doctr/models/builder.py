@@ -9,6 +9,7 @@ import statistics
 from collections.abc import Sequence
 from typing import Any
 
+import cv2
 import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
 
@@ -600,14 +601,15 @@ class DocumentBuilder(NestedObject):
             consumed[w_idx] = True
         leftover = free[~assigned]
         if leftover.size > 0:
-            (tx0, ty0), (tx1, ty1) = polys.reshape(-1, 2).min(axis=0), polys.reshape(-1, 2).max(axis=0)
             cell_centers = polys.mean(axis=1)  # (C, 2)
             max_dist = 0.5 * float(np.median(np.linalg.norm(polys[:, 2] - polys[:, 0], axis=1)))  # TL->BR diagonal
+            # Outline of the table (convex hull of its cells): unlike an axis-aligned box, it does not cover the text
+            # around a rotated table
+            hull = cv2.convexHull(polys.reshape(-1, 2).astype(np.float32)).reshape(1, -1, 2)
             in_table = (
-                (centers[leftover, 0] >= tx0)
-                & (centers[leftover, 0] <= tx1)
-                & (centers[leftover, 1] >= ty0)
-                & (centers[leftover, 1] <= ty1)
+                cls._points_in_polygons(centers[leftover], hull)[:, 0]
+                if hull.shape[1] >= 3
+                else np.zeros(leftover.size, dtype=bool)
             )
             for w_idx in leftover[in_table]:
                 dists = np.linalg.norm(cell_centers - centers[w_idx], axis=1)

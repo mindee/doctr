@@ -366,6 +366,20 @@ def test_table():
     )
     assert spanned.to_grid() == [["merged", ""], ["a", "b"]]
 
+    # Cells sharing a position: an empty cell never hides a value and the values are joined
+    colliding = elements.Table(
+        cells=[
+            elements.TableCell("Model", 0.9, ((0.0, 0.0), (0.5, 0.5)), 0, 0, 0, 0),
+            elements.TableCell("", 0.9, ((0.0, 0.0), (0.5, 0.5)), 0, 0, 0, 0),
+            elements.TableCell("x", 0.9, ((0.5, 0.0), (1.0, 0.5)), 0, 0, 1, 1),
+            elements.TableCell("y", 0.9, ((0.5, 0.0), (1.0, 0.5)), 0, 0, 1, 1),
+        ],
+        num_rows=1,
+        num_cols=2,
+        geometry=((0.0, 0.0), (1.0, 0.5)),
+    )
+    assert colliding.to_grid() == [["Model", "x y"]]
+
     # Export
     exported = table.export()
     assert set(exported.keys()) == {"geometry", "num_rows", "num_cols", "confidence", "cells"}

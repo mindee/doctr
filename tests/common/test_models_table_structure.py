@@ -2,7 +2,13 @@ import numpy as np
 import pytest
 
 from doctr.models.table_structure.tablecenternet import TableCenterNetPostProcessor, _TableCenterNet
-from doctr.models.table_structure.tablecenternet.base import _build_table_target
+from doctr.models.table_structure.tablecenternet.base import (
+    _build_table_target,
+    _cluster_lines,
+    _logic_from_geometry,
+    _suppress_overlapping_cells,
+    _vote_line_indices,
+)
 
 
 def _grid_target(rows: int, cols: int, use_polygons: bool) -> dict[str, np.ndarray]:
@@ -54,6 +60,116 @@ def test_tablecenternet_postprocessor(assume_straight_pages):
     )(decoded)
     assert len(simple_res) == 1
     assert simple_res[0]["polygons"].shape[1:] == ((4,) if assume_straight_pages else (4, 2))
+
+
+def _rotate(polys: np.ndarray, angle: float) -> np.ndarray:
+    rad = np.deg2rad(angle)
+    rot = np.array([[np.cos(rad), -np.sin(rad)], [np.sin(rad), np.cos(rad)]], dtype=np.float32)
+    return (polys - 0.5) @ rot.T + 0.5
+
+
+@pytest.mark.parametrize("angle", [0.0, 15.0, -30.0])
+def test_tablecenternet_logic_from_geometry(angle):
+    rows, cols = 4, 3
+    target = _grid_target(rows, cols, use_polygons=True)
+    gt = target["logic"]
+    # jitter the edges, like noisy predictions, then shuffle the cells
+    rng = np.random.default_rng(0)
+    polys = target["cells"] + rng.uniform(-0.01, 0.01, target["cells"].shape).astype(np.float32)
+    perm = rng.permutation(len(polys))
+    np.testing.assert_array_equal(_logic_from_geometry(_rotate(polys[perm], angle), gt[perm]), gt[perm])
+
+    # The model drifts on a minority of the cells of a row / column: the cells on the same line share its index
+    drifted = gt.copy()
+    drifted[[2, 5]] += [0, 0, 1, 1]  # last cell of rows 0 and 1 one row too low
+    drifted[[3]] += [1, 1, 0, 0]  # first cell of row 1 one column too far
+    np.testing.assert_array_equal(_logic_from_geometry(_rotate(polys, angle), drifted), gt)
+
+    # A row with no detected cell is kept: the cells below keep their index
+    no_row_1 = np.flatnonzero(gt[:, 2] != 1)
+    np.testing.assert_array_equal(_logic_from_geometry(_rotate(polys[no_row_1], angle), gt[no_row_1]), gt[no_row_1])
+
+    # Edges of a row that do not line up (an extra line inside the first row) do not shift the rows below
+    uneven = polys.copy()
+    uneven[1, 2:, 1] -= 0.06  # the middle cell of the first row is shorter
+    np.testing.assert_array_equal(_logic_from_geometry(_rotate(uneven, angle), gt), gt)
+
+    # A cell spanning the 2 first columns of the first row
+    merged = np.concatenate([polys[:1, [0]], polys[1:2, [1, 2]], polys[:1, [3]]], axis=1)
+    spanned = np.concatenate([merged, polys[2:]])
+    spanned_logic = np.concatenate([[[0, 1, 0, 0]], gt[2:]])
+    np.testing.assert_array_equal(_logic_from_geometry(_rotate(spanned, angle), spanned_logic), spanned_logic)
+    # its model coordinates missing the span are corrected by the geometry
+    np.testing.assert_array_equal(
+        _logic_from_geometry(_rotate(spanned, angle), np.concatenate([[[0, 0, 0, 0]], gt[2:]])), spanned_logic
+    )
+
+
+def test_tablecenternet_logic_from_geometry_tables():
+    target = _grid_target(3, 3, use_polygons=True)
+    polys, gt = target["cells"], target["logic"]
+    drifted = gt.copy()
+    drifted[2] += [0, 0, 1, 1]  # last cell of row 0 one row too low
+
+    # 2 tables in an image: each one keeps its own indices (both start at 0)
+    top, bottom = polys * [1, 0.4], polys * [1, 0.4] + [0, 0.55]
+    cells = np.concatenate([top, bottom])
+    np.testing.assert_array_equal(_logic_from_geometry(cells, np.concatenate([drifted, gt])), np.concatenate([gt, gt]))
+
+    # An upside-down table (rows growing upwards): the axes follow the model coordinates
+    flipped = polys.copy()
+    flipped[..., 1] = 1 - flipped[..., 1]
+    np.testing.assert_array_equal(_logic_from_geometry(flipped, drifted), gt)
+
+    # The cells on a line do not agree on its index (2 against 2): the model coordinates are kept
+    two_rows = _grid_target(2, 3, use_polygons=True)
+    split = two_rows["logic"].copy()
+    split[:3, :2] += [[0, 1], [1, 1], [1, 1]]  # the 1st row counts one more column than the 2nd one
+    np.testing.assert_array_equal(_logic_from_geometry(two_rows["cells"], split), split)
+
+
+def test_tablecenternet_vote_line_indices():
+    def vote(cells):
+        start, end, logic = (np.array(v) for v in zip(*cells))
+        return _vote_line_indices(3, start, end, logic)
+
+    # 3 cells between 3 lines: the 2 cells after the 1st line drift to the index of the 1st cell. The vote of line 1
+    # is 0 but its cell would span no index: the line moves on (and so does the next one)
+    values, majority = vote([(0, 1, (0, 0)), (1, 2, (0, 0)), (1, 2, (0, 0))])
+    np.testing.assert_array_equal(values, [0, 1, 2])
+    assert majority.all()
+    # A minority of cells spanning no index (4 cells of a split header row, against 6 rows-high cells) does not move
+    # the line: the other ones would be shifted
+    cells = [(0, 1, (0, 0))] * 4 + [(1, 2, (1, 1))] * 4 + [(0, 2, (0, 0))] * 6
+    values, _ = vote(cells)
+    np.testing.assert_array_equal(values, [0, 1, 1])
+    # A split vote does not decide the index of a line
+    values, majority = vote([(0, 1, (0, 0)), (0, 1, (0, 1)), (1, 2, (1, 1)), (1, 2, (2, 2))])
+    np.testing.assert_array_equal(majority, [True, False, False])
+
+
+def test_tablecenternet_cluster_lines():
+    lines = np.array([0.0, 0.5, 1.0, 20.0, 20.5, 21.0])
+    # stray edges between 2 lines do not chain them into a single one
+    np.testing.assert_allclose(_cluster_lines(np.concatenate([lines, [7.0, 13.0]]), tol=8.0), [0.5, 20.5])
+    # an isolated edge close to a line is absorbed by it, a far one makes its own line
+    np.testing.assert_allclose(_cluster_lines(np.concatenate([lines, [30.0]]), tol=8.0), [0.5, 20.5])
+    np.testing.assert_allclose(_cluster_lines(np.concatenate([lines, [40.0]]), tol=8.0), [0.5, 20.5, 40.0])
+    # a single cell: every edge is isolated
+    np.testing.assert_allclose(_cluster_lines(np.array([0.0, 10.0]), tol=1.0), [0.0, 10.0])
+
+
+def test_tablecenternet_suppress_overlapping_cells():
+    polys = _grid_target(2, 2, use_polygons=True)["cells"]
+    # a duplicate of the 1st cell, spreading over the 3rd one
+    duplicate = polys[:1].copy()
+    duplicate[0, 2:, 1] = polys[2, 2, 1]
+    cells = np.concatenate([polys, duplicate])
+    scores = np.array([0.9, 0.8, 0.7, 0.6, 0.5], dtype=np.float32)
+    np.testing.assert_array_equal(_suppress_overlapping_cells(cells, scores), [0, 1, 2, 3])
+    # the duplicate wins when it has the higher score
+    scores[-1] = 0.95
+    np.testing.assert_array_equal(_suppress_overlapping_cells(cells, scores), [4, 1, 3])
 
 
 @pytest.mark.parametrize("use_polygons", [False, True])

@@ -366,7 +366,7 @@ def main(args):
         label_path=os.path.join(args.train_path, "labels.json"),
         img_transforms=img_transforms,
         sample_transforms=sample_transforms,
-        use_polygons=args.rotation and not args.eval_straight,
+        use_polygons=args.rotation,
     )
     sampler = (
         DistributedSampler(train_set, rank=rank, shuffle=True, drop_last=True)

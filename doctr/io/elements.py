@@ -323,7 +323,8 @@ class Table(Element):
         """Return the table content as a dense `num_rows` x `num_cols` grid of strings.
 
         Cells spanning several rows/columns have their value placed at their top-left position; the
-        remaining positions they span are left empty. The result is directly loadable into pandas via
+        remaining positions they span are left empty. Cells sharing the same top-left position have their
+        values joined, so no text is lost. The result is directly loadable into pandas via
         `pd.DataFrame(table.to_grid())`.
 
         Returns:
@@ -331,8 +332,9 @@ class Table(Element):
         """
         grid = [["" for _ in range(self.num_cols)] for _ in range(self.num_rows)]
         for cell in self.cells:
-            if 0 <= cell.row_start < self.num_rows and 0 <= cell.col_start < self.num_cols:
-                grid[cell.row_start][cell.col_start] = cell.value
+            if 0 <= cell.row_start < self.num_rows and 0 <= cell.col_start < self.num_cols and cell.value:
+                current = grid[cell.row_start][cell.col_start]
+                grid[cell.row_start][cell.col_start] = f"{current} {cell.value}" if current else cell.value
         return grid
 
     def render(self, row_break: str = "\n", col_break: str = "\t") -> str:
