@@ -69,6 +69,11 @@ class _PDFError(PageDecodeError, pdfium.PdfiumError):
         self.err_code = err_code
 
 
+def _err_code(error: pdfium.PdfiumError) -> int | None:
+    """The pdfium error code of an error, if any (pypdfium2 only provides it as of version 5)"""
+    return getattr(error, "err_code", None)
+
+
 # Errors of a page that cannot be read: a corrupted file, or an input removed after the source was created. These are
 # the errors that `on_error="skip"` skips (cf. `OCRPredictor.stream`, `DocumentFile.from_files`)
 _PAGE_ERRORS: tuple[type[Exception], ...] = (PageDecodeError, FileNotFoundError)
@@ -358,7 +363,7 @@ class PDFSource(PageSource):
                 self._pdf = pdfium.PdfDocument(file, password=self.password)
             except pdfium.PdfiumError as e:
                 # e.g. a truncated, empty or password-protected file: point to it among possibly thousands of PDFs
-                raise _PDFError(f"unable to open the PDF {_file_name(self.file)}: {e}", e.err_code) from e
+                raise _PDFError(f"unable to open the PDF {_file_name(self.file)}: {e}", _err_code(e)) from e
             _OPEN_PDF_SOURCES.add(self)
         return self._pdf
 
@@ -366,7 +371,7 @@ class PDFSource(PageSource):
         return self._num_pages
 
     @contextmanager
-    def _session(self) -> Iterator[None]:
+    def _session(self) -> Generator[None, None, None]:
         with _PDFIUM_LOCK:
             self._holders += 1
         try:
@@ -389,15 +394,20 @@ class PDFSource(PageSource):
                 page = pdf[idx]
                 try:
                     bitmap = page.render(scale=self.scale, rev_byteorder=self.rgb_mode, **self.render_kwargs)
-                    # The bitmap buffer is allocated by Python: the array safely outlives the pdfium page & document
-                    array = bitmap.to_numpy()
-                    # Release the pdfium bitmap here, under the lock: left to its finalizer, it would be destroyed
-                    # once the lock is released, possibly while another thread renders a page
-                    bitmap.close()
+                    # By default, the bitmap buffer is allocated by Python: the array safely outlives the pdfium page,
+                    # bitmap & document
+                    pixels = bitmap.to_numpy()
+                    # A bitmap of the caller's choice (`bitmap_maker`) may have a pdfium-owned buffer instead, freed
+                    # with the bitmap (e.g. `PdfBitmap.new_foreign`): its pixels are copied
+                    array = pixels.copy() if "bitmap_maker" in self.render_kwargs else pixels
+                    # Release the pdfium bitmap here, under the lock: its finalizer runs as soon as the last reference
+                    # is dropped, which would otherwise happen once the lock is released, possibly while another
+                    # thread renders a page
+                    del bitmap, pixels
                     return array
                 except pdfium.PdfiumError as e:
                     raise _PDFError(
-                        f"unable to render page {idx + 1} of the PDF {_file_name(self.file)}: {e}", e.err_code
+                        f"unable to render page {idx + 1} of the PDF {_file_name(self.file)}: {e}", _err_code(e)
                     ) from e
                 finally:
                     page.close()

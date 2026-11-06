@@ -46,6 +46,10 @@ def test_pdf_source(mock_pdf):
         assert np.array_equal(io.PDFSource(f.read())[1], eager[1])
     # Rendering options
     assert io.PDFSource(mock_pdf, scale=1)[0].shape[0] < eager[0].shape[0]
+    # a bitmap with a pdfium-owned buffer, freed with the bitmap: the pages outlive it
+    foreign = io.DocumentFile.from_pdf(mock_pdf, bitmap_maker=pdfium.PdfBitmap.new_foreign)
+    _ = io.DocumentFile.from_pdf(mock_pdf)  # reuses the memory freed in the meantime
+    assert all(np.array_equal(page, ref) for page, ref in zip(foreign, eager))
 
     with pytest.raises(IndexError):
         source[2]
@@ -70,7 +74,8 @@ def test_pdf_source_fails_eagerly(tmp_path):
             io.PDFSource(invalid)
         # a `ValueError` like the errors of the images, and still the `PdfiumError` raised by the eager readers
         assert isinstance(exc_info.value, ValueError) and isinstance(exc_info.value, pdfium.PdfiumError)
-        assert exc_info.value.err_code is not None
+        # with the pdfium error code, when pypdfium2 provides one (as of version 5)
+        assert exc_info.value.err_code == getattr(exc_info.value.__cause__, "err_code", None)
     with pytest.raises(io.PageDecodeError, match="<bytes>"):
         io.PDFSource(b"not a real pdf")
     with pytest.raises(pdfium.PdfiumError, match="corrupted.pdf"):
@@ -218,8 +223,10 @@ def test_pdf_source_thread_safety(mock_pdf, monkeypatch):
     for thread in threads:
         thread.join()
     assert not errors
-    # also when rendering in the background, as `OCRPredictor.stream` does
+    # also when rendering in the background, as `OCRPredictor.stream` does, and for every kind of bitmap
     assert [len(chunk) for chunk in prefetch_chunks(source._iter_indices(range(2)), 1)] == [1, 1]
+    foreign = io.PDFSource(mock_pdf, scale=1, bitmap_maker=pdfium.PdfBitmap.new_foreign)
+    assert all(np.array_equal(page, ref) for page, ref in zip(foreign, expected))
     assert not unlocked_destroys
     # the rendered pages outlive their pdfium bitmap
     assert all(np.array_equal(page, ref) for page, ref in zip(source, expected))
