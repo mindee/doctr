@@ -13,7 +13,7 @@ Table structure models parse the image of a table into a machine-understandable 
 
 | Architecture | Input shape | # params | Recall | Precision | F1 | Structure acc. | sec/it (batch 1) |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| `tablecenternet` | (1024, 1024, 3) | 7.1 M | 82.31 | 96.01 | 88.64 | 77.53 | 0.5 |
+| `tablecenternet` | (1024, 1024, 3) | 7.1 M | 93.82 | 96.96 | 95.36 | 76.84 | 0.5 |
 
 The metrics are produced by `references/table/evaluate.py` with
 {class}`~doctr.utils.metrics.TableCellMetric`: cell detection **recall**, **precision** and **F1** (cells matched

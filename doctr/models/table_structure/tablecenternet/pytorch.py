@@ -26,7 +26,7 @@ default_cfgs: dict[str, dict[str, Any]] = {
         "input_shape": (3, 1024, 1024),
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
-        "url": "https://github.com/mindee/doctr/releases/download/v1.0.1/tablecenternet-ea5b30a3.pt",
+        "url": "https://github.com/mindee/doctr/releases/download/v1.1.0/tablecenternet-fdc82796.pt",
     },
 }
 
@@ -149,6 +149,7 @@ class TableCenterNet(nn.Module, _TableCenterNet):
         center_k: maximum number of cell centers
         corner_k: maximum number of corners
         not_relocate: if True, skip the corner-relocation step
+        geometric_logic: if True, remove the duplicate cells and align the logical coordinates on the cell geometry
         assume_straight_pages: if True, the predictor will fit straight boxes to the cells
         exportable: onnx exportable returns only the raw head maps
         cfg: the configuration dict of the model
@@ -163,11 +164,12 @@ class TableCenterNet(nn.Module, _TableCenterNet):
         last_level: int = 4,
         center_thresh: float = 0.3,
         corner_thresh: float = 0.3,
-        center_k: int = 3000,
-        corner_k: int = 5000,
+        center_k: int = 10000,
+        corner_k: int = 12000,
         not_relocate: bool = False,
-        max_objects: int = 300,
-        max_corners: int = 1200,
+        geometric_logic: bool = True,
+        max_objects: int = 3000,
+        max_corners: int = 12000,
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: dict[str, Any] | None = None,
@@ -213,6 +215,7 @@ class TableCenterNet(nn.Module, _TableCenterNet):
             center_thresh=center_thresh,
             corner_thresh=corner_thresh,
             not_relocate=not_relocate,
+            geometric_logic=geometric_logic,
             assume_straight_pages=self.assume_straight_pages,
         )
 

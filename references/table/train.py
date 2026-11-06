@@ -191,10 +191,13 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False, log=Non
 
         # Cells & logical coords are compared in the (relative) model-input space
         for target, pred in zip(targets, out["preds"]):
+            cells = pred["polygons"]
+            if not val_metric.use_polygons and cells.ndim == 3:
+                cells = np.concatenate([cells.min(axis=1), cells.max(axis=1)], axis=1)
             val_metric.update(
                 np.asarray(target["cells"], dtype=np.float32),
                 np.asarray(target["logic"], dtype=np.int64).reshape(-1, 4),
-                pred["polygons"],
+                cells,
                 pred["logical"],
             )
 
@@ -366,7 +369,7 @@ def main(args):
         label_path=os.path.join(args.train_path, "labels.json"),
         img_transforms=img_transforms,
         sample_transforms=sample_transforms,
-        use_polygons=args.rotation and not args.eval_straight,
+        use_polygons=args.rotation,
     )
     sampler = (
         DistributedSampler(train_set, rank=rank, shuffle=True, drop_last=True)
