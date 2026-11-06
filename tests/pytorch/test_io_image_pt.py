@@ -96,3 +96,16 @@ def test_img_as_tensor_transparency(tmpdir_factory):
         assert img[:, 20, 30].tolist() == [255, 0, 0]
     assert torch.all(read_img_as_tensor(path)[:, 0, 0] == 1)
     assert torch.all(decode_img_as_tensor(img_stream)[:, 0, 0] == 1)
+
+
+def test_img_as_tensor_16_bit(tmpdir_factory):
+    # A 16-bit grayscale image is scaled to 8 bits like `read_img_as_numpy` does, instead of being clipped to white
+    gray = np.tile(np.array([0, 9362, 50000, 65535], dtype=np.uint16), (4, 1))
+    path = str(tmpdir_factory.mktemp("images").join("gray16.png"))
+    Image.fromarray(gray).save(path, format="PNG")
+    with open(path, "rb") as f:
+        img_stream = f.read()
+
+    for img in (read_img_as_tensor(path, dtype=torch.uint8), decode_img_as_tensor(img_stream, dtype=torch.uint8)):
+        assert img.shape == (3, 4, 4)
+        assert img[:, 0].tolist() == [[0, 36, 195, 255]] * 3

@@ -27,6 +27,9 @@ def _pil_to_rgb_array(pil_img: Image.Image) -> np.ndarray:
     """
     has_transparency = pil_img.has_transparency_data
     ImageOps.exif_transpose(pil_img, in_place=True)
+    if pil_img.mode.startswith("I;16"):
+        # Converting a 16-bit image to RGB clips its values to 255: scale them to 8 bits like `cv2.imdecode` does
+        pil_img = Image.fromarray((np.asarray(pil_img) >> 8).astype(np.uint8))
     if not has_transparency:
         return np.array(pil_img.convert("RGB"))
     rgba = np.asarray(pil_img if pil_img.mode == "RGBA" else pil_img.convert("RGBA"))
