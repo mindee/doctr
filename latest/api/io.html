@@ -1606,7 +1606,8 @@ directly into pandas, e.g. <cite>pd.DataFrame(table.to_grid())</cite>.</p>
 <span class="sig-name descname"><span class="pre">to_grid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/elements.html#Table.to_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.Table.to_grid" title="Link to this definition">#</a></dt>
 <dd><p>Return the table content as a dense <cite>num_rows</cite> x <cite>num_cols</cite> grid of strings.</p>
 <p>Cells spanning several rows/columns have their value placed at their top-left position; the
-remaining positions they span are left empty. The result is directly loadable into pandas via
+remaining positions they span are left empty. Cells sharing the same top-left position have their
+values joined in reading order, so no text is lost. The result is directly loadable into pandas via
 <cite>pd.DataFrame(table.to_grid())</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>

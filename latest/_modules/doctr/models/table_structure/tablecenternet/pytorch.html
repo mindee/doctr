@@ -547,7 +547,7 @@
         <span class="s2">"input_shape"</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span>
         <span class="s2">"mean"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
         <span class="s2">"std"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
-        <span class="s2">"url"</span><span class="p">:</span> <span class="s2">"https://github.com/mindee/doctr/releases/download/v1.0.1/tablecenternet-ea5b30a3.pt"</span><span class="p">,</span>
+        <span class="s2">"url"</span><span class="p">:</span> <span class="s2">"https://github.com/mindee/doctr/releases/download/v1.1.0/tablecenternet-fdc82796.pt"</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
@@ -670,6 +670,7 @@
 <span class="sd">        center_k: maximum number of cell centers</span>
 <span class="sd">        corner_k: maximum number of corners</span>
 <span class="sd">        not_relocate: if True, skip the corner-relocation step</span>
+<span class="sd">        geometric_logic: if True, remove the duplicate cells and align the logical coordinates on the cell geometry</span>
 <span class="sd">        assume_straight_pages: if True, the predictor will fit straight boxes to the cells</span>
 <span class="sd">        exportable: onnx exportable returns only the raw head maps</span>
 <span class="sd">        cfg: the configuration dict of the model</span>
@@ -684,11 +685,12 @@
         <span class="n">last_level</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
         <span class="n">center_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">,</span>
         <span class="n">corner_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">,</span>
-        <span class="n">center_k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3000</span><span class="p">,</span>
-        <span class="n">corner_k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5000</span><span class="p">,</span>
+        <span class="n">center_k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span>
+        <span class="n">corner_k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">12000</span><span class="p">,</span>
         <span class="n">not_relocate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">max_objects</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">300</span><span class="p">,</span>
-        <span class="n">max_corners</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1200</span><span class="p">,</span>
+        <span class="n">geometric_logic</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">max_objects</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3000</span><span class="p">,</span>
+        <span class="n">max_corners</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">12000</span><span class="p">,</span>
         <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">exportable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -734,6 +736,7 @@
             <span class="n">center_thresh</span><span class="o">=</span><span class="n">center_thresh</span><span class="p">,</span>
             <span class="n">corner_thresh</span><span class="o">=</span><span class="n">corner_thresh</span><span class="p">,</span>
             <span class="n">not_relocate</span><span class="o">=</span><span class="n">not_relocate</span><span class="p">,</span>
+            <span class="n">geometric_logic</span><span class="o">=</span><span class="n">geometric_logic</span><span class="p">,</span>
             <span class="n">assume_straight_pages</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">assume_straight_pages</span><span class="p">,</span>
         <span class="p">)</span>
 
