@@ -603,14 +603,8 @@ class DocumentBuilder(NestedObject):
         if leftover.size > 0:
             cell_centers = polys.mean(axis=1)  # (C, 2)
             max_dist = 0.5 * float(np.median(np.linalg.norm(polys[:, 2] - polys[:, 0], axis=1)))  # TL->BR diagonal
-            # Outline of the table (convex hull of its cells): unlike an axis-aligned box, it does not cover the text
-            # around a rotated table
-            hull = cv2.convexHull(polys.reshape(-1, 2).astype(np.float32)).reshape(1, -1, 2)
-            in_table = (
-                cls._points_in_polygons(centers[leftover], hull)[:, 0]
-                if hull.shape[1] >= 3
-                else np.zeros(leftover.size, dtype=bool)
-            )
+            outline = cv2.boxPoints(cv2.minAreaRect(polys.reshape(-1, 2).astype(np.float32))).reshape(1, 4, 2)
+            in_table = cls._points_in_polygons(centers[leftover], outline)[:, 0]
             for w_idx in leftover[in_table]:
                 dists = np.linalg.norm(cell_centers - centers[w_idx], axis=1)
                 nearest = int(dists.argmin())

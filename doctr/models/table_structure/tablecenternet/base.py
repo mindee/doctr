@@ -249,9 +249,11 @@ def _align_table_logic(edges: tuple[np.ndarray, ...], logic: np.ndarray) -> np.n
         end = np.clip(end, 1, lines.size - 1)
         start = np.minimum(start, end - 1)
         values, majority = _vote_line_indices(lines.size, start, end, logic[:, offset : offset + 2])
-        # The cells take the index of their lines, unless the cells on a line do not agree on it
-        new_start = np.where(majority[start], values[start], logic[:, offset])
-        new_end = np.where(majority[end], values[end] - 1, logic[:, offset + 1])
+        model_start, model_end = logic[:, offset], logic[:, offset + 1]
+        span = np.maximum(model_end - model_start, 0)
+        line_start, line_end = values[start], values[end] - 1
+        new_start = np.where(majority[start], line_start, np.where(majority[end], line_end - span, model_start))
+        new_end = np.where(majority[end], line_end, np.where(majority[start], line_start + span, model_end))
         logic[:, offset] = new_start
         logic[:, offset + 1] = np.maximum(new_end, new_start)
     return logic

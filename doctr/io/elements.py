@@ -4,6 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from collections.abc import Callable
+from functools import cmp_to_key
 from typing import Any
 
 import numpy as np
@@ -71,6 +72,19 @@ _page_image_property = property(
     _set_page_image,
     doc="the page image as a numpy array (decoded on access when the page was predicted from a lazy page source)",
 )
+
+
+def _reading_order(a: "TableCell", b: "TableCell") -> int:
+    """Compare 2 table cells in reading order: cells overlapping by half their height are on the same line and read
+    left to right, the other ones top to bottom."""
+    (ax0, ay0), (ax1, ay1) = (pts := np.asarray(a.geometry).reshape(-1, 2)).min(axis=0), pts.max(axis=0)
+    (bx0, by0), (bx1, by1) = (pts := np.asarray(b.geometry).reshape(-1, 2)).min(axis=0), pts.max(axis=0)
+    overlap = min(ay1, by1) - max(ay0, by0)
+    if overlap >= 0.5 * min(ay1 - ay0, by1 - by0):
+        delta = (ax0 + ax1) - (bx0 + bx1)
+    else:
+        delta = (ay0 + ay1) - (by0 + by1)
+    return int(np.sign(delta))
 
 
 class Element(NestedObject):
@@ -324,14 +338,14 @@ class Table(Element):
 
         Cells spanning several rows/columns have their value placed at their top-left position; the
         remaining positions they span are left empty. Cells sharing the same top-left position have their
-        values joined, so no text is lost. The result is directly loadable into pandas via
+        values joined in reading order, so no text is lost. The result is directly loadable into pandas via
         `pd.DataFrame(table.to_grid())`.
 
         Returns:
             a list of `num_rows` lists, each of length `num_cols`
         """
         grid = [["" for _ in range(self.num_cols)] for _ in range(self.num_rows)]
-        for cell in self.cells:
+        for cell in sorted(self.cells, key=cmp_to_key(_reading_order)):
             if 0 <= cell.row_start < self.num_rows and 0 <= cell.col_start < self.num_cols and cell.value:
                 current = grid[cell.row_start][cell.col_start]
                 grid[cell.row_start][cell.col_start] = f"{current} {cell.value}" if current else cell.value
