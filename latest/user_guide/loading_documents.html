@@ -669,6 +669,95 @@ of type <code class="docutils literal notranslate"><span class="pre">uint8</span
 <span class="n">result</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">pages</span><span class="p">)</span>  <span class="c1"># one Document with all the pages, in order</span>
 </pre></div>
 </div>
+<p><a class="reference internal" href="../api/io.html#doctr.io.DocumentFile.from_files" title="doctr.io.DocumentFile.from_files"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_files()</span></code></a> does the same in a single call, for any mix of PDFs, images, folders and
+URLs (folders are expanded to the PDFs and images they contain, sorted by name):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pages</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_files</span><span class="p">([</span><span class="s2">"cover_letter.pdf"</span><span class="p">,</span> <span class="s2">"id_front.jpg"</span><span class="p">,</span> <span class="s2">"id_back.jpg"</span><span class="p">,</span> <span class="s2">"path/to/scans/"</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="long-documents-large-collections">
+<h2>Long documents &amp; large collections<a class="headerlink" href="#long-documents-large-collections" title="Link to this heading">#</a></h2>
+<p>Every page of a list is decoded in memory: at the default resolution (<code class="docutils literal notranslate"><span class="pre">scale=2</span></code>, 1684 x 1191 pixels), an A4 page
+weighs about 6 MB, so a 1,000-page PDF would need about 6 GB. Pass <code class="docutils literal notranslate"><span class="pre">lazy=True</span></code> to get a <strong>page source</strong> instead: it behaves like the list (<code class="docutils literal notranslate"><span class="pre">len</span></code>,
+indexing, slicing, iteration), but a page is only decoded when it is accessed.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
+
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">doc</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_pdf</span><span class="p">(</span><span class="s2">"path/to/1000_pages.pdf"</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">doc</span><span class="p">),</span> <span class="n">doc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># only the first page is rendered</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>  <span class="c1"># one call, a bounded memory footprint</span>
+</pre></div>
+</div>
+<p>The predictor processes a page source chunk by chunk (<code class="docutils literal notranslate"><span class="pre">page_chunk_size</span></code> pages at a time, 32 by default), and decodes
+the next chunk in a background thread while the models run on the current one. The pages of the returned
+<a class="reference internal" href="../api/io.html#doctr.io.Document" title="doctr.io.Document"><code class="xref py py-class docutils literal notranslate"><span class="pre">Document</span></code></a> only keep a reference to their image: <code class="docutils literal notranslate"><span class="pre">result.pages[i].page</span></code> renders it again on access,
+so <code class="docutils literal notranslate"><span class="pre">show()</span></code> and the figure exports keep working. Pages transformed by the predictor (with <code class="docutils literal notranslate"><span class="pre">straighten_pages=True</span></code>)
+cannot be rendered again from the source: as for a list of pages, each of them keeps its straightened image in memory.
+Lists of pages already held in memory are processed in a single pass, as before.</p>
+<p>A page source holds no open file between accesses: iterating over it opens each PDF once for the pass, while a
+single page (<code class="docutils literal notranslate"><span class="pre">doc[i]</span></code>, or <code class="docutils literal notranslate"><span class="pre">result.pages[i].page</span></code>) opens the file for that page only. The results therefore stay tied
+to their input files: if one is moved or deleted, accessing the image of its pages raises a <code class="docutils literal notranslate"><span class="pre">FileNotFoundError</span></code>. For
+many random accesses to the same PDF, a <code class="docutils literal notranslate"><span class="pre">with</span></code> block keeps it open until the block ends:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_pdf</span><span class="p">(</span><span class="s2">"path/to/1000_pages.pdf"</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">doc</span><span class="p">:</span>
+    <span class="n">pages</span> <span class="o">=</span> <span class="p">[</span><span class="n">doc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">500</span><span class="p">)]</span>
+</pre></div>
+</div>
+<p>The same goes for images, folders and mixed inputs:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Every image of a folder (sorted by name), decoded on demand</span>
+<span class="n">doc</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_images</span><span class="p">(</span><span class="s2">"path/to/100k_scans/"</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Any mix of PDFs, images, folders and URLs</span>
+<span class="n">doc</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_files</span><span class="p">([</span><span class="s2">"contracts/"</span><span class="p">,</span> <span class="s2">"annex.pdf"</span><span class="p">,</span> <span class="s2">"signature.png"</span><span class="p">],</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># The source of the 43rd page in `doc.sources`, and its page index in that source. Consecutive images (e.g. those</span>
+<span class="c1"># of a folder) are grouped into a single source: their page index is their index among those images.</span>
+<span class="n">source_idx</span><span class="p">,</span> <span class="n">page_idx</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">locate</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="standalone_predictors.html#long-inputs"><span class="std std-ref">task-specific predictors</span></a> (detection, recognition, layout, table
+structure, orientation) accept page sources as well, and process them chunk by chunk too.</p>
+<p>To write the results as you go instead of keeping them all, iterate over
+<a class="reference internal" href="../api/models.html#doctr.models.predictor.OCRPredictor.stream" title="doctr.models.predictor.OCRPredictor.stream"><code class="xref py py-meth docutils literal notranslate"><span class="pre">stream()</span></code></a>: it yields the pages one by one, as soon as they are processed.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"result.txt"</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">predictor</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">doc</span><span class="p">):</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">"--- page </span><span class="si">{</span><span class="n">page</span><span class="o">.</span><span class="n">page_idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> ---</span><span class="se">\n</span><span class="si">{</span><span class="n">page</span><span class="o">.</span><span class="n">render</span><span class="p">()</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Class</p></th>
+<th class="head"><p>Pages</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/io.html#doctr.io.PDFSource" title="doctr.io.PDFSource"><code class="xref py py-class docutils literal notranslate"><span class="pre">PDFSource</span></code></a></p></td>
+<td><p>The pages of a PDF, rendered on demand (<code class="docutils literal notranslate"><span class="pre">scale</span></code>, <code class="docutils literal notranslate"><span class="pre">password</span></code>, <code class="docutils literal notranslate"><span class="pre">rgb_mode</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/io.html#doctr.io.ImageSource" title="doctr.io.ImageSource"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageSource</span></code></a></p></td>
+<td><p>Image files, folders or bytes, decoded on demand</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/io.html#doctr.io.ConcatSource" title="doctr.io.ConcatSource"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConcatSource</span></code></a></p></td>
+<td><p>The concatenation of several sources (also obtained with <code class="docutils literal notranslate"><span class="pre">+</span></code>)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Missing files, invalid PDFs and files that are not images are reported when the source is created (images are only
+checked from their header, a few microseconds per file). Images are decoded when they are processed: one with a
+valid header but corrupted content raises a <a class="reference internal" href="../api/io.html#doctr.io.PageDecodeError" title="doctr.io.PageDecodeError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PageDecodeError</span></code></a> (a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>) naming the file, as
+do PDFs that cannot be opened or rendered.</p>
+<p>To skip unreadable files instead of stopping, pass <code class="docutils literal notranslate"><span class="pre">on_error=&quot;skip&quot;</span></code> (or a callable receiving the file and the error)
+to <a class="reference internal" href="../api/io.html#doctr.io.DocumentFile.from_files" title="doctr.io.DocumentFile.from_files"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_files()</span></code></a>, and <code class="docutils literal notranslate"><span class="pre">on_error=&quot;skip&quot;</span></code> to the predictor for the pages that only fail
+when they are decoded:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">doc</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_files</span><span class="p">(</span><span class="s2">"path/to/scans/"</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_error</span><span class="o">=</span><span class="s2">"skip"</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">on_error</span><span class="o">=</span><span class="s2">"skip"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </section>
 <section id="low-level-readers">
 <h2>Low-level readers<a class="headerlink" href="#low-level-readers" title="Link to this heading">#</a></h2>
@@ -757,6 +846,7 @@ of type <code class="docutils literal notranslate"><span class="pre">uint8</span
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-a-web-page">From a web page</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-numpy-arrays">From NumPy arrays</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mixing-sources">Mixing sources</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#long-documents-large-collections">Long documents &amp; large collections</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#low-level-readers">Low-level readers</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#next-steps">Next steps</a></li>
 </ul>

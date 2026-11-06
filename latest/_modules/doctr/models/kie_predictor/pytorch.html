@@ -524,6 +524,7 @@
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -562,6 +563,9 @@
 <span class="sd">        preserve_original_coords: if True and straighten_pages is True, bounding boxes are mapped back to the</span>
 <span class="sd">            original page coordinates. Useful for redaction and annotation.</span>
 <span class="sd">        layout_predictor: optional layout detection module</span>
+<span class="sd">        page_chunk_size: the maximum number of pages processed at once (32 by default) for lazy page sources</span>
+<span class="sd">            (cf. `DocumentFile.from_pdf(..., lazy=True)`), iterators and :meth:`stream`, with a memory footprint that</span>
+<span class="sd">            does not grow with the number of pages. Lists and tuples of pages are processed in a single pass.</span>
 <span class="sd">        **kwargs: keyword args of `DocumentBuilder`</span>
 <span class="sd">    """</span>
 
@@ -598,6 +602,26 @@
 
     <span class="nd">@torch</span><span class="o">.</span><span class="n">inference_mode</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">pages</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">|</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Document</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Predict on a document</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            pages: a list of pages (numpy arrays of shape H x W x C), processed in a single pass, or a lazy page</span>
+<span class="sd">                source (cf. `DocumentFile.from_pdf(..., lazy=True)`) or any iterable of pages, processed chunk by</span>
+<span class="sd">                chunk (`page_chunk_size` pages at a time) with a bounded memory footprint</span>
+<span class="sd">            **kwargs: keyword arguments forwarded to the sub-predictors, and `on_error` for lazy page sources</span>
+<span class="sd">                (cf. :meth:`stream`): "skip" leaves out the pages that cannot be read instead of raising an error</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            the predicted document</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">(</span><span class="n">pages</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@torch</span><span class="o">.</span><span class="n">inference_mode</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_predict_pages</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">pages</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>

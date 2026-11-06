@@ -527,9 +527,10 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">pypdfium2</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pdfium</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils.common_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractFile</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.sources</span><span class="w"> </span><span class="kn">import</span> <span class="n">PDFSource</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"read_pdf"</span><span class="p">]</span>
 
@@ -558,12 +559,12 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        the list of pages decoded as numpy ndarray of shape H x W x C</span>
 <span class="sd">    """</span>
-    <span class="c1"># Rasterise pages to numpy ndarrays with pypdfium2</span>
-    <span class="n">pdf</span> <span class="o">=</span> <span class="n">pdfium</span><span class="o">.</span><span class="n">PdfDocument</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">)</span>
+    <span class="c1"># Rasterise pages to numpy ndarrays with pypdfium2 (use `PDFSource` directly to render them on demand)</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">PDFSource</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span> <span class="n">rgb_mode</span><span class="o">=</span><span class="n">rgb_mode</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">page</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span> <span class="n">rev_byteorder</span><span class="o">=</span><span class="n">rgb_mode</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span> <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">pdf</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
     <span class="k">finally</span><span class="p">:</span>
-        <span class="n">pdf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+        <span class="n">source</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 </pre></div>
 

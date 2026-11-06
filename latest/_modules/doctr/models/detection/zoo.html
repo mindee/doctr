@@ -579,9 +579,11 @@
     <span class="n">kwargs</span><span class="p">[</span><span class="s2">"mean"</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"mean"</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s2">"mean"</span><span class="p">])</span>
     <span class="n">kwargs</span><span class="p">[</span><span class="s2">"std"</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"std"</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s2">"std"</span><span class="p">])</span>
     <span class="n">kwargs</span><span class="p">[</span><span class="s2">"batch_size"</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"batch_size"</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">chunk_size</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"chunk_size"</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
     <span class="n">predictor</span> <span class="o">=</span> <span class="n">DetectionPredictor</span><span class="p">(</span>
         <span class="n">PreProcessor</span><span class="p">(</span><span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s2">"input_shape"</span><span class="p">][</span><span class="mi">1</span><span class="p">:],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
         <span class="n">_model</span><span class="p">,</span>
+        <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">predictor</span>
 
@@ -613,6 +615,8 @@
 <span class="sd">            running the detection model on it</span>
 <span class="sd">        symmetric_pad: if True, pad the image symmetrically instead of padding at the bottom-right</span>
 <span class="sd">        batch_size: number of samples the model processes in parallel</span>
+<span class="sd">        chunk_size: maximum number of pages decoded and processed at once (32 by default): longer inputs and</span>
+<span class="sd">            lazy page sources (cf. `DocumentFile.from_images(..., lazy=True)`) are processed chunk by chunk</span>
 <span class="sd">        **kwargs: optional keyword arguments passed to the architecture</span>
 
 <span class="sd">    Returns:</span>

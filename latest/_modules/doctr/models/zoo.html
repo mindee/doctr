@@ -692,7 +692,8 @@
 <span class="sd">            taking the 1D array of probabilities and returning a float. If None (default), the method of the</span>
 <span class="sd">            recognition model is kept ("min" for CRNN, VIPTR, SAR and MASTER, "mean" for ViTSTR and PARSeq).</span>
 <span class="sd">            A recognition model instance passed as `reco_arch` is modified.</span>
-<span class="sd">        kwargs: keyword args of `OCRPredictor`</span>
+<span class="sd">        kwargs: keyword args of `OCRPredictor` (e.g. `page_chunk_size`, the maximum number of pages of a lazy</span>
+<span class="sd">            page source processed at once)</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        OCR predictor</span>
@@ -853,7 +854,8 @@
 <span class="sd">            taking the 1D array of probabilities and returning a float. If None (default), the method of the</span>
 <span class="sd">            recognition model is kept ("min" for CRNN, VIPTR, SAR and MASTER, "mean" for ViTSTR and PARSeq).</span>
 <span class="sd">            A recognition model instance passed as `reco_arch` is modified.</span>
-<span class="sd">        kwargs: keyword args of `OCRPredictor`</span>
+<span class="sd">        kwargs: keyword args of `OCRPredictor` (e.g. `page_chunk_size`, the maximum number of pages of a lazy</span>
+<span class="sd">            page source processed at once)</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        KIE predictor</span>

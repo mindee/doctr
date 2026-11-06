@@ -524,6 +524,7 @@
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -560,6 +561,37 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">_empty_page_image</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Return the given page image, or an empty placeholder when the page was restored from an export."""</span>
     <span class="k">return</span> <span class="n">page</span> <span class="k">if</span> <span class="n">page</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+
+
+<span class="c1"># A page image, or a zero-argument callable decoding it on demand. Predictions made on a lazy page source</span>
+<span class="c1"># (cf. `doctr.io.PageSource`) only keep a reference to their page, so that their memory footprint does not grow</span>
+<span class="c1"># with the image of every page of a long document.</span>
+<span class="n">PageImage</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_page_image</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span>
+    <span class="k">if</span> <span class="s2">"_page"</span> <span class="ow">in</span> <span class="n">state</span><span class="p">:</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">"_page"</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="s2">"page"</span> <span class="ow">in</span> <span class="n">state</span><span class="p">:</span>
+        <span class="c1"># Pages pickled by a previous release store their image under `page` (a plain instance attribute back then)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">"page"</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">' object has no attribute 'page'"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">image</span><span class="p">()</span> <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">image</span><span class="p">)</span> <span class="k">else</span> <span class="n">image</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_set_page_image</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">image</span><span class="p">:</span> <span class="n">PageImage</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="c1"># Drop the legacy entry of a page unpickled from a previous release, so that it cannot shadow the new image</span>
+    <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"page"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_page</span> <span class="o">=</span> <span class="n">image</span>
+
+
+<span class="n">_page_image_property</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span>
+    <span class="n">_get_page_image</span><span class="p">,</span>
+    <span class="n">_set_page_image</span><span class="p">,</span>
+    <span class="n">doc</span><span class="o">=</span><span class="s2">"the page image as a numpy array (decoded on access when the page was predicted from a lazy page source)"</span><span class="p">,</span>
+<span class="p">)</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">Element</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
@@ -994,7 +1026,7 @@
 <span class="w">    </span><span class="sd">"""Implements a page element as a collection of blocks</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        page: image encoded as a numpy array in uint8</span>
+<span class="sd">        page: image encoded as a numpy array in uint8, or a callable returning it (decoded on access)</span>
 <span class="sd">        blocks: list of block elements</span>
 <span class="sd">        page_idx: the index of the page in the input raw document</span>
 <span class="sd">        dimensions: the page size in pixels in format (height, width)</span>
@@ -1010,9 +1042,11 @@
     <span class="n">layout</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">LayoutElement</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">tables</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Table</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
+    <span class="n">page</span> <span class="o">=</span> <span class="n">_page_image_property</span>
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">page</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">page</span><span class="p">:</span> <span class="n">PageImage</span><span class="p">,</span>
         <span class="n">blocks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Block</span><span class="p">],</span>
         <span class="n">page_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">dimensions</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
@@ -1095,7 +1129,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        predictions: Dictionary with list of block elements for each detection class</span>
-<span class="sd">        page: image encoded as a numpy array in uint8</span>
+<span class="sd">        page: image encoded as a numpy array in uint8, or a callable returning it (decoded on access)</span>
 <span class="sd">        page_idx: the index of the page in the input raw document</span>
 <span class="sd">        dimensions: the page size in pixels in format (height, width)</span>
 <span class="sd">        orientation: a dictionary with the value of the rotation angle in degress and confidence of the prediction</span>
@@ -1108,9 +1142,11 @@
     <span class="n">predictions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Prediction</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">layout</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">LayoutElement</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
+    <span class="n">page</span> <span class="o">=</span> <span class="n">_page_image_property</span>
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">page</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">page</span><span class="p">:</span> <span class="n">PageImage</span><span class="p">,</span>
         <span class="n">predictions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Prediction</span><span class="p">]],</span>
         <span class="n">page_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">dimensions</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>

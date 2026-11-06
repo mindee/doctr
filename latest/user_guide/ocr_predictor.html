@@ -949,6 +949,11 @@ Pad the boxes</label><div class="sd-tab-content docutils">
 <p>Good to know:</p>
 <ul class="simple">
 <li><p>Hooks run in the order they were added, each one receiving the output of the previous one.</p></li>
+<li><p>A list of pages is processed in a single pass: hooks receive all its pages at once. Lazy page sources, iterators
+and <code class="docutils literal notranslate"><span class="pre">stream()</span></code> are processed chunk by chunk instead (<code class="docutils literal notranslate"><span class="pre">page_chunk_size</span></code> pages at a time, 32 by default, see
+<a class="reference internal" href="loading_documents.html#long-documents-large-collections"><span class="std std-ref">Long documents &amp; large collections</span></a>): hooks are then called once per chunk, with the pages of
+that chunk only. For those, don’t rely on the number of pages a hook receives, or on a list position as the page
+index in the whole document.</p></li>
 <li><p>Each returned box keeps the <code class="docutils literal notranslate"><span class="pre">objectness_score</span></code> of the closest detected box of its page; a box added on a page
 without any detection gets a score of <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></li>
 <li><p>With the <a class="reference internal" href="kie.html"><span class="std std-doc">KIE predictor</span></a>, hooks receive and return a dict with one such list per class.</p></li>
@@ -961,19 +966,36 @@ without any detection gets a score of <code class="docutils literal notranslate"
 <li><p><strong>Reuse the predictor</strong>: building it is the expensive part.</p></li>
 <li><p><strong>Batch your pages</strong>: one call on a list of pages is faster than one call per page, as the models process
 several pages and word crops at once (see <code class="docutils literal notranslate"><span class="pre">det_bs</span></code> and <code class="docutils literal notranslate"><span class="pre">reco_bs</span></code> above).</p></li>
-<li><p><strong>Free memory between documents</strong>: the predictor returns plain Python objects, so drop the results you no
-longer need.</p></li>
+<li><p><strong>Open long documents lazily</strong>: with <code class="docutils literal notranslate"><span class="pre">lazy=True</span></code>, pages are only decoded when they are processed, and the predictor
+works chunk by chunk (<code class="docutils literal notranslate"><span class="pre">page_chunk_size</span></code> pages at a time). A 1,000-page PDF or a folder of 100k images can then be
+passed in a single call (see <a class="reference internal" href="loading_documents.html#long-documents-large-collections"><span class="std std-ref">Long documents &amp; large collections</span></a>).</p></li>
+<li><p><strong>Stream the results</strong>: <a class="reference internal" href="../api/models.html#doctr.models.predictor.OCRPredictor.stream" title="doctr.models.predictor.OCRPredictor.stream"><code class="xref py py-meth docutils literal notranslate"><span class="pre">stream()</span></code></a> yields the pages as soon as they are
+processed, so that the results can be written as you go.</p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentFile</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentFile</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
 
-<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">page_chunk_size</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
 
-<span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">"invoices"</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"*.pdf"</span><span class="p">)):</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_pdf</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
-    <span class="n">path</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">".txt"</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">render</span><span class="p">())</span>
+<span class="c1"># Every PDF and image of a folder, as one lazy document</span>
+<span class="n">doc</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_files</span><span class="p">(</span><span class="s2">"invoices/"</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">predictor</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">doc</span><span class="p">):</span>
+    <span class="c1"># The source of the page in `doc.sources`: each PDF, and each run of consecutive images, is one source</span>
+    <span class="n">source_idx</span><span class="p">,</span> <span class="n">page_idx</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">locate</span><span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">page_idx</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"source #</span><span class="si">{</span><span class="n">source_idx</span><span class="si">}</span><span class="s2">, page </span><span class="si">{</span><span class="n">page_idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">page</span><span class="o">.</span><span class="n">render</span><span class="p">()[:</span><span class="mi">80</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Page sources, iterators (e.g. a generator of frames) and <code class="docutils literal notranslate"><span class="pre">stream()</span></code> are processed chunk by chunk, and <code class="docutils literal notranslate"><span class="pre">page_idx</span></code> is
+always the index of the page in the whole input. Hooks are therefore called once per chunk, with the location
+predictions of its pages. Lists and tuples of pages are processed in a single pass, as a whole: pass them to <code class="docutils literal notranslate"><span class="pre">stream()</span></code>
+to process them chunk by chunk.</p>
+<p>On large collections, a single unreadable file should not stop the whole run: with <code class="docutils literal notranslate"><span class="pre">on_error=&quot;skip&quot;</span></code>, the pages that
+cannot be read are left out with a warning (their <code class="docutils literal notranslate"><span class="pre">page_idx</span></code> shows as a gap), and the run goes on. A callable receives
+the index of each skipped page and the error instead:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">skipped</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">predictor</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">on_error</span><span class="o">=</span><span class="k">lambda</span> <span class="n">page_idx</span><span class="p">,</span> <span class="n">error</span><span class="p">:</span> <span class="n">skipped</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">page_idx</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">)))):</span>
+    <span class="o">...</span>
 </pre></div>
 </div>
 </section>

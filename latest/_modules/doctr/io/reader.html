@@ -524,8 +524,10 @@
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">TypeAlias</span><span class="p">,</span> <span class="n">overload</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
@@ -533,40 +535,124 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils.common_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractFile</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.html</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_html</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.image</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_img_as_numpy</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.pdf</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_pdf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.sources</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_PAGE_ERRORS</span><span class="p">,</span>
+    <span class="n">IMAGE_EXTENSIONS</span><span class="p">,</span>
+    <span class="n">ConcatSource</span><span class="p">,</span>
+    <span class="n">ImageSource</span><span class="p">,</span>
+    <span class="n">PageDecodeError</span><span class="p">,</span>
+    <span class="n">PageSource</span><span class="p">,</span>
+    <span class="n">PDFSource</span><span class="p">,</span>
+    <span class="n">_file_name</span><span class="p">,</span>
+    <span class="n">_is_pdf</span><span class="p">,</span>
+    <span class="n">_list_files</span><span class="p">,</span>
+    <span class="n">_UnreadablePage</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"DocumentFile"</span><span class="p">]</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1"># What to do with a file that cannot be read (missing, not an image, a corrupted PDF...): raise the error, skip it</span>
+<span class="c1"># with a warning, or skip it and call a function with the file and the error</span>
+<span class="n">OnFileError</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"raise"</span><span class="p">,</span> <span class="s2">"skip"</span><span class="p">]</span> <span class="o">|</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">AbstractFile</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">],</span> <span class="n">Any</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_skip_file</span><span class="p">(</span><span class="n">on_error</span><span class="p">:</span> <span class="n">OnFileError</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="n">error</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Report a file that cannot be read, and is left out of the document"""</span>
+    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">on_error</span><span class="p">):</span>
+        <span class="n">on_error</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Skipping </span><span class="si">{</span><span class="n">_file_name</span><span class="p">(</span><span class="n">file</span><span class="p">)</span><span class="si">}</span><span class="s2">, which cannot be read: </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_file_at</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">ConcatSource</span><span class="p">,</span> <span class="n">origins</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AbstractFile</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AbstractFile</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The input of a page of a concatenation built by `DocumentFile.from_files`</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        doc: the concatenation</span>
+<span class="sd">        origins: the input of each source of `doc` (a path, bytes or a URL), or None for a source of images</span>
+<span class="sd">        idx: the page index in the concatenation</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        the input the page comes from, e.g. the URL of a rendered web page rather than its PDF content</span>
+<span class="sd">    """</span>
+    <span class="n">source_idx</span><span class="p">,</span> <span class="n">page_idx</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">locate</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">sources</span><span class="p">[</span><span class="n">source_idx</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">source</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="n">page_idx</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">ImageSource</span><span class="p">)</span> <span class="k">else</span> <span class="n">origins</span><span class="p">[</span><span class="n">source_idx</span><span class="p">]</span>  <span class="c1"># type: ignore[return-value]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_materialize</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">PageSource</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Decode every page of a source into memory"""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
 
 <div class="viewcode-block" id="DocumentFile">
 <a class="viewcode-back" href="../../../api/io.html#doctr.io.DocumentFile">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DocumentFile</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Read a document from multiple extensions"""</span>
+<span class="w">    </span><span class="sd">"""Read a document from multiple extensions</span>
+
+<span class="sd">    Every reader decodes all the pages into a list of numpy arrays by default. Pass `lazy=True` to get a</span>
+<span class="sd">    :class:`~doctr.io.PageSource` instead: it behaves like that list, but a page is only decoded when it is</span>
+<span class="sd">    accessed. Predictors process page sources chunk by chunk, so that very long documents (1000+ pages) or</span>
+<span class="sd">    huge collections of images can be passed in a single call with a bounded memory footprint.</span>
+<span class="sd">    """</span>
+
+    <span class="nd">@overload</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_pdf</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="n">lazy</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">=</span> <span class="o">...</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span> <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_pdf</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="n">lazy</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="kc">True</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PDFSource</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_pdf</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="n">lazy</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">|</span> <span class="n">PDFSource</span><span class="p">:</span> <span class="o">...</span>
 
 <div class="viewcode-block" id="DocumentFile.from_pdf">
 <a class="viewcode-back" href="../../../api/io.html#doctr.io.DocumentFile.from_pdf">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_pdf</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_pdf</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="n">lazy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">|</span> <span class="n">PDFSource</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Read a PDF file</span>
 
 <span class="sd">        &gt;&gt;&gt; from doctr.io import DocumentFile</span>
 <span class="sd">        &gt;&gt;&gt; doc = DocumentFile.from_pdf("path/to/your/doc.pdf")</span>
+<span class="sd">        &gt;&gt;&gt; # Pages are rendered on demand: suited for very long documents</span>
+<span class="sd">        &gt;&gt;&gt; doc = DocumentFile.from_pdf("path/to/your/long_doc.pdf", lazy=True)</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            file: the path to the PDF file or a binary stream</span>
-<span class="sd">            **kwargs: additional parameters to :meth:`pypdfium2.PdfPage.render`</span>
+<span class="sd">            lazy: if True, return a :class:`~doctr.io.PDFSource` rendering the pages on demand</span>
+<span class="sd">            **kwargs: additional parameters to :class:`~doctr.io.PDFSource` (`scale`, `rgb_mode`, `password`)</span>
+<span class="sd">                and :meth:`pypdfium2.PdfPage.render`</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            the list of pages decoded as numpy ndarray of shape H x W x 3</span>
+<span class="sd">            the list of pages decoded as numpy ndarray of shape H x W x 3, or a lazy source if `lazy` is True</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="n">read_pdf</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">PDFSource</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">source</span> <span class="k">if</span> <span class="n">lazy</span> <span class="k">else</span> <span class="n">_materialize</span><span class="p">(</span><span class="n">source</span><span class="p">)</span></div>
 
+
+    <span class="nd">@overload</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_url</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">lazy</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">=</span> <span class="o">...</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span> <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_url</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">lazy</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="kc">True</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PDFSource</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_url</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">lazy</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">|</span> <span class="n">PDFSource</span><span class="p">:</span> <span class="o">...</span>
 
 <div class="viewcode-block" id="DocumentFile.from_url">
 <a class="viewcode-back" href="../../../api/io.html#doctr.io.DocumentFile.from_url">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_url</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_url</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">lazy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">|</span> <span class="n">PDFSource</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Interpret a web page as a PDF document</span>
 
 <span class="sd">        &gt;&gt;&gt; from doctr.io import DocumentFile</span>
@@ -574,10 +660,11 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            url: the URL of the target web page</span>
-<span class="sd">            **kwargs: additional parameters to :meth:`pypdfium2.PdfPage.render`</span>
+<span class="sd">            lazy: if True, return a :class:`~doctr.io.PDFSource` rendering the pages on demand</span>
+<span class="sd">            **kwargs: additional parameters to :class:`~doctr.io.PDFSource` and :meth:`pypdfium2.PdfPage.render`</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            the list of pages decoded as numpy ndarray of shape H x W x 3</span>
+<span class="sd">            the list of pages decoded as numpy ndarray of shape H x W x 3, or a lazy source if `lazy` is True</span>
 <span class="sd">        """</span>
         <span class="n">requires_package</span><span class="p">(</span>
             <span class="s2">"weasyprint"</span><span class="p">,</span>
@@ -585,29 +672,195 @@
             <span class="o">+</span> <span class="s2">"Installation instructions: https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#installation"</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">pdf_stream</span> <span class="o">=</span> <span class="n">read_html</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_pdf</span><span class="p">(</span><span class="n">pdf_stream</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">PDFSource</span><span class="p">(</span><span class="n">pdf_stream</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">source</span> <span class="k">if</span> <span class="n">lazy</span> <span class="k">else</span> <span class="n">_materialize</span><span class="p">(</span><span class="n">source</span><span class="p">)</span></div>
 
+
+    <span class="nd">@overload</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_images</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">files</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">AbstractFile</span><span class="p">]</span> <span class="o">|</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="n">lazy</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">=</span> <span class="o">...</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span> <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_images</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">files</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">AbstractFile</span><span class="p">]</span> <span class="o">|</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="n">lazy</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="kc">True</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImageSource</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_images</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">files</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">AbstractFile</span><span class="p">]</span> <span class="o">|</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="n">lazy</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">|</span> <span class="n">ImageSource</span><span class="p">:</span> <span class="o">...</span>
 
 <div class="viewcode-block" id="DocumentFile.from_images">
 <a class="viewcode-back" href="../../../api/io.html#doctr.io.DocumentFile.from_images">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_images</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">files</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">AbstractFile</span><span class="p">]</span> <span class="o">|</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_images</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">files</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">AbstractFile</span><span class="p">]</span> <span class="o">|</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="n">lazy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">|</span> <span class="n">ImageSource</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Read an image file (or a collection of image files) and convert it into an image in numpy format</span>
 
 <span class="sd">        &gt;&gt;&gt; from doctr.io import DocumentFile</span>
 <span class="sd">        &gt;&gt;&gt; pages = DocumentFile.from_images(["path/to/your/page1.png", "path/to/your/page2.png"])</span>
+<span class="sd">        &gt;&gt;&gt; # Every image of a folder (sorted by name), decoded on demand</span>
+<span class="sd">        &gt;&gt;&gt; pages = DocumentFile.from_images("path/to/your/folder", lazy=True)</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            files: the path to the image file or a binary stream, or a collection of those</span>
+<span class="sd">            files: the path to an image file, to a directory of images, or an image as bytes, or a collection of those</span>
+<span class="sd">            lazy: if True, return a :class:`~doctr.io.ImageSource` decoding the images on demand</span>
 <span class="sd">            **kwargs: additional parameters to :meth:`doctr.io.image.read_img_as_numpy`</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            the list of pages decoded as numpy ndarray of shape H x W x 3</span>
+<span class="sd">            the list of pages decoded as numpy ndarray of shape H x W x 3, or a lazy source if `lazy` is True</span>
 <span class="sd">        """</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)):</span>
-            <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">files</span><span class="p">]</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">ImageSource</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">source</span> <span class="k">if</span> <span class="n">lazy</span> <span class="k">else</span> <span class="n">_materialize</span><span class="p">(</span><span class="n">source</span><span class="p">)</span></div>
 
-        <span class="k">return</span> <span class="p">[</span><span class="n">read_img_as_numpy</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span></div>
+
+    <span class="nd">@overload</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_files</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">files</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">AbstractFile</span><span class="p">]</span> <span class="o">|</span> <span class="n">AbstractFile</span><span class="p">,</span>
+        <span class="n">lazy</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">=</span> <span class="o">...</span><span class="p">,</span>
+        <span class="n">pdf_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="o">...</span><span class="p">,</span>
+        <span class="n">image_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="o">...</span><span class="p">,</span>
+        <span class="n">on_error</span><span class="p">:</span> <span class="n">OnFileError</span> <span class="o">=</span> <span class="o">...</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span> <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_files</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">files</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">AbstractFile</span><span class="p">]</span> <span class="o">|</span> <span class="n">AbstractFile</span><span class="p">,</span>
+        <span class="n">lazy</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="kc">True</span><span class="p">],</span>
+        <span class="n">pdf_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="o">...</span><span class="p">,</span>
+        <span class="n">image_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="o">...</span><span class="p">,</span>
+        <span class="n">on_error</span><span class="p">:</span> <span class="n">OnFileError</span> <span class="o">=</span> <span class="o">...</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ConcatSource</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_files</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">files</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">AbstractFile</span><span class="p">]</span> <span class="o">|</span> <span class="n">AbstractFile</span><span class="p">,</span>
+        <span class="n">lazy</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">pdf_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="o">...</span><span class="p">,</span>
+        <span class="n">image_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="o">...</span><span class="p">,</span>
+        <span class="n">on_error</span><span class="p">:</span> <span class="n">OnFileError</span> <span class="o">=</span> <span class="o">...</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">|</span> <span class="n">ConcatSource</span><span class="p">:</span> <span class="o">...</span>
+
+<div class="viewcode-block" id="DocumentFile.from_files">
+<a class="viewcode-back" href="../../../api/io.html#doctr.io.DocumentFile.from_files">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_files</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">files</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">AbstractFile</span><span class="p">]</span> <span class="o">|</span> <span class="n">AbstractFile</span><span class="p">,</span>
+        <span class="n">lazy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">pdf_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">image_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">on_error</span><span class="p">:</span> <span class="n">OnFileError</span> <span class="o">=</span> <span class="s2">"raise"</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">|</span> <span class="n">ConcatSource</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Read any mix of PDFs, images, directories and URLs as a single document, in the given order</span>
+
+<span class="sd">        &gt;&gt;&gt; from doctr.io import DocumentFile</span>
+<span class="sd">        &gt;&gt;&gt; doc = DocumentFile.from_files(["cover.png", "report.pdf", "path/to/scans/"], lazy=True)</span>
+<span class="sd">        &gt;&gt;&gt; source_idx, page_idx = doc.locate(42)  # the source (in `doc.sources`) of the 43rd page</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            files: a path (to a PDF, an image or a directory), a URL, a PDF or an image as bytes,</span>
+<span class="sd">                or a collection of those. Directories are expanded (non-recursively) to the PDFs and images they</span>
+<span class="sd">                contain, sorted by name.</span>
+<span class="sd">            lazy: if True, return a :class:`~doctr.io.ConcatSource` decoding the pages on demand</span>
+<span class="sd">            pdf_kwargs: keyword arguments of :class:`~doctr.io.PDFSource`, applied to every PDF and URL</span>
+<span class="sd">            image_kwargs: keyword arguments of :meth:`doctr.io.image.read_img_as_numpy`, applied to every image</span>
+<span class="sd">            on_error: what to do with a file that cannot be read (missing, not an image, a corrupted PDF, an</span>
+<span class="sd">                unreachable URL...): "raise" (default) the error, "skip" the file with a warning, or a callable to</span>
+<span class="sd">                skip it and call with the file (or URL) and the error. Images are checked from their header: a</span>
+<span class="sd">                corrupted content is only detected when the image is decoded, i.e. here if `lazy` is False, and by</span>
+<span class="sd">                the predictor otherwise (cf. the `on_error` argument of</span>
+<span class="sd">                :meth:`~doctr.models.predictor.OCRPredictor.stream`).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            the list of pages decoded as numpy ndarray of shape H x W x 3, or a lazy source if `lazy` is True</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">on_error</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"raise"</span><span class="p">,</span> <span class="s2">"skip"</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">callable</span><span class="p">(</span><span class="n">on_error</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"`on_error` must be 'raise', 'skip' or a callable, got </span><span class="si">{</span><span class="n">on_error</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">pdf_kwargs</span> <span class="o">=</span> <span class="n">pdf_kwargs</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="n">image_kwargs</span> <span class="o">=</span> <span class="n">image_kwargs</span> <span class="ow">or</span> <span class="p">{}</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_readable</span><span class="p">(</span><span class="n">file</span><span class="p">:</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="n">open_file</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+            <span class="c1"># The opened file, or None if it cannot be read and errors are skipped</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">open_file</span><span class="p">()</span>
+            <span class="k">except</span> <span class="n">_PAGE_ERRORS</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">on_error</span> <span class="o">==</span> <span class="s2">"raise"</span><span class="p">:</span>
+                    <span class="k">raise</span>
+                <span class="n">_skip_file</span><span class="p">(</span><span class="n">on_error</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">inputs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AbstractFile</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="p">[</span><span class="n">files</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">))</span> <span class="k">else</span> <span class="n">files</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">))</span> <span class="ow">and</span> <span class="n">Path</span><span class="p">(</span><span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+                <span class="n">inputs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_list_files</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">file</span><span class="p">),</span> <span class="p">(</span><span class="s2">".pdf"</span><span class="p">,</span> <span class="o">*</span><span class="n">IMAGE_EXTENSIONS</span><span class="p">)))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">inputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_open_url</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PDFSource</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">pdf_kwargs</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">PageDecodeError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="c1"># An unreachable page (`weasyprint.urls.URLFetchingError` is an `OSError`), or one rendered to an</span>
+                <span class="c1"># invalid PDF: a file that cannot be read, named by its URL rather than by its PDF content</span>
+                <span class="k">raise</span> <span class="n">PageDecodeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unable to read the web page </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+
+        <span class="n">sources</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">PageSource</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># The input of each source (None for a source of images, which knows its files), to name the faulty input of</span>
+        <span class="c1"># a page that cannot be decoded</span>
+        <span class="n">origins</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AbstractFile</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">images</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AbstractFile</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_add_source</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">PageSource</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">origin</span><span class="p">:</span> <span class="n">AbstractFile</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">sources</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+                <span class="n">origins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">origin</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_flush_images</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Consecutive images are grouped into a single source</span>
+            <span class="k">if</span> <span class="n">images</span><span class="p">:</span>
+                <span class="n">_add_source</span><span class="p">(</span><span class="n">ImageSource</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">images</span><span class="p">),</span> <span class="o">**</span><span class="n">image_kwargs</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">images</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">file</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s2">"http://"</span><span class="p">,</span> <span class="s2">"https://"</span><span class="p">)):</span>
+                <span class="n">_flush_images</span><span class="p">()</span>
+                <span class="n">_add_source</span><span class="p">(</span><span class="n">_readable</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">_open_url</span><span class="p">(</span><span class="n">file</span><span class="p">)),</span> <span class="n">file</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">))</span> <span class="ow">and</span> <span class="n">_is_pdf</span><span class="p">(</span><span class="n">file</span><span class="p">):</span>
+                <span class="n">_flush_images</span><span class="p">()</span>
+                <span class="n">_add_source</span><span class="p">(</span><span class="n">_readable</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">PDFSource</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="o">**</span><span class="n">pdf_kwargs</span><span class="p">)),</span> <span class="n">file</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">on_error</span> <span class="o">==</span> <span class="s2">"raise"</span> <span class="ow">or</span> <span class="n">_readable</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ImageSource</span><span class="p">([</span><span class="n">file</span><span class="p">],</span> <span class="o">**</span><span class="n">image_kwargs</span><span class="p">))</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># When skipping errors, every image is checked on its own, so that one bad file only skips itself</span>
+                <span class="n">images</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+        <span class="n">_flush_images</span><span class="p">()</span>
+
+        <span class="n">source</span> <span class="o">=</span> <span class="n">ConcatSource</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">lazy</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">source</span>
+        <span class="k">if</span> <span class="n">on_error</span> <span class="o">==</span> <span class="s2">"raise"</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_materialize</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+        <span class="c1"># Decode every page, skipping those that cannot be read</span>
+        <span class="n">pages</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">page</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">_iter_indices</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="p">)),</span> <span class="n">skip_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">_UnreadablePage</span><span class="p">):</span>
+                    <span class="n">_skip_file</span><span class="p">(</span><span class="n">on_error</span><span class="p">,</span> <span class="n">_file_at</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">origins</span><span class="p">,</span> <span class="n">idx</span><span class="p">),</span> <span class="n">page</span><span class="o">.</span><span class="n">error</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">pages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">pages</span></div>
 </div>
 
 </pre></div>

@@ -601,7 +601,8 @@ reading pre-cropped words, classifying orientations…</p>
 </table>
 </div>
 <p>All of them take a <strong>list of images</strong> (NumPy arrays of shape <code class="docutils literal notranslate"><span class="pre">(H,</span> <span class="pre">W,</span> <span class="pre">3)</span></code>, <code class="docutils literal notranslate"><span class="pre">uint8</span></code>, RGB) and return one result per
-image. As with the OCR predictor, pass <code class="docutils literal notranslate"><span class="pre">pretrained=True</span></code> to load trained weights.</p>
+image. They also accept a <a class="reference internal" href="loading_documents.html#long-documents-large-collections"><span class="std std-ref">lazy page source</span></a> or any iterable
+of images (see <a class="reference internal" href="#long-inputs">below</a>). As with the OCR predictor, pass <code class="docutils literal notranslate"><span class="pre">pretrained=True</span></code> to load trained weights.</p>
 <section id="text-detection">
 <h2>Text detection<a class="headerlink" href="#text-detection" title="Link to this heading">#</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentFile</span>
@@ -659,6 +660,50 @@ lines or pages, use the OCR predictor, which detects the words first.</p>
 </div>
 <p>They are used by the OCR predictor for <a class="reference internal" href="rotated_documents.html"><span class="std std-doc">rotated documents</span></a>, and can be
 <a class="reference internal" href="../training/custom_models.html#orientation-classifiers"><span class="std std-ref">retrained on your data</span></a>.</p>
+</section>
+<section id="long-inputs">
+<h2>Long inputs<a class="headerlink" href="#long-inputs" title="Link to this heading">#</a></h2>
+<p>Like the OCR predictor, every task-specific predictor takes a lazy page source (<code class="docutils literal notranslate"><span class="pre">DocumentFile.from_pdf(...,</span> <span class="pre">lazy=True)</span></code>, <code class="docutils literal notranslate"><span class="pre">from_images</span></code>, <code class="docutils literal notranslate"><span class="pre">from_files</span></code>), a slice of one, a tuple or a generator, and processes long inputs <strong>chunk by
+chunk</strong>: <code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> images are decoded and processed at a time, and the next chunk of a page source is decoded in a
+background thread while the model runs on the current one. The memory footprint therefore does not grow with the
+number of images, and the output is the same as for a list:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">layout_predictor</span><span class="p">,</span> <span class="n">recognition_predictor</span>
+
+<span class="c1"># The layout regions of every page of a long PDF</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">layout_predictor</span><span class="p">(</span><span class="s2">"lw_detr_s"</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">regions</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_pdf</span><span class="p">(</span><span class="s2">"path/to/1000_pages.pdf"</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
+<span class="c1"># A folder of 100k word crops</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="s2">"crnn_vgg16_bn"</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">chunk_size</span><span class="o">=</span><span class="mi">2048</span><span class="p">)</span>
+<span class="n">words</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_images</span><span class="p">(</span><span class="s2">"path/to/word_crops/"</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Predictors</p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> default</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Detection, layout, table structure, page orientation</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">32</span></code> images</p></td>
+</tr>
+<tr class="row-odd"><td><p>Recognition, crop orientation (much smaller crops)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1024</span></code> crops</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> is rounded up to a multiple of <code class="docutils literal notranslate"><span class="pre">batch_size</span></code>, so that the model processes the same batches as for a list,
+and the predictions do not change (the recognition predictor splits very wide crops within each chunk, which can only
+shift its batch boundaries). Lists and tuples of at most <code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> images are processed at once, exactly as before.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Unlike the predictions of the OCR predictor, the outputs of the task-specific predictors are plain lists, built once
+the whole input is processed. With <code class="docutils literal notranslate"><span class="pre">return_maps=True</span></code>, the detection predictor returns the segmentation map of every
+page: on a long input, these maps add up.</p>
+</div>
 </section>
 <section id="accessing-the-models">
 <h2>Accessing the models<a class="headerlink" href="#accessing-the-models" title="Link to this heading">#</a></h2>
@@ -726,6 +771,7 @@ notebook shows these predictors in action.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#text-recognition">Text recognition</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#layout-analysis-table-structure">Layout analysis &amp; table structure</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#orientation-classifiers">Orientation classifiers</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#long-inputs">Long inputs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#accessing-the-models">Accessing the models</a></li>
 </ul>
   </nav></div>

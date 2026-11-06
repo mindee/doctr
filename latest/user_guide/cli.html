@@ -633,8 +633,8 @@ falls back to JSON. Use <code class="docutils literal notranslate"><span class="
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--input_path</span></code></p></td>
-<td><p>—</p></td>
-<td><p><strong>Required.</strong> One or more images, PDF files, or <code class="docutils literal notranslate"><span class="pre">http(s)://</span></code> URLs of web pages</p></td>
+<td><p>-</p></td>
+<td><p><strong>Required.</strong> One or more images, PDF files, folders of those, or <code class="docutils literal notranslate"><span class="pre">http(s)://</span></code> URLs of web pages</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--pdf_password</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
@@ -643,6 +643,14 @@ falls back to JSON. Use <code class="docutils literal notranslate"><span class="
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--pdf_scale</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">2</span></code></p></td>
 <td><p>PDF rendering scale (1 corresponds to 72 dpi)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--page_chunk_size</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">32</span></code></p></td>
+<td><p>Number of pages decoded &amp; processed at once: bounds the memory footprint on long documents</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--on_error</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">raise</span></code></p></td>
+<td><p>A file of a folder or a page that cannot be read: <code class="docutils literal notranslate"><span class="pre">raise</span></code> stops the run (the results of the pages before it are still saved), <code class="docutils literal notranslate"><span class="pre">skip</span></code> skips it with a warning</p></td>
 </tr>
 </tbody>
 </table>
