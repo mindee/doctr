@@ -19,6 +19,7 @@ from .sources import (
     IMAGE_EXTENSIONS,
     ConcatSource,
     ImageSource,
+    PageDecodeError,
     PageSource,
     PDFSource,
     _file_name,
@@ -44,11 +45,20 @@ def _skip_file(on_error: OnFileError, file: AbstractFile, error: Exception) -> N
         logger.warning(f"Skipping {_file_name(file)}, which cannot be read: {error}")
 
 
-def _file_at(doc: ConcatSource, idx: int) -> AbstractFile:
-    """The input file of a page of a concatenation built by `DocumentFile.from_files`"""
+def _file_at(doc: ConcatSource, origins: list[AbstractFile | None], idx: int) -> AbstractFile:
+    """The input of a page of a concatenation built by `DocumentFile.from_files`
+
+    Args:
+        doc: the concatenation
+        origins: the input of each source of `doc` (a path, bytes or a URL), or None for a source of images
+        idx: the page index in the concatenation
+
+    Returns:
+        the input the page comes from, e.g. the URL of a rendered web page rather than its PDF content
+    """
     source_idx, page_idx = doc.locate(idx)
     source = doc.sources[source_idx]
-    return source.files[page_idx] if isinstance(source, ImageSource) else source.file  # type: ignore[attr-defined]
+    return source.files[page_idx] if isinstance(source, ImageSource) else origins[source_idx]  # type: ignore[return-value]
 
 
 def _materialize(source: PageSource) -> list[np.ndarray]:
@@ -232,11 +242,12 @@ class DocumentFile:
             lazy: if True, return a :class:`~doctr.io.ConcatSource` decoding the pages on demand
             pdf_kwargs: keyword arguments of :class:`~doctr.io.PDFSource`, applied to every PDF and URL
             image_kwargs: keyword arguments of :meth:`doctr.io.image.read_img_as_numpy`, applied to every image
-            on_error: what to do with a file that cannot be read (missing, not an image, a corrupted PDF...): "raise"
-                (default) the error, "skip" the file with a warning, or a callable to skip it and call with the file
-                and the error. Images are checked from their header: a corrupted content is only detected when the
-                image is decoded, i.e. here if `lazy` is False, and by the predictor otherwise (cf. the `on_error`
-                argument of :meth:`~doctr.models.predictor.OCRPredictor.stream`).
+            on_error: what to do with a file that cannot be read (missing, not an image, a corrupted PDF, an
+                unreachable URL...): "raise" (default) the error, "skip" the file with a warning, or a callable to
+                skip it and call with the file (or URL) and the error. Images are checked from their header: a
+                corrupted content is only detected when the image is decoded, i.e. here if `lazy` is False, and by
+                the predictor otherwise (cf. the `on_error` argument of
+                :meth:`~doctr.models.predictor.OCRPredictor.stream`).
 
         Returns:
             the list of pages decoded as numpy ndarray of shape H x W x 3, or a lazy source if `lazy` is True
@@ -263,24 +274,38 @@ class DocumentFile:
             else:
                 inputs.append(file)
 
+        def _open_url(url: str) -> PDFSource:
+            try:
+                return cls.from_url(url, lazy=True, **pdf_kwargs)
+            except (PageDecodeError, OSError) as e:
+                # An unreachable page (`weasyprint.urls.URLFetchingError` is an `OSError`), or one rendered to an
+                # invalid PDF: a file that cannot be read, named by its URL rather than by its PDF content
+                raise PageDecodeError(f"unable to read the web page {url}: {e}") from e
+
         sources: list[PageSource] = []
+        # The input of each source (None for a source of images, which knows its files), to name the faulty input of
+        # a page that cannot be decoded
+        origins: list[AbstractFile | None] = []
         images: list[AbstractFile] = []
+
+        def _add_source(source: PageSource | None, origin: AbstractFile | None) -> None:
+            if source is not None:
+                sources.append(source)
+                origins.append(origin)
 
         def _flush_images() -> None:
             # Consecutive images are grouped into a single source
             if images:
-                sources.append(ImageSource(list(images), **image_kwargs))
+                _add_source(ImageSource(list(images), **image_kwargs), None)
                 images.clear()
 
         for file in inputs:
             if isinstance(file, str) and file.lower().startswith(("http://", "https://")):
                 _flush_images()
-                sources.append(cls.from_url(file, lazy=True, **pdf_kwargs))
+                _add_source(_readable(file, lambda: _open_url(file)), file)
             elif isinstance(file, (str, Path, bytes)) and _is_pdf(file):
                 _flush_images()
-                pdf = _readable(file, lambda: PDFSource(file, **pdf_kwargs))
-                if pdf is not None:
-                    sources.append(pdf)
+                _add_source(_readable(file, lambda: PDFSource(file, **pdf_kwargs)), file)
             elif on_error == "raise" or _readable(file, lambda: ImageSource([file], **image_kwargs)) is not None:
                 # When skipping errors, every image is checked on its own, so that one bad file only skips itself
                 images.append(file)
@@ -296,7 +321,7 @@ class DocumentFile:
         try:
             for idx, page in enumerate(source._iter_indices(range(len(source)), skip_errors=True)):
                 if isinstance(page, _UnreadablePage):
-                    _skip_file(on_error, _file_at(source, idx), page.error)
+                    _skip_file(on_error, _file_at(source, origins, idx), page.error)
                 else:
                     pages.append(page)
         finally:

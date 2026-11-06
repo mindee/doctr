@@ -7,8 +7,8 @@ import atexit
 import threading
 import weakref
 from bisect import bisect_right
-from collections.abc import Iterable, Iterator, Sequence
-from contextlib import AbstractContextManager, contextmanager, nullcontext
+from collections.abc import Generator, Iterable, Iterator, Sequence
+from contextlib import AbstractContextManager, closing, contextmanager, nullcontext
 from itertools import accumulate, groupby
 from pathlib import Path
 from typing import Any, overload
@@ -53,8 +53,8 @@ def _close_pdf_sources() -> None:  # pragma: no cover
 
 
 class PageDecodeError(ValueError):
-    """Raised when a page of a source cannot be decoded (e.g. an unreadable or corrupted image file, or a PDF that
-    cannot be opened or rendered). The message names the faulty file.
+    """Raised when a page of a source cannot be decoded (e.g. an unreadable or corrupted image file, a PDF that
+    cannot be opened or rendered, or a web page that cannot be fetched). The message names the faulty file or URL.
 
     It subclasses `ValueError`, so that code catching the errors of the eager readers keeps working.
     """
@@ -86,6 +86,17 @@ class _UnreadablePage:
 def _file_name(file: Any) -> str:
     """Name of an input in error messages"""
     return str(file) if isinstance(file, (str, Path)) else "<bytes>"
+
+
+def _same_page(page: np.ndarray, value: Any) -> bool:
+    """Whether a page equals a given image: same shape and pixel values"""
+    return isinstance(value, np.ndarray) and np.array_equal(page, value)
+
+
+def _is_page_sequence(other: Any) -> bool:
+    """Whether an object can be concatenated with a page source: a sequence of pages, which excludes strings and
+    bytes (sequences of characters and integers)"""
+    return isinstance(other, Sequence) and not isinstance(other, (str, bytes, bytearray))
 
 
 def _check_image_header(path: Path) -> None:
@@ -150,7 +161,7 @@ class PageSource(Sequence[np.ndarray]):
         """
         return nullcontext()
 
-    def _iter_indices(self, indices: Iterable[int], skip_errors: bool = False) -> Iterator[Any]:
+    def _iter_indices(self, indices: Iterable[int], skip_errors: bool = False) -> Generator[Any, None, None]:
         """Decode the pages at the given (non-negative, in-range) indices, in this order
 
         Args:
@@ -176,13 +187,50 @@ class PageSource(Sequence[np.ndarray]):
     def __iter__(self) -> Iterator[np.ndarray]:
         return self._iter_indices(range(len(self)))
 
+    def __reversed__(self) -> Iterator[np.ndarray]:
+        # Within a single session, as an iteration (the default implementation would open a PDF once per page)
+        return self._iter_indices(range(len(self) - 1, -1, -1))
+
+    # The `Sequence` implementations compare pages with `==`, which is ambiguous for arrays: pages are compared by
+    # value instead. Each of these decodes the pages until a match is found.
+
+    def index(self, value: Any, start: int = 0, stop: int | None = None) -> int:
+        """Index of the first page equal to a given image (same shape and pixel values)
+
+        Args:
+            value: the image to look for
+            start: the index to start searching from
+            stop: the index to stop searching at (excluded)
+
+        Returns:
+            the index of the first matching page
+        """
+        indices = range(*slice(start, stop).indices(len(self)))
+        # Closed on a match, so that the resources of the iteration (e.g. an open PDF) are released right away
+        with closing(self._iter_indices(indices)) as pages:
+            for idx, page in zip(indices, pages):
+                if _same_page(page, value):
+                    return idx
+        raise ValueError("the image is not a page of the source")
+
+    def count(self, value: Any) -> int:
+        """Number of pages equal to a given image (same shape and pixel values)"""
+        return sum(_same_page(page, value) for page in self)
+
+    def __contains__(self, value: object) -> bool:
+        try:
+            self.index(value)
+        except ValueError:
+            return False
+        return True
+
     def __add__(self, other: Sequence[np.ndarray]) -> "ConcatSource":
-        if not isinstance(other, Sequence):
+        if not _is_page_sequence(other):
             return NotImplemented
         return ConcatSource([self, other])
 
     def __radd__(self, other: Sequence[np.ndarray]) -> "ConcatSource":
-        if not isinstance(other, Sequence):
+        if not _is_page_sequence(other):
             return NotImplemented
         return ConcatSource([other, self])
 
@@ -450,7 +498,7 @@ class ConcatSource(PageSource):
         source_idx, page_idx = self.locate(idx)
         return self.sources[source_idx][page_idx]
 
-    def _iter_indices(self, indices: Iterable[int], skip_errors: bool = False) -> Iterator[Any]:
+    def _iter_indices(self, indices: Iterable[int], skip_errors: bool = False) -> Generator[Any, None, None]:
         # Consecutive pages of the same input are read within one session of that input: a PDF is opened once for
         # them and closed before moving on, so that at most one underlying document is open at a time
         for source_idx, run in groupby(indices, key=lambda idx: bisect_right(self._offsets, idx) - 1):
@@ -490,7 +538,7 @@ class _PageView(PageSource):
         # `with view:` keeps the resources of the source for the block
         return self.source._session()
 
-    def _iter_indices(self, indices: Iterable[int], skip_errors: bool = False) -> Iterator[Any]:
+    def _iter_indices(self, indices: Iterable[int], skip_errors: bool = False) -> Generator[Any, None, None]:
         return self.source._iter_indices((self.indices[idx] for idx in indices), skip_errors=skip_errors)
 
 
@@ -503,11 +551,28 @@ def _list_files(folder: Path, extensions: Sequence[str]) -> list[Path]:
 
 
 def _is_pdf(file: AbstractFile) -> bool:
-    """Whether a file (path or bytes) is a PDF"""
+    """Whether a file (path or bytes) is a PDF: from its extension, or from its header for a path without a PDF or
+    an image extension (e.g. `scan` or `scan.bin`)"""
     if isinstance(file, bytes):
-        # Only look at the beginning of the content: stripping a whole document would copy it
-        return file[:1024].lstrip()[:5] == b"%PDF-"
-    return Path(file).suffix.lower() == ".pdf"
+        return _has_pdf_header(file)
+    path = Path(file)
+    suffix = path.suffix.lower()
+    if suffix == ".pdf":
+        return True
+    if suffix in IMAGE_EXTENSIONS:
+        # No extra read for the files named as images, i.e. almost all of them
+        return False
+    try:
+        with open(path, "rb") as f:
+            return _has_pdf_header(f.read(1024))
+    except OSError:
+        # e.g. a missing file: reported as such by the image reader
+        return False
+
+
+def _has_pdf_header(content: bytes) -> bool:
+    # Only look at the beginning of the content: stripping a whole document would copy it
+    return content[:1024].lstrip()[:5] == b"%PDF-"
 
 
 class _SourcePage:

@@ -564,13 +564,18 @@ def test_set_thresholds_without_postprocessor(monkeypatch, predictor, caplog):
 # Document loading
 
 
-def test_load_document_concatenates_inputs(text_images, mock_pdf):
+def test_load_document_concatenates_inputs(text_images, mock_pdf, tmp_path):
     pages = cli._load_document(cli._parse_args(["--input_path", *text_images, mock_pdf]))
 
     # 2 images + the 2 pages of the mock PDF, decoded on demand
     assert isinstance(pages, ConcatSource)
     assert len(pages) == 4
     assert all(isinstance(page, np.ndarray) and page.ndim == 3 for page in pages)
+
+    # a PDF without extension is recognized from its header
+    no_extension = tmp_path / "scan"
+    no_extension.write_bytes(Path(mock_pdf).read_bytes())
+    assert len(cli._load_document(cli._parse_args(["--input_path", str(no_extension)]))) == 2
 
 
 def test_load_document_forwards_pdf_options(monkeypatch, mock_pdf):

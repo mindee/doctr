@@ -16,6 +16,7 @@ from tqdm import tqdm
 
 from doctr.io import ConcatSource, Document, DocumentFile, PageDecodeError, PageSource
 from doctr.io.figures import IMAGE_FORMATS, IMAGE_MODES, FigureEncoder
+from doctr.io.sources import _is_pdf
 from doctr.models import ocr_predictor
 from doctr.models._utils import _CONFIDENCE_AGGREGATIONS
 from doctr.version import __version__
@@ -111,7 +112,8 @@ def _load_document(args: argparse.Namespace) -> ConcatSource:
         try:
             if input_path.lower().startswith(("http://", "https://")):
                 sources.append(DocumentFile.from_url(input_path, lazy=True, **pdf_kwargs))
-            elif input_path.lower().endswith(".pdf"):
+            elif _is_pdf(input_path):
+                # A PDF from its extension, or from its header for a file without any (e.g. `scan`)
                 sources.append(DocumentFile.from_pdf(input_path, lazy=True, **pdf_kwargs))
             elif Path(input_path).is_dir():
                 # A folder is expanded to the PDFs and the images it contains (non-recursively, sorted by name). With

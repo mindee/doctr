@@ -123,6 +123,13 @@ def test_pdf_source_handles(mock_pdf, monkeypatch):
     next(iterator)
     iterator.close()
     assert source._pdf is None
+    # same for `reversed` and the lookups of a page (`in`, `index`, `count`), also when a match ends them early
+    first = source[0]
+    opened.clear()
+    assert [page.shape for page in reversed(source)] == [page.shape for page in list(source)[::-1]]
+    assert first in source and source.index(first) == 0 and source.count(first) == 1
+    assert len(opened) == 5
+    assert source._pdf is None
 
     # closing it within a `with` block or an iteration is not an issue: it is opened again on demand
     with source:
@@ -205,6 +212,16 @@ def test_image_source(image_folder):
     folder_source = io.ImageSource(image_folder)
     assert [Path(file).name for file in folder_source.files] == ["page_0.png", "page_1.jpg", "page_2.png"]
     assert [page.shape[0] for page in folder_source] == [20, 21, 22]
+
+    # pages are compared by value, not with `==` (ambiguous for arrays), and `reversed` iterates backwards
+    page_1 = folder_source[1]
+    assert page_1 in folder_source and page_1.copy() in folder_source
+    assert np.zeros((5, 5, 3), dtype=np.uint8) not in folder_source and "page_1.jpg" not in folder_source
+    assert folder_source.index(page_1) == 1 and folder_source.count(page_1) == 1
+    assert folder_source.index(page_1, 1, 2) == 1
+    with pytest.raises(ValueError):
+        folder_source.index(page_1, start=2)
+    assert [page.shape[0] for page in reversed(folder_source)] == [22, 21, 20]
 
     # single file, bytes & reader options
     assert len(io.ImageSource(files[0])) == 1
@@ -326,6 +343,12 @@ def test_concat_source(mock_pdf, image_folder):
     assert len(pdf + images) == 5
     assert len(in_memory + pdf) == 3
     assert isinstance(pdf + images, io.ConcatSource)
+    # strings and bytes are sequences, but not of pages
+    for invalid in ("ab", b"ab"):
+        with pytest.raises(TypeError):
+            pdf + invalid
+        with pytest.raises(TypeError):
+            invalid + pdf
     assert len(io.ConcatSource([])) == 0
     assert list(io.ConcatSource([])) == []
 
@@ -402,7 +425,7 @@ def test_document_file_lazy(mock_pdf, image_folder):
     assert io.DocumentFile.from_pdf(mock_pdf, lazy=True, scale=1).scale == 1
 
 
-def test_document_file_from_files(mock_pdf, image_folder, tmp_path, caplog):
+def test_document_file_from_files(mock_pdf, image_folder, tmp_path, caplog, monkeypatch):
     pdf_bytes = Path(mock_pdf).read_bytes()
     image = str(image_folder / "page_0.png")
 
@@ -464,8 +487,33 @@ def test_document_file_from_files(mock_pdf, image_folder, tmp_path, caplog):
     assert len(pages) == 4
     assert skipped == ["c_truncated.pdf", "d_scan.png", "f_truncated.png"]
 
+    # web pages: an unreachable one fails or is skipped like any other input, named by its URL
+    def _from_url(cls, url, lazy=False, **kwargs):
+        if url != "https://up.com":
+            raise OSError("unreachable")  # e.g. `weasyprint.urls.URLFetchingError`
+        return io.PDFSource(pdf_bytes, **kwargs)
 
-def test_is_pdf(mock_pdf):
+    monkeypatch.setattr(io.DocumentFile, "from_url", classmethod(_from_url))
+    with pytest.raises(io.PageDecodeError, match="https://down.com"):
+        io.DocumentFile.from_files(["https://down.com"], lazy=True)
+    skipped.clear()
+    doc = io.DocumentFile.from_files(
+        ["https://down.com", "https://up.com"], lazy=True, on_error=lambda file, error: skipped.append(file)
+    )
+    assert len(doc) == 2
+    assert skipped == ["https://down.com"]
+
+    # the pages of a web page that cannot be rendered are reported with its URL, not with its PDF content
+    def _pdfium_failure(*args, **kwargs):
+        raise pdfium.PdfiumError("Failed to render")
+
+    monkeypatch.setattr(pdfium.PdfPage, "render", _pdfium_failure)
+    skipped.clear()
+    assert io.DocumentFile.from_files(["https://up.com"], on_error=lambda file, error: skipped.append(file)) == []
+    assert skipped == ["https://up.com", "https://up.com"]
+
+
+def test_is_pdf(mock_pdf, tmp_path):
     pdf_bytes = Path(mock_pdf).read_bytes()
     assert sources._is_pdf(pdf_bytes)
     assert sources._is_pdf(b"\n \r\n" + pdf_bytes)
@@ -475,6 +523,15 @@ def test_is_pdf(mock_pdf):
     assert not sources._is_pdf(b" " * 2048 + pdf_bytes)
     assert sources._is_pdf(Path("doc.PDF")) and sources._is_pdf("doc.pdf")
     assert not sources._is_pdf("doc.png")
+    # without a PDF or an image extension, a file is recognized from its header
+    no_extension = tmp_path / "scan"
+    no_extension.write_bytes(pdf_bytes)
+    assert sources._is_pdf(no_extension) and sources._is_pdf(str(no_extension))
+    assert len(io.DocumentFile.from_files([no_extension], lazy=True)) == 2
+    (tmp_path / "scan.bin").write_bytes(b"\x89PNG\r\n")
+    assert not sources._is_pdf(tmp_path / "scan.bin")
+    # missing files and directories are not PDFs
+    assert not sources._is_pdf(tmp_path / "missing") and not sources._is_pdf(tmp_path)
 
 
 # Lazy page images
