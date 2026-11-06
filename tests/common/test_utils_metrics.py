@@ -90,6 +90,45 @@ def test_polygon_iou(rbox1, rbox2, iou, abs_tol):
         metrics.polygon_iou(np.zeros((2, 5), dtype=float), np.ones((3, 4), dtype=float))
 
 
+BOX = [[0, 0], [1, 0], [1, 1], [0, 1]]
+CROSSED = [[0, 0], [1, 1], [1, 0], [0, 1]]  # points not in order: the box crosses itself
+
+
+@pytest.mark.parametrize(
+    "update",
+    [
+        lambda gts: metrics.LocalizationConfusion(use_polygons=True).update(gts, np.asarray([BOX], dtype=float)),
+        lambda gts: metrics.OCRMetric(use_polygons=True).update(
+            gts, np.asarray([BOX], dtype=float), ["a"] * len(gts), ["a"]
+        ),
+        lambda gts: metrics.DetectionMetric(use_polygons=True).update(
+            gts, np.asarray([BOX], dtype=float), np.zeros(len(gts), dtype=int), np.zeros(1, dtype=int)
+        ),
+        lambda gts: metrics.ObjectDetectionMetric(use_polygons=True).update(
+            gts, np.asarray([BOX], dtype=float), np.zeros(len(gts), dtype=int), np.zeros(1, dtype=int), np.ones(1)
+        ),
+        lambda gts: metrics.TableCellMetric(use_polygons=True).update(
+            gts, np.zeros((len(gts), 4), dtype=int), np.asarray([BOX], dtype=float), np.zeros((1, 4), dtype=int)
+        ),
+    ],
+)
+def test_metrics_self_intersecting_gt_boxes(update):
+    # A crossed ground-truth box is a broken annotation: it is reported by index instead of failing inside GEOS
+    with pytest.raises(ValueError, match=r"Ground truth boxes at indices \[0\] are self-intersecting"):
+        update(np.asarray([CROSSED], dtype=float))
+    # Only the bad rows of a batch are reported
+    with pytest.raises(ValueError, match=r"Ground truth boxes at indices \[1, 3\] are self-intersecting"):
+        update(np.asarray([BOX, CROSSED, BOX, CROSSED], dtype=float))
+    # Degenerate boxes (repeated or collinear points) are accepted
+    update(np.asarray([[[0.5, 0.5]] * 4, [[0, 0], [0.5, 0.5], [1, 1], [0.2, 0.2]]], dtype=float))
+
+
+def test_polygon_iou_degenerate_boxes():
+    # Zero-area boxes (repeated or collinear points) keep an IoU of 0
+    degenerate = np.asarray([[[0.5, 0.5]] * 4, [[0, 0], [0.5, 0.5], [1, 1], [0.2, 0.2]]], dtype=float)
+    assert np.all(metrics.polygon_iou(degenerate, np.asarray([BOX], dtype=float)) == 0)
+
+
 @pytest.mark.parametrize(
     "gts, preds, iou_thresh, recall, precision, mean_iou",
     [
