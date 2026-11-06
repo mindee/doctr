@@ -1,4 +1,5 @@
 import logging
+import pickle
 import threading
 import time
 
@@ -10,7 +11,7 @@ from torch import nn
 
 from doctr import models
 from doctr.file_utils import CLASS_NAME
-from doctr.io import Document, DocumentFile, FigureEncoder, PageDecodeError, crop_layout_region
+from doctr.io import ConcatSource, Document, DocumentFile, FigureEncoder, PageDecodeError, crop_layout_region
 from doctr.io.elements import KIEDocument, KIEPage, LayoutElement, Table
 from doctr.models import detection, layout, recognition
 from doctr.models.classification import mobilenet_v3_small_crop_orientation, mobilenet_v3_small_page_orientation
@@ -1152,6 +1153,19 @@ def test_predictors_lazy_source(tmp_path, caplog, predictor_cls, doc_cls):
     assert all(type(page._page).__name__ == "_SourcePage" for page in out.pages)
     assert all(np.array_equal(page.page, image) for page, image in zip(out.pages, pages))
     assert type(predictor(source[:0])) is doc_cls
+    # the reference points to the file of the page only: a prediction pickles without the rest of the document
+    assert [page._page.source.files for page in out.pages] == [[file] for file in source.files]
+    restored = pickle.loads(pickle.dumps(out.pages[3]))
+    assert np.array_equal(restored.page, pages[3])
+
+    # in a concatenation, the pages of an in-memory list keep their image, the others reference their own input
+    in_memory = _value_pages(2)
+    out = predictor(ConcatSource([in_memory, source]))
+    assert [page.page_idx for page in out.pages] == list(range(7))
+    assert all(page.page is image for page, image in zip(out.pages[:2], in_memory))
+    assert [page._page.source.files for page in out.pages[2:]] == [[file] for file in source.files]
+    # pickling a page of the lazy part leaves the in-memory pages out
+    assert len(pickle.dumps(out.pages[2])) < len(pickle.dumps(in_memory[0]))
 
     # a page that cannot be decoded (valid header, corrupted content) is only detected while processing
     (tmp_path / "page_2.png").write_bytes((tmp_path / "page_0.png").read_bytes()[:60])

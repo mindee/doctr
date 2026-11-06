@@ -153,6 +153,18 @@ class PageSource(Sequence[np.ndarray]):
             raise IndexError(f"page index {idx} is out of range for a document of {num_pages} page(s)")
         return self._load(_idx)
 
+    def _page_ref(self, idx: int) -> "_SourcePage | None":
+        """A reference decoding the page at a given (non-negative, in-range) index again on demand, kept by the
+        predictions instead of the page image.
+
+        It points to the input of the page only (e.g. its image file, rather than every file of a folder), so that
+        pickling or copying a prediction does not carry the whole document along.
+
+        Returns:
+            the reference, or None if the page is held in memory anyway (it is then kept as is)
+        """
+        return _SourcePage(self, idx)
+
     def _session(self) -> AbstractContextManager[Any]:
         """Context during which the resources needed to decode the pages (e.g. an open PDF) are kept.
 
@@ -205,16 +217,20 @@ class PageSource(Sequence[np.ndarray]):
         Returns:
             the index of the first matching page
         """
-        indices = range(*slice(start, stop).indices(len(self)))
-        # Closed on a match, so that the resources of the iteration (e.g. an open PDF) are released right away
-        with closing(self._iter_indices(indices)) as pages:
-            for idx, page in zip(indices, pages):
-                if _same_page(page, value):
-                    return idx
+        # Only an array can be a page: anything else is not found without decoding any page
+        if isinstance(value, np.ndarray):
+            indices = range(*slice(start, stop).indices(len(self)))
+            # Closed on a match, so that the resources of the iteration (e.g. an open PDF) are released right away
+            with closing(self._iter_indices(indices)) as pages:
+                for idx, page in zip(indices, pages):
+                    if _same_page(page, value):
+                        return idx
         raise ValueError("the image is not a page of the source")
 
     def count(self, value: Any) -> int:
         """Number of pages equal to a given image (same shape and pixel values)"""
+        if not isinstance(value, np.ndarray):
+            return 0
         return sum(_same_page(page, value) for page in self)
 
     def __contains__(self, value: object) -> bool:
@@ -374,7 +390,11 @@ class PDFSource(PageSource):
                 try:
                     bitmap = page.render(scale=self.scale, rev_byteorder=self.rgb_mode, **self.render_kwargs)
                     # The bitmap buffer is allocated by Python: the array safely outlives the pdfium page & document
-                    return bitmap.to_numpy()
+                    array = bitmap.to_numpy()
+                    # Release the pdfium bitmap here, under the lock: left to its finalizer, it would be destroyed
+                    # once the lock is released, possibly while another thread renders a page
+                    bitmap.close()
+                    return array
                 except pdfium.PdfiumError as e:
                     raise _PDFError(
                         f"unable to render page {idx + 1} of the PDF {_file_name(self.file)}: {e}", e.err_code
@@ -455,6 +475,13 @@ class ImageSource(PageSource):
             name = file if isinstance(file, (str, Path)) else f"<bytes #{idx}>"
             raise PageDecodeError(f"unable to read the image {name!s}: {e}") from e
 
+    def _page_ref(self, idx: int) -> "_SourcePage":
+        # A source of this image only: the file was already checked, and the other files are left out
+        single = ImageSource.__new__(ImageSource)
+        single.files = [self.files[idx]]
+        single.read_kwargs = self.read_kwargs
+        return _SourcePage(single, 0)
+
 
 class ConcatSource(PageSource):
     """Concatenation of several page sources (or in-memory lists of pages) into a single lazy document.
@@ -498,6 +525,13 @@ class ConcatSource(PageSource):
         source_idx, page_idx = self.locate(idx)
         return self.sources[source_idx][page_idx]
 
+    def _page_ref(self, idx: int) -> "_SourcePage | None":
+        # The reference of the page in its own input, not in the whole concatenation. The pages of an in-memory list
+        # are kept as is: they are in memory anyway
+        source_idx, page_idx = self.locate(idx)
+        source = self.sources[source_idx]
+        return source._page_ref(page_idx) if isinstance(source, PageSource) else None
+
     def _iter_indices(self, indices: Iterable[int], skip_errors: bool = False) -> Generator[Any, None, None]:
         # Consecutive pages of the same input are read within one session of that input: a PDF is opened once for
         # them and closed before moving on, so that at most one underlying document is open at a time
@@ -533,6 +567,10 @@ class _PageView(PageSource):
 
     def _load(self, idx: int) -> np.ndarray:
         return self.source[self.indices[idx]]
+
+    def _page_ref(self, idx: int) -> "_SourcePage | None":
+        # The reference of the page in the viewed source
+        return self.source._page_ref(self.indices[idx])
 
     def _session(self) -> AbstractContextManager[Any]:
         # `with view:` keeps the resources of the source for the block

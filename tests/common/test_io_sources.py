@@ -130,6 +130,12 @@ def test_pdf_source_handles(mock_pdf, monkeypatch):
     assert first in source and source.index(first) == 0 and source.count(first) == 1
     assert len(opened) == 5
     assert source._pdf is None
+    # anything but an array is not a page: found nowhere, without decoding any page
+    opened.clear()
+    assert "page" not in source and None not in source and source.count("page") == 0
+    with pytest.raises(ValueError):
+        source.index("page")
+    assert not opened
 
     # closing it within a `with` block or an iteration is not an issue: it is opened again on demand
     with source:
@@ -182,7 +188,19 @@ def test_pdf_source_pickle(mock_pdf):
     assert np.array_equal(restored[0], source[0])
 
 
-def test_pdf_source_thread_safety(mock_pdf):
+def test_pdf_source_thread_safety(mock_pdf, monkeypatch):
+    # pdfium calls must never overlap, not even the destruction of a bitmap: record whether the lock is held
+    unlocked_destroys = []
+    _destroy = pdfium.raw.FPDFBitmap_Destroy
+
+    def _recording_destroy(bitmap):
+        if not sources._PDFIUM_LOCK._is_owned():
+            unlocked_destroys.append(threading.current_thread().name)
+        return _destroy(bitmap)
+
+    # captured by the bitmaps created from now on
+    monkeypatch.setattr(pdfium.raw, "FPDFBitmap_Destroy", _recording_destroy)
+
     source = io.PDFSource(mock_pdf, scale=1)
     expected = [page.copy() for page in source]
     errors = []
@@ -200,6 +218,11 @@ def test_pdf_source_thread_safety(mock_pdf):
     for thread in threads:
         thread.join()
     assert not errors
+    # also when rendering in the background, as `OCRPredictor.stream` does
+    assert [len(chunk) for chunk in prefetch_chunks(source._iter_indices(range(2)), 1)] == [1, 1]
+    assert not unlocked_destroys
+    # the rendered pages outlive their pdfium bitmap
+    assert all(np.array_equal(page, ref) for page, ref in zip(source, expected))
 
 
 def test_image_source(image_folder):
@@ -537,7 +560,7 @@ def test_is_pdf(mock_pdf, tmp_path):
 # Lazy page images
 
 
-def test_page_image_on_demand(mock_pdf):
+def test_page_image_on_demand(mock_pdf, image_folder):
     source = io.PDFSource(mock_pdf)
     page = Page(sources._SourcePage(source, 1), [], 1, source[1].shape[:2])
     assert np.array_equal(page.page, source[1])
@@ -550,6 +573,25 @@ def test_page_image_on_demand(mock_pdf):
     # picklable, so that results can be sent across processes
     restored = pickle.loads(pickle.dumps(sources._SourcePage(source, 0)))
     assert np.array_equal(restored(), source[0])
+
+    # the reference kept by a prediction points to the input of its page only, so that pickling or copying a
+    # prediction does not carry the whole document along
+    images = io.ImageSource(image_folder)
+    in_memory = [np.zeros((4, 4, 3), dtype=np.uint8)]
+    doc = io.ConcatSource([in_memory, source, images])
+    # the pages of an in-memory list are kept as is
+    assert doc._page_ref(0) is None
+    # the page of a PDF: the PDF only
+    ref = doc._page_ref(2)
+    assert ref.source is source and ref.idx == 1
+    # an image: a source of that image only
+    ref = doc._page_ref(4)
+    assert ref.source.files == [images.files[1]] and ref.idx == 0
+    assert np.array_equal(pickle.loads(pickle.dumps(ref))(), images[1])
+    assert len(pickle.dumps(ref)) < len(pickle.dumps(images))
+    # through views as well
+    assert doc[::-1]._page_ref(0).source.files == [images.files[2]]
+    assert doc[:1]._page_ref(0) is None
 
 
 # Iteration helpers

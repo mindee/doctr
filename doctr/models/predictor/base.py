@@ -10,7 +10,7 @@ from typing import Any, Literal, TypeAlias
 import numpy as np
 
 from doctr.io.elements import Document, KIEPage, Page
-from doctr.io.sources import PageSource, _SourcePage, _UnreadablePage
+from doctr.io.sources import PageSource, _UnreadablePage
 from doctr.models.builder import DocumentBuilder
 from doctr.utils.geometry import (
     extract_crops,
@@ -208,10 +208,13 @@ class _OCRPredictor:
                         continue
                     page = next(predicted)
                     page.page_idx = page_idx
-                    # Unchanged pages are decoded again from the source on access. Transformed ones (e.g.
-                    # straightened) keep their image, exactly as for in-memory inputs
+                    # Unchanged pages are decoded again from their input on access (the pages of an in-memory part
+                    # of the source are kept as is). Transformed ones (e.g. straightened) keep their image, exactly
+                    # as for in-memory inputs
                     if source is not None and page.page is item:
-                        page.page = _SourcePage(source, page_idx)
+                        ref = source._page_ref(page_idx)
+                        if ref is not None:
+                            page.page = ref
                     yield page
                 offset += len(chunk)
         finally:
