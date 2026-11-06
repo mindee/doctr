@@ -1292,8 +1292,11 @@ def test_ocr_predictor_lazy_pdf(mock_pdf, straighten_pages):
         straighten_pages=straighten_pages,
         page_chunk_size=1,
     )
-    eager = predictor(DocumentFile.from_pdf(mock_pdf))
     lazy = predictor(DocumentFile.from_pdf(mock_pdf, lazy=True))
+    # A list is processed in a single pass, a lazy source chunk by chunk (here page by page): the models then see
+    # other batches, which can shift the scores by floating point noise (e.g. `objectness_score` around 1e-8).
+    # The reference is therefore the list processed the same way.
+    eager = Document(pages=list(predictor.stream(DocumentFile.from_pdf(mock_pdf))))
 
     assert lazy.export() == eager.export()
     assert lazy.render() == eager.render()
