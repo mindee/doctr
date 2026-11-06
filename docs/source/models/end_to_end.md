@@ -15,8 +15,8 @@ section works. A word counts as correct when it is both well localized and corre
 | `db_resnet50` + `vitstr_small` | 73.06 | 75.79 | **85.95** | **80.17** |
 | `db_resnet50` + `vitstr_base` | 73.70 | 76.46 | 85.76 | 79.99 |
 | `db_resnet50` + `parseq` | 73.52 | 76.27 | 85.91 | 80.13 |
-| *Google Vision — text detection* | 59.50 | 62.50 | 75.30 | 59.03 |
-| *Google Vision — document text detection* | 64.00 | 53.30 | 68.90 | 61.10 |
+| *Google Vision - text detection* | 59.50 | 62.50 | 75.30 | 59.03 |
+| *Google Vision - document text detection* | 64.00 | 53.30 | 68.90 | 61.10 |
 | *AWS Textract* | 78.10 | 83.00 | 87.50 | 66.00 |
 | *Azure Form Recognizer (v3.2)* | 79.42 | 85.89 | 89.62 | 88.93 |
 

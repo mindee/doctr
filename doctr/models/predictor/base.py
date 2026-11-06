@@ -3,12 +3,14 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from collections.abc import Callable, Collection
-from typing import Any
+import logging
+from collections.abc import Callable, Collection, Iterable, Iterator, Sequence
+from typing import Any, Literal, TypeAlias
 
 import numpy as np
 
-from doctr.io.elements import Document, KIEPage
+from doctr.io.elements import Document, KIEPage, Page
+from doctr.io.sources import PageSource, _UnreadablePage
 from doctr.models.builder import DocumentBuilder
 from doctr.utils.geometry import (
     extract_crops,
@@ -17,12 +19,24 @@ from doctr.utils.geometry import (
     rotate_image,
     straighten_page,
 )
+from doctr.utils.multithreading import prefetch_chunks
 
 from .._utils import estimate_orientation, mask_boxes, rectify_crops, rectify_loc_preds
 from ..classification import crop_orientation_predictor, page_orientation_predictor
 from ..classification.predictor import OrientationPredictor
 
 __all__ = ["_OCRPredictor"]
+
+logger = logging.getLogger(__name__)
+
+# What to do with a page of a lazy source that cannot be read (a corrupted file, or an input removed in the meantime):
+# raise the error, skip the page with a warning, or skip it and call a function with its index and the error
+OnPageError: TypeAlias = Literal["raise", "skip"] | Callable[[int, Exception], Any]
+
+
+def _check_on_error(on_error: Any) -> None:
+    if not (on_error in ("raise", "skip") or callable(on_error)):
+        raise ValueError(f"`on_error` must be 'raise', 'skip' or a callable, got {on_error!r}")
 
 
 class _OCRPredictor:
@@ -43,6 +57,9 @@ class _OCRPredictor:
             be masked out (filled with black) before passing the pages to the detection/recognition modules.
         preserve_original_coords: if True and straighten_pages is True, bounding boxes are mapped back to the
             original page coordinates. Useful for redaction and annotation.
+        page_chunk_size: the maximum number of pages processed at once for lazy page sources
+            (cf. `DocumentFile.from_pdf(..., lazy=True)`), iterators and :meth:`stream`, so that the memory footprint
+            does not grow with the number of pages. Lists and tuples of pages are processed in a single pass.
         **kwargs: keyword args of `DocumentBuilder`
     """
 
@@ -58,8 +75,12 @@ class _OCRPredictor:
         detect_orientation: bool = False,
         ignore_regions: Collection[str] | None = None,
         preserve_original_coords: bool = False,
+        page_chunk_size: int = 32,
         **kwargs: Any,
     ) -> None:
+        if page_chunk_size < 1:
+            raise ValueError("`page_chunk_size` must be a positive integer")
+        self.page_chunk_size = page_chunk_size
         self.assume_straight_pages = assume_straight_pages
         self.straighten_pages = straighten_pages
         self.preserve_original_coords = preserve_original_coords
@@ -83,6 +104,122 @@ class _OCRPredictor:
         self.ignore_regions = ignore_regions
 
         self.hooks: list[Callable] = []
+
+    # Type of the documents returned by the predictor
+    _document_cls: type[Document] = Document
+
+    def _predict_pages(self, pages: list[np.ndarray], **kwargs: Any) -> Document:
+        """Run the full pipeline on a list of pages held in memory"""
+        raise NotImplementedError
+
+    def _run(
+        self,
+        pages: Sequence[np.ndarray] | Iterable[np.ndarray],
+        on_error: OnPageError = "raise",
+        **kwargs: Any,
+    ) -> Document:
+        """Predict on any input: pages held in memory are processed in a single pass, exactly as before (hooks
+        receive all the pages at once), lazy page sources and iterators chunk by chunk"""
+        _check_on_error(on_error)
+        if isinstance(pages, (list, tuple, np.ndarray)):
+            # Nothing to decode, hence nothing to skip
+            return self._predict_pages(list(pages), **kwargs)
+        return self._document_cls(pages=list(self.stream(pages, on_error=on_error, **kwargs)))  # type: ignore[arg-type]
+
+    @staticmethod
+    def _skip_page(on_error: OnPageError, page_idx: int, error: Exception) -> None:
+        """Report a page of the input that cannot be read, and is left out of the predictions"""
+        if callable(on_error):
+            on_error(page_idx, error)
+        else:
+            logger.warning(f"Skipping the page at index {page_idx} of the input, which cannot be read: {error}")
+
+    def stream(
+        self,
+        pages: Sequence[np.ndarray] | Iterable[np.ndarray],
+        page_chunk_size: int | None = None,
+        prefetch_pages: bool = True,
+        on_error: OnPageError = "raise",
+        **kwargs: Any,
+    ) -> Iterator[Page | KIEPage]:
+        """Predict on a document of any length, yielding the pages one by one as soon as they are processed
+
+        The pages are processed by chunks of `page_chunk_size`. For lazy page sources and iterators, the next chunk
+        is decoded in a background thread while the current one goes through the models, and only the pages of the
+        chunks in flight are held in memory, so that a 1000+ page PDF or a folder of 100k images can be processed
+        with a bounded memory footprint. In-memory inputs (lists, tuples, arrays) have nothing to decode: they are
+        chunked directly, without a background thread. Hooks are called once per chunk.
+
+        A page of a lazy source that cannot be read (e.g. an image with a valid header but corrupted content)
+        raises a :class:`~doctr.io.PageDecodeError` naming the file once the pages before it are yielded, which
+        ends the iteration. With `on_error="skip"`, the page is left out with a warning and the iteration goes on:
+        the `page_idx` of the other pages is unchanged, so the skipped ones show as gaps.
+
+        >>> from doctr.io import DocumentFile
+        >>> from doctr.models import ocr_predictor
+        >>> model = ocr_predictor(pretrained=True)
+        >>> doc = DocumentFile.from_pdf("path/to/your/long_doc.pdf", lazy=True)
+        >>> for page in model.stream(doc):
+        ...     print(page.page_idx, page.render())
+        >>> # skip the pages that cannot be read, and keep track of them
+        >>> skipped = []
+        >>> for page in model.stream(doc, on_error=lambda page_idx, error: skipped.append(page_idx)):
+        ...     ...
+
+        Args:
+            pages: a list of pages, a lazy page source (cf. `DocumentFile.from_pdf(..., lazy=True)`) or any
+                iterable of pages (e.g. a generator)
+            page_chunk_size: the number of pages processed at once (defaults to the `page_chunk_size` of the predictor)
+            prefetch_pages: whether the next chunk of pages is decoded in a background thread (only applies to lazy
+                page sources and iterators: in-memory inputs are never prefetched)
+            on_error: what to do with a page of a lazy page source that cannot be read: "raise" (default) the error,
+                "skip" the page with a warning, or a callable to skip it and call with the index of the page and the
+                error. Errors raised by an iterator (e.g. a generator) end it: they are always raised.
+            **kwargs: keyword arguments forwarded to the sub-predictors (as for a regular call)
+
+        Returns:
+            an iterator over the predicted pages, in the input order. `page_idx` is the index of the page in the
+            whole input. For lazy page sources, the predicted pages hold a reference to their image instead of the
+            image itself: `page.page` decodes it again on access. Pages transformed by the pipeline (e.g. with
+            `straighten_pages=True`) cannot be read again from the source: they keep their transformed image, as
+            for in-memory inputs. Stopping the iteration early (e.g. with `break`) stops decoding ahead after the
+            page in progress.
+        """
+        _check_on_error(on_error)
+        chunk_size = self.page_chunk_size if page_chunk_size is None else page_chunk_size
+        source = pages if isinstance(pages, PageSource) else None
+        # Unreadable pages of a source are replaced by placeholders: the iteration goes on when they are skipped, and
+        # otherwise the error is raised at their position, once the readable pages before them are yielded
+        inputs: Iterable[Any] = pages if source is None else source._iter_indices(range(len(source)), skip_errors=True)
+        # In-memory pages are only sliced. Closing the generator (early exit, error) stops decoding ahead after the page
+        # in progress instead of completing a whole chunk that nobody will process
+        chunks = prefetch_chunks(inputs, chunk_size, enabled=prefetch_pages)
+        offset = 0
+        try:
+            for chunk in chunks:
+                images = [item for item in chunk if not isinstance(item, _UnreadablePage)]
+                predicted = iter(self._predict_pages(images, **kwargs).pages if images else [])
+                for local_idx, item in enumerate(chunk):
+                    page_idx = offset + local_idx
+                    if isinstance(item, _UnreadablePage):
+                        if on_error == "raise":
+                            raise item.error
+                        self._skip_page(on_error, page_idx, item.error)
+                        continue
+                    page = next(predicted)
+                    page.page_idx = page_idx
+                    # Unchanged pages are decoded again from their input on access (the pages of an in-memory part
+                    # of the source are kept as is). Transformed ones (e.g. straightened) keep their image, exactly
+                    # as for in-memory inputs
+                    if source is not None and page.page is item:
+                        ref = source._page_ref(page_idx)
+                        if ref is not None:
+                            page.page = ref
+                    yield page
+                offset += len(chunk)
+        finally:
+            # Stops decoding ahead after the page in progress, and releases the input
+            chunks.close()
 
     def _general_page_orientations(
         self,
@@ -317,6 +454,11 @@ class _OCRPredictor:
         Each hook receives the location predictions, one array of boxes per page in relative coordinates
         (`(N, 4)` straight boxes or `(N, 4, 2)` polygons), and returns them in the same format. It can move,
         resize, add or remove boxes: only the returned boxes are cropped and read by the recognition model.
+
+        Lazy page sources, iterators and :meth:`stream` are processed chunk by chunk (`page_chunk_size` pages at a
+        time): hooks are then called once per chunk, with the pages of that chunk only. A hook must therefore not rely
+        on the number of pages it receives, nor use a list position as the page index in the whole document. Lists
+        and tuples of pages are processed in a single pass: hooks receive all their pages at once.
 
         Args:
             hook: a callable that takes as input the `loc_preds` and returns the modified `loc_preds`

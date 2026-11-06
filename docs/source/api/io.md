@@ -14,6 +14,22 @@ Read documents into pages, represent the predictions as a tree of elements, and 
    .. automethod:: from_pdf
    .. automethod:: from_images
    .. automethod:: from_url
+   .. automethod:: from_files
+
+.. autoclass:: PageSource
+
+   .. automethod:: iter_batches
+   .. automethod:: close
+
+.. autoclass:: PDFSource
+
+.. autoclass:: ImageSource
+
+.. autoclass:: ConcatSource
+
+   .. automethod:: locate
+
+.. autoclass:: PageDecodeError
 
 .. autofunction:: read_pdf
 

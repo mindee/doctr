@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+from collections.abc import Iterable, Sequence
 from typing import Any
 
 import cv2
@@ -44,6 +45,9 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         table_predictor: optional table structure recognition module. Requires `layout_predictor`: table
             regions are located by the layout model, cropped, and passed to this module. Words falling inside a
             detected table are regrouped into a structured table and removed from the regular text output.
+        page_chunk_size: the maximum number of pages processed at once (32 by default) for lazy page sources
+            (cf. `DocumentFile.from_pdf(..., lazy=True)`), iterators and :meth:`stream`, with a memory footprint that
+            does not grow with the number of pages. Lists and tuples of pages are processed in a single pass.
         **kwargs: keyword args of `DocumentBuilder`
     """
 
@@ -89,6 +93,26 @@ class OCRPredictor(nn.Module, _OCRPredictor):
 
     @torch.inference_mode()
     def forward(
+        self,
+        pages: Sequence[np.ndarray] | Iterable[np.ndarray],
+        **kwargs: Any,
+    ) -> Document:
+        """Predict on a document
+
+        Args:
+            pages: a list of pages (numpy arrays of shape H x W x C), processed in a single pass, or a lazy page
+                source (cf. `DocumentFile.from_pdf(..., lazy=True)`) or any iterable of pages, processed chunk by
+                chunk (`page_chunk_size` pages at a time) with a bounded memory footprint
+            **kwargs: keyword arguments forwarded to the sub-predictors, and `on_error` for lazy page sources
+                (cf. :meth:`stream`): "skip" leaves out the pages that cannot be read instead of raising an error
+
+        Returns:
+            the predicted document
+        """
+        return self._run(pages, **kwargs)
+
+    @torch.inference_mode()
+    def _predict_pages(
         self,
         pages: list[np.ndarray],
         **kwargs: Any,

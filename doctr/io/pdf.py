@@ -6,9 +6,10 @@
 from typing import Any
 
 import numpy as np
-import pypdfium2 as pdfium
 
 from doctr.utils.common_types import AbstractFile
+
+from .sources import PDFSource
 
 __all__ = ["read_pdf"]
 
@@ -35,9 +36,9 @@ def read_pdf(
     Returns:
         the list of pages decoded as numpy ndarray of shape H x W x C
     """
-    # Rasterise pages to numpy ndarrays with pypdfium2
-    pdf = pdfium.PdfDocument(file, password=password)
+    # Rasterise pages to numpy ndarrays with pypdfium2 (use `PDFSource` directly to render them on demand)
+    source = PDFSource(file, scale=scale, rgb_mode=rgb_mode, password=password, **kwargs)
     try:
-        return [page.render(scale=scale, rev_byteorder=rgb_mode, **kwargs).to_numpy() for page in pdf]
+        return list(source)
     finally:
-        pdf.close()
+        source.close()

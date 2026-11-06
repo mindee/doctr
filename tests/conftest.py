@@ -11,7 +11,7 @@ import scipy.io as sio
 from PIL import Image
 
 from doctr.datasets.generator.base import synthesize_text_img
-from doctr.io import reader
+from doctr.io import read_img_as_numpy
 from doctr.utils import geometry
 
 
@@ -85,7 +85,7 @@ def mock_figure_page(mock_image_stream, tmpdir_factory):
 
 @pytest.fixture(scope="session")
 def mock_tilted_payslip(mock_payslip, tmpdir_factory):
-    image = reader.read_img_as_numpy(mock_payslip)
+    image = read_img_as_numpy(mock_payslip)
     image = geometry.rotate_image(image, 30, expand=True)
     tmp_path = str(tmpdir_factory.mktemp("data").join("mock_tilted_payslip.jpg"))
     cv2.imwrite(tmp_path, image)

@@ -69,7 +69,10 @@ def _predictor(
     kwargs["std"] = kwargs.get("std", _model.cfg["std"])
     kwargs["batch_size"] = kwargs.get("batch_size", 128)
     input_shape = _model.cfg["input_shape"][-2:]
-    predictor = RecognitionPredictor(PreProcessor(input_shape, preserve_aspect_ratio=True, **kwargs), _model)
+    chunk_size = kwargs.pop("chunk_size", 1024)
+    predictor = RecognitionPredictor(
+        PreProcessor(input_shape, preserve_aspect_ratio=True, **kwargs), _model, chunk_size=chunk_size
+    )
 
     return predictor
 
@@ -95,6 +98,8 @@ def recognition_predictor(
         pretrained: If True, returns a model pre-trained on our text recognition dataset
         symmetric_pad: if True, pad the image symmetrically instead of padding at the bottom-right
         batch_size: number of samples the model processes in parallel
+        chunk_size: maximum number of crops decoded and processed at once (1024 by default): longer inputs and
+            lazy page sources (cf. `DocumentFile.from_images(..., lazy=True)`) are processed chunk by chunk
         confidence_aggregation: aggregation method of the character probabilities into the word confidence:
             "mean", "min", "max", "median", "geometric_mean", "harmonic_mean" or a callable. If None, the one of
             the model is kept ("min" for CRNN, VIPTR, SAR and MASTER, "mean" for ViTSTR and PARSeq by default)

@@ -15,10 +15,10 @@ directly. See the [model zoo](../models/index.md) for benchmarks.
 .. autofunction:: doctr.models.kie_predictor
 
 .. autoclass:: doctr.models.predictor.OCRPredictor
-   :members: add_hook
+   :members: add_hook, stream
 
 .. autoclass:: doctr.models.kie_predictor.KIEPredictor
-   :members: add_hook
+   :members: add_hook, stream
 
 .. autoclass:: doctr.models.builder.DocumentBuilder
 

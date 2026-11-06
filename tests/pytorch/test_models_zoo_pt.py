@@ -1,3 +1,8 @@
+import logging
+import pickle
+import threading
+import time
+
 import cv2
 import numpy as np
 import pytest
@@ -6,8 +11,8 @@ from torch import nn
 
 from doctr import models
 from doctr.file_utils import CLASS_NAME
-from doctr.io import Document, DocumentFile, FigureEncoder, crop_layout_region
-from doctr.io.elements import KIEDocument, LayoutElement, Table
+from doctr.io import ConcatSource, Document, DocumentFile, FigureEncoder, PageDecodeError, crop_layout_region
+from doctr.io.elements import KIEDocument, KIEPage, LayoutElement, Table
 from doctr.models import detection, layout, recognition
 from doctr.models.classification import mobilenet_v3_small_crop_orientation, mobilenet_v3_small_page_orientation
 from doctr.models.classification.zoo import crop_orientation_predictor, page_orientation_predictor
@@ -1025,3 +1030,382 @@ def test_kie_predictor_straighten_with_preserve_original_coords(mock_tilted_pays
     assert geoms_on != geoms_off
     assert out_on.pages[0].page.shape[:2] == out_on.pages[0].dimensions
     assert out_on.pages[0].page.shape[:2] == doc[0].shape[:2]
+
+
+# Long documents: chunking, streaming & lazy page sources
+
+
+class _ValueDetPredictor(nn.Module):
+    """Fake detection: one box per page, and records the number of pages of each call"""
+
+    def __init__(self):
+        super().__init__()
+        self.calls = []
+
+    def forward(self, pages, **kwargs):
+        self.calls.append(len(pages))
+        return [{CLASS_NAME: np.array([[0.1, 0.1, 0.9, 0.9, 0.9]], dtype=np.float32)} for _ in pages]
+
+
+class _ValueRecoPredictor(nn.Module):
+    """Fake recognition: reads the gray level of the crop, which identifies the page"""
+
+    def forward(self, crops, **kwargs):
+        return [(str(round(float(crop.mean()))), 1.0) for crop in crops]
+
+
+def _page_words(page):
+    if isinstance(page, KIEPage):
+        return [word.value for word in page.predictions[CLASS_NAME]]
+    return [word.value for block in page.blocks for line in block.lines for word in line.words]
+
+
+def _value_pages(num_pages):
+    return [np.full((60 + idx, 80, 3), 10 * idx, dtype=np.uint8) for idx in range(num_pages)]
+
+
+def _value_predictor(predictor_cls, **kwargs):
+    return predictor_cls(_ValueDetPredictor(), _ValueRecoPredictor(), assume_straight_pages=True, **kwargs)
+
+
+@pytest.mark.parametrize(
+    "predictor_cls, doc_cls",
+    [(OCRPredictor, Document), (KIEPredictor, KIEDocument)],
+)
+def test_predictors_chunk_long_inputs(predictor_cls, doc_cls):
+    pages = _value_pages(7)
+    predictor = _value_predictor(predictor_cls, page_chunk_size=3)
+    hook_calls = []
+
+    def _count_pages(loc_preds):
+        # the KIE predictor passes one list of pages per class
+        hook_calls.append(len(next(iter(loc_preds.values())) if isinstance(loc_preds, dict) else loc_preds))
+        return loc_preds
+
+    predictor.add_hook(_count_pages)
+
+    # lists & tuples of pages are in memory already: they are processed in a single pass, as before, so that hooks
+    # receive all the pages at once
+    out = predictor(pages)
+    assert type(out) is doc_cls
+    assert predictor.det_predictor.calls == [7]
+    assert hook_calls == [7]
+    assert [page.page_idx for page in out.pages] == list(range(7))
+    assert [_page_words(page) for page in out.pages] == [[str(10 * idx)] for idx in range(7)]
+    assert [page.dimensions for page in out.pages] == [page.shape[:2] for page in pages]
+    # in-memory pages are referenced as-is
+    assert all(page.page is image for page, image in zip(out.pages, pages))
+    assert predictor(tuple(pages)).export() == out.export()
+    assert predictor(np.stack([np.zeros((60, 80, 3), dtype=np.uint8)] * 4)).pages[3].page_idx == 3
+
+    # iterators (e.g. a generator) are processed by chunks of at most 3 pages, the results being identical to a
+    # single pass: hooks are then called once per chunk
+    predictor.det_predictor.calls.clear()
+    hook_calls.clear()
+    assert predictor(page for page in pages).export() == out.export()
+    assert predictor.det_predictor.calls == [3, 3, 1]
+    assert hook_calls == [3, 3, 1]
+    # and so are lists passed to `stream`
+    hook_calls.clear()
+    assert [page.export() for page in predictor.stream(pages)] == [page.export() for page in out.pages]
+    assert hook_calls == [3, 3, 1]
+
+
+@pytest.mark.parametrize("predictor_cls", [OCRPredictor, KIEPredictor])
+def test_predictors_stream(predictor_cls):
+    pages = _value_pages(5)
+    predictor = _value_predictor(predictor_cls, page_chunk_size=4)
+
+    stream = predictor.stream(pages, page_chunk_size=2, prefetch_pages=False)
+    first = next(stream)
+    # results are yielded as soon as their chunk is processed
+    assert predictor.det_predictor.calls == [2]
+    assert (first.page_idx, _page_words(first)) == (0, ["0"])
+    rest = list(stream)
+    assert [page.page_idx for page in rest] == [1, 2, 3, 4]
+    assert predictor.det_predictor.calls == [2, 2, 1]
+
+    # same results with prefetching, and the predictor default chunk size
+    predictor.det_predictor.calls.clear()
+    streamed = list(predictor.stream(iter(pages)))
+    assert predictor.det_predictor.calls == [4, 1]
+    assert [page.export() for page in streamed] == [page.export() for page in [first, *rest]]
+    assert list(predictor.stream([])) == []
+
+
+@pytest.mark.parametrize(
+    "predictor_cls, doc_cls",
+    [(OCRPredictor, Document), (KIEPredictor, KIEDocument)],
+)
+def test_predictors_lazy_source(tmp_path, caplog, predictor_cls, doc_cls):
+    pages = _value_pages(5)
+    for idx, page in enumerate(pages):
+        cv2.imwrite(str(tmp_path / f"page_{idx}.png"), page)
+    source = DocumentFile.from_images(tmp_path, lazy=True)
+
+    predictor = _value_predictor(predictor_cls, page_chunk_size=2)
+    out = predictor(source)
+    assert type(out) is doc_cls
+    assert predictor.det_predictor.calls == [2, 2, 1]
+    assert out.export() == _value_predictor(predictor_cls)(pages).export()
+
+    # the predictions only keep a reference to their page, decoded again on access
+    assert all(type(page._page).__name__ == "_SourcePage" for page in out.pages)
+    assert all(np.array_equal(page.page, image) for page, image in zip(out.pages, pages))
+    assert type(predictor(source[:0])) is doc_cls
+    # the reference points to the file of the page only: a prediction pickles without the rest of the document
+    assert [page._page.source.files for page in out.pages] == [[file] for file in source.files]
+    restored = pickle.loads(pickle.dumps(out.pages[3]))
+    assert np.array_equal(restored.page, pages[3])
+
+    # in a concatenation, the pages of an in-memory list keep their image, the others reference their own input
+    in_memory = _value_pages(2)
+    out = predictor(ConcatSource([in_memory, source]))
+    assert [page.page_idx for page in out.pages] == list(range(7))
+    assert all(page.page is image for page, image in zip(out.pages[:2], in_memory))
+    assert [page._page.source.files for page in out.pages[2:]] == [[file] for file in source.files]
+    # pickling a page of the lazy part leaves the in-memory pages out
+    assert len(pickle.dumps(out.pages[2])) < len(pickle.dumps(in_memory[0]))
+
+    # a page that cannot be decoded (valid header, corrupted content) is only detected while processing
+    (tmp_path / "page_2.png").write_bytes((tmp_path / "page_0.png").read_bytes()[:60])
+    source = DocumentFile.from_images(tmp_path, lazy=True)
+    stream = predictor.stream(source)
+    # the error is raised at its position, once the pages before it are yielded (even within the same chunk)
+    assert [next(stream).page_idx for _ in range(2)] == [0, 1]
+    with pytest.raises(PageDecodeError, match="page_2.png"):
+        next(stream)
+    with pytest.raises(PageDecodeError, match="page_2.png"):
+        predictor(source)
+    # or skipped: the other pages keep their index in the input, and their results
+    skipped = []
+    out = predictor(source, on_error=lambda page_idx, error: skipped.append((page_idx, type(error))))
+    assert type(out) is doc_cls
+    assert [page.page_idx for page in out.pages] == [0, 1, 3, 4]
+    assert skipped == [(2, PageDecodeError)]
+    expected = _value_predictor(predictor_cls)(pages).export()["pages"]
+    assert [page.export() for page in out.pages] == [expected[idx] for idx in (0, 1, 3, 4)]
+    assert all(np.array_equal(page.page, pages[page.page_idx]) for page in out.pages)
+    # with a warning, in slices of the source as well
+    with caplog.at_level(logging.WARNING, logger="doctr"):
+        assert [page.page_idx for page in predictor.stream(source[1:], on_error="skip")] == [0, 2, 3]
+    assert "page_2.png" in caplog.text
+    with pytest.raises(ValueError, match="on_error"):
+        next(predictor.stream(source, on_error="ignore"))
+    with pytest.raises(ValueError, match="on_error"):
+        predictor(pages, on_error="ignore")
+
+
+def test_predictors_stream_early_exit_stops_decoding():
+    """Stopping a stream early does not wait for the next chunk to be fully decoded in the background"""
+    pages = _value_pages(4)
+    decoded = []
+    closed = threading.Event()
+
+    def _slow_pages():
+        try:
+            for idx in range(1000):
+                time.sleep(0.02)
+                decoded.append(idx)
+                yield pages[idx % len(pages)]
+        finally:
+            closed.set()
+
+    predictor = _value_predictor(OCRPredictor, page_chunk_size=8)
+    stream = predictor.stream(_slow_pages())
+    first = next(stream)
+    assert first.page_idx == 0
+    stream.close()
+    # the first chunk (8 pages), plus at most the pages decoded ahead before the stop
+    assert len(decoded) < 16
+    # no page is decoded after the stream is closed, and the input is closed
+    count = len(decoded)
+    time.sleep(0.1)
+    assert len(decoded) == count
+    assert closed.is_set()
+    assert not [thread for thread in threading.enumerate() if thread.name.startswith("doctr-prefetch")]
+
+
+def test_predictors_prefetch_only_lazy_inputs(tmp_path, monkeypatch):
+    """In-memory inputs are chunked directly: only lazy sources and iterators are prefetched in a background thread"""
+    from doctr.utils import multithreading
+
+    calls = []
+    _prefetch = multithreading.prefetch
+
+    def _recording_prefetch(seq, enabled=True):
+        calls.append(enabled)
+        return _prefetch(seq, enabled=enabled)
+
+    # `stream` consumes its input through `prefetch_chunks`
+    monkeypatch.setattr(multithreading, "prefetch", _recording_prefetch)
+
+    pages = _value_pages(5)
+    for idx, page in enumerate(pages):
+        cv2.imwrite(str(tmp_path / f"page_{idx}.png"), page)
+    predictor = _value_predictor(OCRPredictor, page_chunk_size=2)
+    expected = _value_predictor(OCRPredictor)(pages).export()
+
+    for in_memory in (pages, tuple(pages)):
+        # processed in a single pass
+        calls.clear()
+        assert predictor(in_memory).export() == expected
+        assert calls == []
+        # or chunked, without decoding ahead
+        assert [page.export() for page in predictor.stream(in_memory)] == expected["pages"]
+        assert calls == [False]
+
+    for lazy in (iter(pages), DocumentFile.from_images(tmp_path, lazy=True)):
+        calls.clear()
+        assert predictor(lazy).export() == expected
+        assert calls == [True]
+
+    # explicitly disabled
+    calls.clear()
+    list(predictor.stream(iter(pages), prefetch_pages=False))
+    assert calls == [False]
+
+
+def test_predictors_lazy_source_transformed_pages(tmp_path):
+    """Pages modified by the pipeline (e.g. straightened) cannot be read again from the source: they keep their
+    transformed image, exactly as for in-memory inputs"""
+
+    class _TransformingPredictor(OCRPredictor):
+        def _predict_pages(self, pages, **kwargs):
+            out = super()._predict_pages(pages, **kwargs)
+            for page in out.pages:
+                page.page = np.ascontiguousarray(page.page[::-1])
+            return out
+
+    pages = _value_pages(3)
+    pages[1][:10] = 255
+    for idx, page in enumerate(pages):
+        cv2.imwrite(str(tmp_path / f"page_{idx}.png"), page)
+
+    predictor = _TransformingPredictor(_ValueDetPredictor(), _ValueRecoPredictor(), page_chunk_size=2)
+    out = predictor(DocumentFile.from_images(tmp_path, lazy=True))
+    assert all(type(page._page) is np.ndarray for page in out.pages)
+    assert all(np.array_equal(page.page, image[::-1]) for page, image in zip(out.pages, pages))
+    # same pages as an in-memory run
+    eager = predictor(pages)
+    assert all(np.array_equal(lazy.page, ref.page) for lazy, ref in zip(out.pages, eager.pages))
+
+
+def test_predictors_invalid_page_chunk_size():
+    for predictor_cls in (OCRPredictor, KIEPredictor):
+        with pytest.raises(ValueError):
+            _value_predictor(predictor_cls, page_chunk_size=0)
+
+
+@pytest.mark.parametrize("straighten_pages", [False, True])
+def test_ocr_predictor_lazy_pdf(mock_pdf, straighten_pages):
+    predictor = models.ocr_predictor(
+        "db_mobilenet_v3_large",
+        "crnn_mobilenet_v3_small",
+        pretrained=True,
+        straighten_pages=straighten_pages,
+        page_chunk_size=1,
+    )
+    lazy = predictor(DocumentFile.from_pdf(mock_pdf, lazy=True))
+    # A list is processed in a single pass, a lazy source chunk by chunk (here page by page): the models then see
+    # other batches, which can shift the scores by floating point noise (e.g. `objectness_score` around 1e-8).
+    # The reference is therefore the list processed the same way.
+    eager = Document(pages=list(predictor.stream(DocumentFile.from_pdf(mock_pdf))))
+
+    assert lazy.export() == eager.export()
+    assert lazy.render() == eager.render()
+    assert all(np.array_equal(lazy_page.page, page.page) for lazy_page, page in zip(lazy.pages, eager.pages))
+    assert len(lazy.export_as_markdown(images="embedded")) > 0
+
+
+def _small_inputs(model, size=256):
+    """Run a page-level model on small inputs (a copy of its config): chunking does not depend on the input size"""
+    model.cfg = {**model.cfg, "input_shape": (3, size, size)}
+    return model
+
+
+def _standalone_predictor(name, **kwargs):
+    """Untrained standalone predictors, small batches so that chunks span several of them"""
+    if name == "detection":
+        model = detection.fast_tiny(pretrained=False, pretrained_backbone=False)
+        return detection_predictor(_small_inputs(model), batch_size=2, **kwargs)
+    if name == "recognition":
+        return recognition_predictor(
+            recognition.crnn_mobilenet_v3_small(pretrained=False, pretrained_backbone=False), batch_size=2, **kwargs
+        )
+    if name == "layout":
+        return layout_predictor(_small_inputs(layout.lw_detr_s(pretrained=False)), batch_size=2, **kwargs)
+    if name == "table":
+        from doctr.models.table_structure import tablecenternet
+
+        return table_predictor(_small_inputs(tablecenternet(pretrained=False)), batch_size=2, **kwargs)
+    if name == "page_orientation":
+        return page_orientation_predictor(mobilenet_v3_small_page_orientation(pretrained=False), batch_size=2, **kwargs)
+    return crop_orientation_predictor(mobilenet_v3_small_crop_orientation(pretrained=False), batch_size=2, **kwargs)
+
+
+def _same_output(a, b):
+    if isinstance(a, np.ndarray):
+        return isinstance(b, np.ndarray) and np.array_equal(a, b)
+    if isinstance(a, dict):
+        return a.keys() == b.keys() and all(_same_output(a[key], b[key]) for key in a)
+    if isinstance(a, (list, tuple)):
+        return type(a) is type(b) and len(a) == len(b) and all(_same_output(x, y) for x, y in zip(a, b))
+    return a == b
+
+
+@pytest.mark.parametrize(
+    "name", ["detection", "recognition", "layout", "table", "page_orientation", "crop_orientation"]
+)
+def test_standalone_predictors_lazy_inputs(tmp_path, name):
+    rng = np.random.default_rng(0)
+    images = [rng.integers(0, 255, (40 + 10 * idx, 60 + 15 * idx, 3), dtype=np.uint8) for idx in range(5)]
+    for idx, image in enumerate(images):
+        cv2.imwrite(str(tmp_path / f"{idx}.png"), image[..., ::-1])
+
+    predictor = _standalone_predictor(name, chunk_size=3)
+    # chunks are rounded up to a multiple of the batch size: 4 images, i.e. 2 full batches of 2
+    assert predictor.chunk_size == 3
+    reference = predictor._predict(images)
+
+    # lazy page sources, slices, generators and long lists are processed chunk by chunk, with the same predictions
+    source = DocumentFile.from_images(tmp_path, lazy=True)
+    assert _same_output(predictor(source), reference)
+    assert _same_output(predictor(image for image in images), reference)
+    assert _same_output(predictor(images), reference)
+    assert _same_output(predictor(tuple(images[:2])), predictor._predict(images[:2]))
+    sliced = predictor(source[1:4])
+    expected = predictor._predict(images[1:4])
+    assert _same_output(sliced, expected)
+
+    # empty inputs
+    empty = predictor(DocumentFile.from_images([], lazy=True))
+    assert _same_output(empty, predictor([]))
+
+    with pytest.raises(ValueError, match="chunk_size"):
+        _standalone_predictor(name, chunk_size=0)
+
+
+def test_detection_predictor_lazy_inputs_return_maps(tmp_path):
+    images = [np.full((50 + 10 * idx, 70, 3), 20 * idx, dtype=np.uint8) for idx in range(5)]
+    for idx, image in enumerate(images):
+        cv2.imwrite(str(tmp_path / f"{idx}.png"), image)
+    predictor = _standalone_predictor("detection", chunk_size=2)
+
+    preds, maps = predictor(DocumentFile.from_images(tmp_path, lazy=True), return_maps=True)
+    ref_preds, ref_maps = predictor._predict(images, return_maps=True)
+    assert _same_output(preds, ref_preds)
+    assert len(maps) == 5 and all(np.array_equal(out, ref) for out, ref in zip(maps, ref_maps))
+
+
+def test_standalone_predictor_chunk_size_defaults():
+    # pages for page-level predictors (as `page_chunk_size` of the OCR predictor), many more of the much smaller crops
+    assert _standalone_predictor("detection").chunk_size == 32
+    assert _standalone_predictor("page_orientation").chunk_size == 32
+    assert _standalone_predictor("recognition").chunk_size == 1024
+    assert _standalone_predictor("crop_orientation").chunk_size == 1024
+    assert page_orientation_predictor(disabled=True)([np.zeros((5, 5, 3), dtype=np.uint8)] * 3) == [
+        [0, 0, 0],
+        [0, 0, 0],
+        [1.0, 1.0, 1.0],
+    ]

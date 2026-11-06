@@ -58,9 +58,11 @@ def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, 
     kwargs["mean"] = kwargs.get("mean", _model.cfg["mean"])
     kwargs["std"] = kwargs.get("std", _model.cfg["std"])
     kwargs["batch_size"] = kwargs.get("batch_size", 2)
+    chunk_size = kwargs.pop("chunk_size", 32)
     predictor = DetectionPredictor(
         PreProcessor(_model.cfg["input_shape"][1:], **kwargs),
         _model,
+        chunk_size=chunk_size,
     )
     return predictor
 
@@ -90,6 +92,8 @@ def detection_predictor(
             running the detection model on it
         symmetric_pad: if True, pad the image symmetrically instead of padding at the bottom-right
         batch_size: number of samples the model processes in parallel
+        chunk_size: maximum number of pages decoded and processed at once (32 by default): longer inputs and
+            lazy page sources (cf. `DocumentFile.from_images(..., lazy=True)`) are processed chunk by chunk
         **kwargs: optional keyword arguments passed to the architecture
 
     Returns:

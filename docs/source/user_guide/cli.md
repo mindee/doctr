@@ -65,9 +65,11 @@ Run `doctr-cli --help` for the full list with default values.
 
 | Argument          | Default | Description                                                                                 |
 | ----------------- | ------- | ------------------------------------------------------------------------------------------- |
-| `--input_path`    | —       | **Required.** One or more images, PDF files, or `http(s)://` URLs of web pages               |
+| `--input_path`    | -       | **Required.** One or more images, PDF files, folders of those, or `http(s)://` URLs of web pages |
 | `--pdf_password`  | `None`  | Password of encrypted PDF files                                                             |
 | `--pdf_scale`     | `2`     | PDF rendering scale (1 corresponds to 72 dpi)                                               |
+| `--page_chunk_size` | `32`  | Number of pages decoded & processed at once: bounds the memory footprint on long documents |
+| `--on_error`      | `raise` | A file of a folder or a page that cannot be read: `raise` stops the run (the results of the pages before it are still saved), `skip` skips it with a warning |
 
 ### Models
 

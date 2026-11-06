@@ -14,7 +14,8 @@ reading pre-cropped words, classifying orientations...
 | {func}`~doctr.models.classification.crop_orientation_predictor`         | Word crops                | Orientation class, angle and probability               |
 
 All of them take a **list of images** (NumPy arrays of shape `(H, W, 3)`, `uint8`, RGB) and return one result per
-image. As with the OCR predictor, pass `pretrained=True` to load trained weights.
+image. They also accept a [lazy page source](loading_documents.md#long-documents--large-collections) or any iterable
+of images (see [below](#long-inputs)). As with the OCR predictor, pass `pretrained=True` to load trained weights.
 
 ## Text detection
 
@@ -79,6 +80,42 @@ print(angles)  # [0, 180]
 
 They are used by the OCR predictor for [rotated documents](rotated_documents.md), and can be
 [retrained on your data](../training/custom_models.md#orientation-classifiers).
+
+## Long inputs
+
+Like the OCR predictor, every task-specific predictor takes a lazy page source (`DocumentFile.from_pdf(...,
+lazy=True)`, `from_images`, `from_files`), a slice of one, a tuple or a generator, and processes long inputs **chunk by
+chunk**: `chunk_size` images are decoded and processed at a time, and the next chunk of a page source is decoded in a
+background thread while the model runs on the current one. The memory footprint therefore does not grow with the
+number of images, and the output is the same as for a list:
+
+```python
+from doctr.io import DocumentFile
+from doctr.models import layout_predictor, recognition_predictor
+
+# The layout regions of every page of a long PDF
+predictor = layout_predictor("lw_detr_s", pretrained=True)
+regions = predictor(DocumentFile.from_pdf("path/to/1000_pages.pdf", lazy=True))
+
+# A folder of 100k word crops
+predictor = recognition_predictor("crnn_vgg16_bn", pretrained=True, chunk_size=2048)
+words = predictor(DocumentFile.from_images("path/to/word_crops/", lazy=True))
+```
+
+| Predictors                                                      | `chunk_size` default |
+| --------------------------------------------------------------- | -------------------- |
+| Detection, layout, table structure, page orientation            | `32` images          |
+| Recognition, crop orientation (much smaller crops)              | `1024` crops         |
+
+`chunk_size` is rounded up to a multiple of `batch_size`, so that the model processes the same batches as for a list,
+and the predictions do not change (the recognition predictor splits very wide crops within each chunk, which can only
+shift its batch boundaries). Lists and tuples of at most `chunk_size` images are processed at once, exactly as before.
+
+:::{note}
+Unlike the predictions of the OCR predictor, the outputs of the task-specific predictors are plain lists, built once
+the whole input is processed. With `return_maps=True`, the detection predictor returns the segmentation map of every
+page: on a long input, these maps add up.
+:::
 
 ## Accessing the models
 
