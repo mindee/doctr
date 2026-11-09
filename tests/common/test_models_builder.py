@@ -573,17 +573,18 @@ def test_documentbuilder_tables():
             _table_cell(0.10, 0.10, 0.25, 0.20, 0, 0, 0, 0, score=0.8),
             _table_cell(0.28, 0.10, 0.45, 0.20, 0, 0, 1, 1, score=0.6),
             _table_cell(0.10, 0.22, 0.25, 0.32, 1, 1, 0, 0, score=0.4),  # no word inside this cell
+            _table_cell(0.28, 0.22, 0.45, 0.32, 1, 1, 1, 1, score=0.5),
         ],
         "num_rows": 2,
         "num_cols": 2,
     }
-    page = doc_builder(*_table_words("Name", "Age", confidences=[0.95, 0.85]), tables=[table]).pages[0]
+    page = doc_builder(*_table_words("Name", "Age", "30", confidences=[0.95, 0.85, 0.75]), tables=[table]).pages[0]
     cells = page.tables[0].cells
-    assert [cell.value for cell in cells] == ["Name", "Age", ""]
-    assert [cell.objectness_score for cell in cells] == [0.8, 0.6, 0.4]
-    assert [cell.confidence for cell in cells] == pytest.approx([0.95, 0.85, 0.4])
-    assert page.tables[0].confidence == pytest.approx(0.6)
-    assert [cell["objectness_score"] for cell in page.export()["tables"][0]["cells"]] == [0.8, 0.6, 0.4]
+    assert [cell.value for cell in cells] == ["Name", "Age", "", "30"]
+    assert [cell.objectness_score for cell in cells] == [0.8, 0.6, 0.4, 0.5]
+    assert [cell.confidence for cell in cells] == pytest.approx([0.95, 0.85, 0.4, 0.75])
+    assert page.tables[0].confidence == pytest.approx(0.575)
+    assert [cell["objectness_score"] for cell in page.export()["tables"][0]["cells"]] == [0.8, 0.6, 0.4, 0.5]
 
     # Multi-word cells are read line by line, left to right
     words = ["world", "hello", "second", "line", "solo"]
@@ -654,6 +655,134 @@ def test_documentbuilder_tables():
     assert page.tables[0].to_grid() == [["Name", "Age"], ["Alice", "30"]]
     # The export is still JSON-serializable
     json.dumps(page.export())
+
+
+def _grid_cells(xs, ys):
+    """Cells of a regular grid from its column and row lines"""
+    return [
+        _table_cell(xs[c], ys[r], xs[c + 1], ys[r + 1], r, r, c, c)
+        for r in range(len(ys) - 1)
+        for c in range(len(xs) - 1)
+    ]
+
+
+def _word_box(cx, cy, w=0.04, h=0.02):
+    return [cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2]
+
+
+@pytest.mark.parametrize("straight", [True, False])
+def test_documentbuilder_tables_complete_grid(straight):
+    # A 2 x 2 grid predicted by the table model, inside a larger table region found by the layout model
+    xs, ys = [0.20, 0.40, 0.60], [0.30, 0.40, 0.50]
+    cells = _grid_cells(xs, ys)[:3]  # the cell of the last row and column is missed
+    region = [[0.10, 0.15], [0.70, 0.15], [0.70, 0.65], [0.10, 0.65]]
+    words = {
+        "A": (0.30, 0.35),
+        "B": (0.50, 0.35),
+        "C": (0.30, 0.45),
+        "missed": (0.50, 0.45),  # in the slot of the missed cell
+        "Col1": (0.30, 0.25),  # a header row above the grid
+        "Col2": (0.50, 0.25),
+        "Total": (0.25, 0.58),  # a sentence below the grid, across both columns
+        "amount": (0.3225, 0.58),
+        "due": (0.405, 0.58),
+        "key": (0.15, 0.35),  # a column on the left of the grid
+        "caption": (0.40, 0.80),  # outside of the table region
+    }
+    widths = {"Total": 0.06, "amount": 0.075, "due": 0.08}  # the words of the sentence are 5px apart
+    boxes = [_word_box(*center, w=widths.get(name, 0.04)) for name, center in words.items()]
+    if not straight:
+        boxes = [[[x0, y0], [x1, y0], [x1, y1], [x0, y1]] for x0, y0, x1, y1 in boxes]
+    table = {"cells": cells, "num_rows": 2, "num_cols": 2, "geometry": region}
+    page = builder.DocumentBuilder()(*_word_args(list(words), boxes), tables=[[table]]).pages[0]
+    # Every word of the table region ends up in the table, the caption stays in the blocks
+    assert _words(page) == ["caption"]
+    grid = page.tables[0].to_grid()
+    assert grid == [
+        ["", "Col1", "Col2"],
+        ["key", "A", "B"],
+        ["", "C", "missed"],
+        ["", "Total amount due", ""],
+    ]
+    # The cells added from the words are not scored by the table model, and span the columns of their text
+    total = next(cell for cell in page.tables[0].cells if cell.value.startswith("Total"))
+    assert total.objectness_score is None and (total.col_start, total.col_end) == (1, 2)
+    assert page.tables[0].confidence == pytest.approx(0.9)
+    json.dumps(page.export())
+
+    # Without the table region, the words around the cells stay in the blocks (only the cell outline is known)
+    table = {"cells": cells, "num_rows": 2, "num_cols": 2}
+    page = builder.DocumentBuilder()(*_word_args(list(words), boxes), tables=[[table]]).pages[0]
+    assert page.tables[0].to_grid() == [["A", "B"], ["C", "missed"]]
+    assert sorted(_words(page)) == sorted(["Col1", "Col2", "Total", "amount", "due", "key", "caption"])
+
+
+def test_documentbuilder_tables_simplify_grid():
+    # The model splits a row in 2 (its cells do not line up) and predicts an empty row: the text of the split row
+    # lies on the same line, so the 2 rows are merged, and the empty row is removed
+    cells = [
+        _table_cell(0.10, 0.10, 0.30, 0.20, 0, 0, 0, 0),
+        _table_cell(0.30, 0.10, 0.50, 0.20, 0, 0, 1, 1),
+        _table_cell(0.10, 0.20, 0.30, 0.30, 1, 1, 0, 0),
+        _table_cell(0.30, 0.20, 0.50, 0.24, 1, 1, 1, 1),  # empty, a row of its own
+        _table_cell(0.30, 0.24, 0.50, 0.34, 2, 2, 1, 1),
+        _table_cell(0.10, 0.34, 0.30, 0.44, 3, 3, 0, 0),  # an empty row
+        _table_cell(0.30, 0.34, 0.50, 0.44, 3, 3, 1, 1),
+        _table_cell(0.10, 0.44, 0.30, 0.54, 4, 4, 0, 0),
+        _table_cell(0.30, 0.44, 0.50, 0.54, 4, 4, 1, 1),
+    ]
+    words = ["h1", "h2", "a", "b", "c", "d"]
+    boxes = [_word_box(0.2, 0.15), _word_box(0.4, 0.15), _word_box(0.2, 0.25), _word_box(0.4, 0.255)]
+    boxes += [_word_box(0.2, 0.49), _word_box(0.4, 0.49)]
+    table = {"cells": cells, "num_rows": 5, "num_cols": 2}
+    page = builder.DocumentBuilder()(*_word_args(words, boxes), tables=[[table]]).pages[0]
+    assert page.tables[0].to_grid() == [["h1", "h2"], ["a", "b"], ["c", "d"]]
+    assert (page.tables[0].num_rows, page.tables[0].num_cols) == (3, 2)
+    # Text on different lines is not merged
+    boxes[3] = _word_box(0.4, 0.31)
+    page = builder.DocumentBuilder()(*_word_args(words, boxes), tables=[[table]]).pages[0]
+    assert page.tables[0].to_grid() == [["h1", "h2"], ["a", ""], ["", "b"], ["c", "d"]]
+
+
+def test_documentbuilder_tables_split_rows():
+    # The model merges the 3 text lines of a dense table into a single row
+    cells = [
+        _table_cell(0.10, 0.10, 0.30, 0.16, 0, 0, 0, 0),
+        _table_cell(0.30, 0.10, 0.50, 0.16, 0, 0, 1, 1),
+        _table_cell(0.10, 0.16, 0.30, 0.34, 1, 1, 0, 0),
+        _table_cell(0.30, 0.16, 0.50, 0.34, 1, 1, 1, 1),
+    ]
+    words, boxes = ["Name", "Value"], [_word_box(0.2, 0.13), _word_box(0.4, 0.13)]
+    for line, cy in enumerate((0.19, 0.25, 0.31)):
+        words += [f"key{line}", f"{line}.00"]
+        boxes += [_word_box(0.2, cy), _word_box(0.4, cy)]
+    table = {"cells": cells, "num_rows": 2, "num_cols": 2}
+    page = builder.DocumentBuilder()(*_word_args(words, boxes), tables=[[table]]).pages[0]
+    assert page.tables[0].to_grid() == [["Name", "Value"], ["key0", "0.00"], ["key1", "1.00"], ["key2", "2.00"]]
+
+    # A single cell wrapping its text (e.g. a long header) does not split its row
+    words = ["Unit", "price", "Qty", "10", "2"]
+    boxes = [_word_box(0.2, 0.12), _word_box(0.2, 0.14), _word_box(0.4, 0.13)]
+    boxes += [_word_box(0.2, 0.25), _word_box(0.4, 0.25)]
+    page = builder.DocumentBuilder()(*_word_args(words, boxes), tables=[[table]]).pages[0]
+    assert page.tables[0].to_grid() == [["Unit price", "Qty"], ["10", "2"]]
+
+    # A cell spanning 2 rows whose text lines lie in each of them, aligned with the text of the row
+    cells = [
+        _table_cell(0.10, 0.10, 0.30, 0.20, 0, 0, 0, 0),
+        _table_cell(0.10, 0.20, 0.30, 0.30, 1, 1, 0, 0),
+        _table_cell(0.30, 0.10, 0.50, 0.30, 0, 1, 1, 1),
+    ]
+    words = ["Acquired", "Taken", "51", "9"]
+    boxes = [_word_box(0.2, 0.15), _word_box(0.2, 0.25), _word_box(0.4, 0.15), _word_box(0.4, 0.25)]
+    table = {"cells": cells, "num_rows": 2, "num_cols": 2}
+    page = builder.DocumentBuilder()(*_word_args(words, boxes), tables=[[table]]).pages[0]
+    assert page.tables[0].to_grid() == [["Acquired", "51"], ["Taken", "9"]]
+    # A label spanning 2 rows on a single line is kept as is
+    page = builder.DocumentBuilder()(
+        *_word_args(words[:2] + ["label"], boxes[:2] + [_word_box(0.4, 0.2)]), tables=[[table]]
+    ).pages[0]
+    assert [(c.value, c.row_span) for c in page.tables[0].cells] == [("Acquired", 1), ("Taken", 1), ("label", 2)]
 
 
 @pytest.mark.parametrize(

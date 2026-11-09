@@ -17,6 +17,7 @@ from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.layout.predictor import LayoutPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.models.table_structure.predictor import TablePredictor
+from doctr.models.table_structure.tablecenternet.base import _logic_from_geometry
 from doctr.utils.geometry import detach_scores
 
 from .base import _OCRPredictor
@@ -233,6 +234,15 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             out = self._remap_to_original_coords(out, _orig_shapes, _straight_shapes, m_invs, _orig_pages)
         return out
 
+    @staticmethod
+    def _cell_polygon(geometry: Any) -> np.ndarray:
+        """Normalize a cell geometry, a straight box (xmin, ymin, xmax, ymax) or a polygon, to a (4, 2) polygon"""
+        raw = np.asarray(geometry, dtype=np.float32)
+        if raw.size == 4:  # straight box (xmin, ymin, xmax, ymax)
+            x0, y0, x1, y1 = raw.ravel()
+            return np.array([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], dtype=np.float32)
+        return raw.reshape(-1, 2).copy()
+
     def _tables_from_regions(
         self,
         pages: list[np.ndarray],
@@ -244,7 +254,8 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         Each `Table` region is rectified to an upright crop with a perspective transform (so straight boxes and
         rotated polygons are both handled), the table model is applied per crop, and the predicted cell polygons
         are mapped back to page-relative coordinates through the inverse transform. A page therefore yields one
-        structured table per detected `Table` region.
+        structured table per detected `Table` region. The crop includes a margin of page context around the region:
+        the cells predicted in this margin belong to the neighbouring content and are dropped.
 
         Args:
             pages: the (possibly straightened) page images
@@ -252,12 +263,13 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             **kwargs: keyword arguments forwarded to the table predictor
 
         Returns:
-            a per-page list of table grids `{"cells": [...], "num_rows": int, "num_cols": int}` in page-relative
-            coordinates
+            a per-page list of table grids `{"cells": [...], "num_rows": int, "num_cols": int, "geometry": region}`
+            in page-relative coordinates, `geometry` being the (4, 2) polygon of the table region
         """
         crops: list[np.ndarray] = []
-        # (page index, inverse transform, crop width, crop height, page width, page height)
-        crop_meta: list[tuple[int, np.ndarray, int, int, int, int]] = []
+        # (page index, inverse transform, crop width, crop height, context margin, page width, page height,
+        # page-relative region)
+        crop_meta: list[tuple[int, np.ndarray, int, int, int, int, int, np.ndarray]] = []
         for p_idx, (page, region) in enumerate(zip(pages, regions)):
             if region is None:
                 continue
@@ -290,30 +302,52 @@ class OCRPredictor(nn.Module, _OCRPredictor):
                 transform = cv2.getPerspectiveTransform(src, dst)
                 inverse = cv2.getPerspectiveTransform(dst, src)
                 crops.append(cv2.warpPerspective(page, transform, (out_w, out_h), borderMode=cv2.BORDER_REPLICATE))
-                crop_meta.append((p_idx, inverse, out_w, out_h, w, h))
+                crop_meta.append((p_idx, inverse, out_w, out_h, pad, w, h, src / np.array([w, h], dtype=np.float32)))
 
         tables_per_page: list[list[dict[str, Any]]] = [[] for _ in pages]
         if len(crops) == 0:
             return tables_per_page
 
         grids = self.table_predictor(crops, **kwargs)  # type: ignore[misc]
-        for (p_idx, inverse, crop_w, crop_h, w, h), grid in zip(crop_meta, grids):
+        # Whether the structure model makes the logical coordinates consistent with the cell geometry
+        postprocessor = getattr(getattr(self.table_predictor, "model", None), "postprocessor", None)
+        realign = getattr(postprocessor, "geometric_logic", False)
+        for (p_idx, inverse, crop_w, crop_h, pad, w, h, region_poly), grid in zip(crop_meta, grids):
+            if len(grid["cells"]) == 0:
+                continue
+            # Cell polygons: crop-relative -> crop pixels
+            polys = np.stack([self._cell_polygon(cell["geometry"]) for cell in grid["cells"]])
+            polys *= np.array([crop_w, crop_h], dtype=np.float32)
+            # The context margin around the region shows the neighbouring content (e.g. the cells of an adjacent
+            # table): the cells centered there are not part of this table
+            centers = polys.mean(axis=1)
+            keep = np.flatnonzero(
+                (centers[:, 0] >= pad)
+                & (centers[:, 0] <= crop_w - pad)
+                & (centers[:, 1] >= pad)
+                & (centers[:, 1] <= crop_h - pad)
+            )
+            if keep.size == 0:
+                continue
+            cells = [grid["cells"][idx] for idx in keep]
+            logic = np.array([[c["col_start"], c["col_end"], c["row_start"], c["row_end"]] for c in cells])
+            if realign and keep.size < polys.shape[0]:
+                # The dropped cells made grid lines of their own: index the rows / columns of the remaining ones again
+                logic = _logic_from_geometry(polys[keep], logic, split_tables=False)
             remapped_cells: list[dict[str, Any]] = []
-            for cell in grid["cells"]:
-                # Cell polygon is crop-relative -> crop pixels -> page pixels (inverse transform) -> page-relative
-                raw = np.asarray(cell["geometry"], dtype=np.float32)
-                if raw.ndim == 1 and raw.size == 4:  # straight box (xmin, ymin, xmax, ymax)
-                    x0, y0, x1, y1 = raw
-                    poly = np.array([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], dtype=np.float32)
-                else:
-                    poly = raw.reshape(-1, 2)
-                poly[:, 0] *= crop_w
-                poly[:, 1] *= crop_h
+            for cell, poly, (col_start, col_end, row_start, row_end) in zip(cells, polys[keep], logic):
+                # crop pixels -> page pixels (inverse transform) -> page-relative
                 poly = cv2.perspectiveTransform(poly[None, :, :], inverse)[0]
                 poly[:, 0] /= w
                 poly[:, 1] /= h
                 new_cell = dict(cell)
-                new_cell["geometry"] = poly.tolist()
+                new_cell.update(
+                    geometry=poly.tolist(),
+                    row_start=int(row_start),
+                    row_end=int(row_end),
+                    col_start=int(col_start),
+                    col_end=int(col_end),
+                )
                 remapped_cells.append(new_cell)
             if not remapped_cells:
                 continue
@@ -321,5 +355,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
                 "cells": remapped_cells,
                 "num_rows": grid["num_rows"],
                 "num_cols": grid["num_cols"],
+                # The layout region of the table (TL, TR, BR, BL): every word inside it belongs to the table
+                "geometry": region_poly.tolist(),
             })
         return tables_per_page

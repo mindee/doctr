@@ -408,6 +408,55 @@ def test_ocrpredictor_tables(mock_pdf, mock_vocab):
         assert exported["tables"] == [t.export() for t in page.tables]
 
 
+def test_ocrpredictor_tables_from_regions():
+    class _FakeTablePredictor:
+        """Returns a fixed grid (crop-relative cells) for every crop, with a cell in the context margin"""
+
+        model = None
+
+        def __init__(self):
+            self.crops = []
+
+        def __call__(self, crops, **kwargs):
+            self.crops = crops
+            h, w = crops[0].shape[:2]
+            pad = 20  # the context margin of a region smaller than 2000 px
+
+            def cell(x0, y0, x1, y1, r, c):
+                box = [(pad + x0) / w, (pad + y0) / h, (pad + x1) / w, (pad + y1) / h]
+                return {"geometry": box, "score": 0.9, "row_start": r, "row_end": r, "col_start": c, "col_end": c}
+
+            # 2 cells of the table, and a cell of the neighbouring content, above the region
+            cells = [cell(0, 0, 100, 50, 1, 0), cell(100, 0, 200, 50, 1, 1), cell(0, -18, 200, -4, 0, 0)]
+            return [{"cells": cells, "num_rows": 2, "num_cols": 2}]
+
+    fake = type("FakeOCRPredictor", (), {})()
+    fake.table_predictor = _FakeTablePredictor()
+    fake.table_class_name = "Table"
+    fake._cell_polygon = OCRPredictor._cell_polygon
+    page = np.full((400, 600, 3), 255, dtype=np.uint8)
+    region = {
+        "class_names": ["Text", "Table"],
+        "boxes": np.array([[0, 0, 0.1, 0.1], [0.1, 0.25, 0.1 + 200 / 600, 0.375]]),
+    }
+    tables = OCRPredictor._tables_from_regions(fake, [page], [region])
+    # Only the table region is cropped, with a context margin
+    assert len(fake.table_predictor.crops) == 1 and fake.table_predictor.crops[0].shape[:2] == (90, 240)
+    assert len(tables) == 1 and len(tables[0]) == 1
+    table = tables[0][0]
+    # The cell of the context margin is dropped, the others are mapped back to page-relative coordinates
+    assert len(table["cells"]) == 2
+    np.testing.assert_allclose(
+        table["cells"][0]["geometry"],
+        [[0.1, 0.25], [0.1 + 100 / 600, 0.25], [0.1 + 100 / 600, 0.375], [0.1, 0.375]],
+        atol=1e-5,
+    )
+    # The table region is attached to the grid
+    np.testing.assert_allclose(
+        table["geometry"], [[0.1, 0.25], [0.1 + 200 / 600, 0.25], [0.1 + 200 / 600, 0.375], [0.1, 0.375]], atol=1e-6
+    )
+
+
 def test_ocrpredictor_tables_factory():
     # The factory exposes a single `detect_tables` flag, which also enables the layout model
     predictor = models.ocr_predictor("db_mobilenet_v3_large", "crnn_vgg16_bn", pretrained=False, detect_tables=True)

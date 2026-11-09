@@ -5,9 +5,9 @@ from doctr.models.table_structure.tablecenternet import TableCenterNetPostProces
 from doctr.models.table_structure.tablecenternet.base import (
     _build_table_target,
     _cluster_lines,
+    _index_lines,
     _logic_from_geometry,
     _suppress_overlapping_cells,
-    _vote_line_indices,
 )
 
 
@@ -121,31 +121,35 @@ def test_tablecenternet_logic_from_geometry_tables():
     flipped[..., 1] = 1 - flipped[..., 1]
     np.testing.assert_array_equal(_logic_from_geometry(flipped, drifted), gt)
 
-    # The cells on a line do not agree on its index (2 against 2): the model coordinates are kept
+    # The model counts one more column in the 1st row than in the 2nd one, on a regular grid: the cells of a
+    # visual column share their index
     two_rows = _grid_target(2, 3, use_polygons=True)
     split = two_rows["logic"].copy()
-    split[:3, :2] += [[0, 1], [1, 1], [1, 1]]  # the 1st row counts one more column than the 2nd one
-    np.testing.assert_array_equal(_logic_from_geometry(two_rows["cells"], split), split)
+    split[:3, :2] += [[0, 1], [1, 1], [1, 1]]
+    np.testing.assert_array_equal(_logic_from_geometry(two_rows["cells"], split), two_rows["logic"])
+
+    # The model drifts by one row on half of the columns (e.g. a borderless table): the rows follow the geometry
+    grid = _grid_target(3, 4, use_polygons=True)
+    drifted = grid["logic"].copy()
+    drifted[drifted[:, 0] >= 2] += [0, 0, 1, 1]
+    np.testing.assert_array_equal(_logic_from_geometry(grid["cells"], drifted), grid["logic"])
 
 
-def test_tablecenternet_vote_line_indices():
-    def vote(cells):
-        start, end, logic = (np.array(v) for v in zip(*cells))
-        return _vote_line_indices(3, start, end, logic)
+def test_tablecenternet_index_lines():
+    def index(lines, cells, size=10.0):
+        start, end = (np.array(v) for v in zip(*cells))
+        return _index_lines(np.asarray(lines, dtype=float), start, end, size).tolist()
 
-    # 3 cells between 3 lines: the 2 cells after the 1st line drift to the index of the 1st cell. The vote of line 1
-    # is 0 but its cell would span no index: the line moves on (and so does the next one)
-    values, majority = vote([(0, 1, (0, 0)), (1, 2, (0, 0)), (1, 2, (0, 0))])
-    np.testing.assert_array_equal(values, [0, 1, 2])
-    assert majority.all()
-    # A minority of cells spanning no index (4 cells of a split header row, against 6 rows-high cells) does not move
-    # the line: the other ones would be shifted
-    cells = [(0, 1, (0, 0))] * 4 + [(1, 2, (1, 1))] * 4 + [(0, 2, (0, 0))] * 6
-    values, _ = vote(cells)
-    np.testing.assert_array_equal(values, [0, 1, 1])
-    # A split vote does not decide the index of a line
-    values, majority = vote([(0, 1, (0, 0)), (0, 1, (0, 1)), (1, 2, (1, 1)), (1, 2, (2, 2))])
-    np.testing.assert_array_equal(majority, [True, False, False])
+    # A regular grid: one index per line
+    assert index([0, 10, 20, 30], [(0, 1), (1, 2), (2, 3)]) == [0, 1, 2, 3]
+    # A stray line (a shorter cell) separates no cell from the line after it: both lines share an index
+    assert index([0, 7, 10, 20], [(0, 1), (0, 2), (2, 3), (2, 3)]) == [0, 1, 1, 2]
+    # A cell spanning 2 rows of the other cells
+    assert index([0, 10, 20], [(0, 2), (0, 1), (1, 2)]) == [0, 1, 2]
+    # A gap of 2 cell sizes covered by no cell counts as 2 empty indices, a narrow one (between cells that do not
+    # touch) as none
+    assert index([0, 10, 30, 40], [(0, 1), (2, 3)]) == [0, 1, 3, 4]
+    assert index([0, 10, 12, 22], [(0, 1), (2, 3)]) == [0, 1, 1, 2]
 
 
 def test_tablecenternet_cluster_lines():
