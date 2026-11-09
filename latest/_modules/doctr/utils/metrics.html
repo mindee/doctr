@@ -528,7 +528,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">anyascii</span><span class="w"> </span><span class="kn">import</span> <span class="n">anyascii</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">linear_sum_assignment</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">shapely</span><span class="w"> </span><span class="kn">import</span> <span class="n">STRtree</span><span class="p">,</span> <span class="n">area</span><span class="p">,</span> <span class="n">intersection</span><span class="p">,</span> <span class="n">polygons</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">shapely</span><span class="w"> </span><span class="kn">import</span> <span class="n">STRtree</span><span class="p">,</span> <span class="n">area</span><span class="p">,</span> <span class="n">convex_hull</span><span class="p">,</span> <span class="n">intersection</span><span class="p">,</span> <span class="n">is_valid</span><span class="p">,</span> <span class="n">polygons</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"TextMatch"</span><span class="p">,</span>
@@ -681,6 +681,23 @@
     <span class="k">return</span> <span class="n">iou_mat</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_gt_polygons</span><span class="p">(</span><span class="n">polys</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Raise a `ValueError` for ground-truth boxes (N, 4, 2) whose points cross each other, i.e. are not in order.</span>
+
+<span class="sd">    Degenerate boxes (repeated or collinear points) are accepted: their IoU is 0.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">polys</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">polys</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">geoms</span> <span class="o">=</span> <span class="n">polygons</span><span class="p">(</span><span class="n">polys</span><span class="p">)</span>
+    <span class="c1"># An invalid polygon with a non-zero hull area is a real box whose points are out of order</span>
+    <span class="n">crossed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="o">~</span><span class="n">is_valid</span><span class="p">(</span><span class="n">geoms</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">area</span><span class="p">(</span><span class="n">convex_hull</span><span class="p">(</span><span class="n">geoms</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">crossed</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Ground truth boxes at indices </span><span class="si">{</span><span class="n">crossed</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2"> are self-intersecting "</span>
+            <span class="s2">"(points not in TL, TR, BR, BL order); please fix the annotations."</span>
+        <span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">polygon_iou</span><span class="p">(</span><span class="n">polys_1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">polys_2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Computes the IoU between two sets of rotated bounding boxes</span>
 
@@ -808,6 +825,8 @@
 <span class="sd">            gts: a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones</span>
 <span class="sd">            preds: a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones</span>
 <span class="sd">        """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_polygons</span><span class="p">:</span>
+            <span class="n">_check_gt_polygons</span><span class="p">(</span><span class="n">gts</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">gts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">preds</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># Compute IoU</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_polygons</span><span class="p">:</span>
@@ -901,6 +920,8 @@
 <span class="sd">            pred_cells: predicted cells, shape (M, 4) or (M, 4, 2) when `use_polygons=True`</span>
 <span class="sd">            pred_logic: predicted logical coordinates, shape (M, 4)</span>
 <span class="sd">        """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_polygons</span><span class="p">:</span>
+            <span class="n">_check_gt_polygons</span><span class="p">(</span><span class="n">gt_cells</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">+=</span> <span class="n">gt_cells</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">+=</span> <span class="n">pred_cells</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">gt_cells</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">pred_cells</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1013,6 +1034,8 @@
 <span class="sd">            gt_labels: a list of N string labels</span>
 <span class="sd">            pred_labels: a list of M string labels</span>
 <span class="sd">        """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_polygons</span><span class="p">:</span>
+            <span class="n">_check_gt_polygons</span><span class="p">(</span><span class="n">gt_boxes</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">gt_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_labels</span><span class="p">)</span> <span class="ow">or</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_labels</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
                 <span class="s2">"there should be the same number of boxes and string both for the ground truth and the predictions"</span>
@@ -1151,6 +1174,8 @@
 <span class="sd">            gt_labels: an array of class indices of shape (N,)</span>
 <span class="sd">            pred_labels: an array of class indices of shape (M,)</span>
 <span class="sd">        """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_polygons</span><span class="p">:</span>
+            <span class="n">_check_gt_polygons</span><span class="p">(</span><span class="n">gt_boxes</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">gt_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">gt_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">pred_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
                 <span class="s2">"there should be the same number of boxes and string both for the ground truth and the predictions"</span>
@@ -1286,6 +1311,8 @@
         <span class="n">pred_labels</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
         <span class="n">pred_scores</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_polygons</span><span class="p">:</span>
+            <span class="n">_check_gt_polygons</span><span class="p">(</span><span class="n">gt_boxes</span><span class="p">)</span>
         <span class="k">if</span> <span class="p">(</span>
             <span class="n">gt_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">gt_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="ow">or</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">pred_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
