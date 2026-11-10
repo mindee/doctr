@@ -347,6 +347,25 @@ def test_layout_labels(label, normalized, role):
             id="header-over-columns",
         ),
         pytest.param(
+            # A centered title and its authors above 2 columns (e.g. the first page of a paper): more lines crossing
+            # the gutter than its tolerance, but none level with the columns
+            _column(0.15, 0.85, 0.02, 0.03, 2, 0.02)
+            + _column(0.35, 0.65, 0.09, 0.025, 4, 0.015)
+            + _column(0.05, 0.45, 0.2, 0.02, 40, 0.015)
+            + _column(0.55, 0.95, 0.2, 0.02, 40, 0.015),
+            {},
+            list(range(86)),
+            id="title-and-authors-over-columns",
+        ),
+        pytest.param(
+            # The right column starts higher than the left one (e.g. beside a table whose caption is read with it):
+            # the left column is read first
+            _column(0.05, 0.45, 0.2, 0.03, 10, 0.02) + _column(0.55, 0.95, 0.15, 0.03, 10, 0.02),
+            {},
+            list(range(20)),
+            id="right-column-starting-higher",
+        ),
+        pytest.param(
             SPLIT_CAPTION,
             {"labels": SPLIT_CAPTION_LABELS},
             lambda order: order.index(4) == order.index(1) + 1,

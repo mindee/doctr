@@ -9,7 +9,6 @@ import statistics
 from collections.abc import Sequence
 from typing import Any
 
-import cv2
 import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
 
@@ -26,9 +25,9 @@ from doctr.io.elements import (
     TableCell,
     Word,
 )
+from doctr.models.table_structure.grid import assemble_page_table
 from doctr.utils.geometry import (
     estimate_page_angle,
-    order_points,
     resolve_enclosing_bbox,
     resolve_enclosing_rbbox,
     rotate_boxes,
@@ -450,273 +449,68 @@ class DocumentBuilder(NestedObject):
             elements.append(LayoutElement(layout_type=str(cname), confidence=float(score), geometry=geometry))
         return elements
 
-    @staticmethod
-    def _word_centers(boxes: np.ndarray) -> np.ndarray:
-        """Return the (x, y) center of each word box.
-
-        Args:
-            boxes: word boxes of shape (N, 4) (straight: x1, y1, x2, y2) or (N, 4, 2) (rotated polygon)
-
-        Returns:
-            array of shape (N, 2) with the relative center coordinates of each box
-        """
-        if boxes.ndim == 3:  # rotated polygons (N, 4, 2)
-            return boxes.mean(axis=1)
-        return np.stack([(boxes[:, 0] + boxes[:, 2]) / 2, (boxes[:, 1] + boxes[:, 3]) / 2], axis=1)
-
-    @staticmethod
-    def _as_cell_polygon(geometry: Any) -> np.ndarray:
-        """Normalize a cell geometry to a (4, 2) polygon.
-
-        Straight-page table predictions store cells as flat (xmin, ymin, xmax, ymax) boxes, while rotated-page
-        predictions store (4, 2) corner polygons: both are mapped to a (4, 2) polygon (TL, TR, BR, BL).
-
-        Args:
-            geometry: the raw cell geometry
-
-        Returns:
-            array of shape (4, 2) with the polygon vertices
-        """
-        arr = np.asarray(geometry, dtype=np.float32)
-        if arr.ndim == 1:  # straight box (xmin, ymin, xmax, ymax)
-            x0, y0, x1, y1 = arr
-            return np.array([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], dtype=np.float32)
-        return order_points(arr.reshape(-1, 2))
-
-    @staticmethod
-    def _points_in_polygons(points: np.ndarray, polys: np.ndarray) -> np.ndarray:
-        """Vectorized ray casting: test every point against every polygon at once.
-
-        Args:
-            points: array of shape (N, 2) with the (x, y) coordinates of the points
-            polys: array of shape (C, V, 2) with the polygon vertices
-
-        Returns:
-            boolean array of shape (N, C), True where point n lies inside polygon c
-        """
-        if points.shape[0] == 0 or polys.shape[0] == 0:
-            return np.zeros((points.shape[0], polys.shape[0]), dtype=bool)
-        px = points[:, 0].astype(np.float64)[:, None, None]
-        py = points[:, 1].astype(np.float64)[:, None, None]
-        vi = polys.astype(np.float64)  # (C, V, 2)
-        vj = np.roll(vi, 1, axis=1)  # previous vertex, with wrap-around
-        xi, yi = vi[None, ..., 0], vi[None, ..., 1]
-        xj, yj = vj[None, ..., 0], vj[None, ..., 1]
-        crossing = ((yi > py) != (yj > py)) & (px < (xj - xi) * (py - yi) / (yj - yi + 1e-12) + xi)
-        # A point is inside when a ray crosses the polygon boundary an odd number of times
-        return (crossing.sum(axis=-1) % 2).astype(bool)
-
-    @staticmethod
-    def _order_cell_words(w_idcs: list[int], centers: np.ndarray, heights: np.ndarray) -> list[int]:
-        """Order the words of a table cell in reading order: rows top to bottom, words left to right.
-
-        Args:
-            w_idcs: indices of the cell's words
-            centers: word centers of shape (N, 2), de-skewed for rotated pages
-            heights: per-word heights of shape (N,) (rotation-invariant)
-
-        Returns:
-            the cell's word indices in reading order
-        """
-        idcs = sorted(w_idcs, key=lambda i: float(centers[i][1]))
-        med_height = float(np.median([heights[i] for i in idcs]))
-        if not np.isfinite(med_height) or med_height <= 0:
-            med_height = 1.0
-        rows: list[list[int]] = [[idcs[0]]]
-        y_sum = float(centers[idcs[0]][1])
-        for idx in idcs[1:]:
-            if float(centers[idx][1]) - y_sum / len(rows[-1]) < med_height / 2:
-                rows[-1].append(idx)
-                y_sum += float(centers[idx][1])
-            else:
-                rows.append([idx])
-                y_sum = float(centers[idx][1])
-        return [idx for row in rows for idx in sorted(row, key=lambda i: float(centers[i][0]))]
-
-    @staticmethod
-    def _localize_logic(cells: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], int, int]:
-        """Re-index a table's logical coordinates to a local 0-based grid.
-
-        The table model returns logical (row/column) coordinates that may carry a constant offset; shifting them
-        so that the smallest row/column start is 0 makes the grid directly usable by :meth:`Table.to_grid`.
-
-        Args:
-            cells: the cells of a single table
-
-        Returns:
-            a tuple `(cells, num_rows, num_cols)` with the re-indexed cells and the table dimensions
-        """
-        min_row = min(int(c["row_start"]) for c in cells)
-        min_col = min(int(c["col_start"]) for c in cells)
-        norm: list[dict[str, Any]] = []
-        max_row = max_col = 0
-        for c in cells:
-            nc = dict(c)
-            nc["row_start"] = int(c["row_start"]) - min_row
-            nc["row_end"] = int(c["row_end"]) - min_row
-            nc["col_start"] = int(c["col_start"]) - min_col
-            nc["col_end"] = int(c["col_end"]) - min_col
-            max_row, max_col = max(max_row, nc["row_end"]), max(max_col, nc["col_end"])
-            norm.append(nc)
-        return norm, max_row + 1, max_col + 1
-
-    @classmethod
-    def _table_grids(
-        cls, page_table: dict[str, Any] | list[dict[str, Any]] | None
-    ) -> list[tuple[list[dict[str, Any]], int, int]]:
-        """Normalize the table structure prediction(s) of a page to non-empty grids with local logical coordinates
-
-        Args:
-            page_table: a single grid, a list of grids or None (cf. `_build_tables`)
-
-        Returns:
-            the cells, number of rows and number of columns of each non-empty grid
-        """
-        raw_tables = [] if page_table is None else [page_table] if isinstance(page_table, dict) else list(page_table)
-        return [cls._localize_logic(raw["cells"]) for raw in raw_tables if raw and len(raw.get("cells", [])) > 0]
-
-    @classmethod
-    def _assign_cell_words(cls, centers: np.ndarray, polys: np.ndarray, consumed: np.ndarray) -> list[list[int]]:
-        """Assign each word not yet consumed to at most one cell of a table, and flag it as consumed
-
-        A word goes to the first cell containing its center. A word landing just outside every cell but inside the
-        table goes to the nearest cell, within half a median cell diagonal, so table text is not dropped into the body.
-
-        Args:
-            centers: the (N, 2) word centers
-            polys: the (C, 4, 2) cell polygons, vertices ordered TL, TR, BR, BL
-            consumed: the (N,) mask of the words already assigned to a table, updated in place
-
-        Returns:
-            the word indices of each cell
-        """
-        cell_words: list[list[int]] = [[] for _ in polys]
-        free = np.flatnonzero(~consumed)
-        if free.size == 0:
-            return cell_words
-        inside = cls._points_in_polygons(centers[free], polys)  # (F, C)
-        assigned = inside.any(axis=1)
-        for w_idx, c_idx in zip(free[assigned], inside[assigned].argmax(axis=1)):
-            cell_words[c_idx].append(int(w_idx))
-            consumed[w_idx] = True
-        leftover = free[~assigned]
-        if leftover.size > 0:
-            cell_centers = polys.mean(axis=1)  # (C, 2)
-            max_dist = 0.5 * float(np.median(np.linalg.norm(polys[:, 2] - polys[:, 0], axis=1)))  # TL->BR diagonal
-            outline = cv2.boxPoints(cv2.minAreaRect(polys.reshape(-1, 2).astype(np.float32))).reshape(1, 4, 2)
-            in_table = cls._points_in_polygons(centers[leftover], outline)[:, 0]
-            for w_idx in leftover[in_table]:
-                dists = np.linalg.norm(cell_centers - centers[w_idx], axis=1)
-                nearest = int(dists.argmin())
-                if dists[nearest] <= max_dist:
-                    cell_words[nearest].append(int(w_idx))
-                    consumed[w_idx] = True
-        return cell_words
-
-    @staticmethod
-    def _deskew_centers(centers: np.ndarray, polys: np.ndarray) -> np.ndarray:
-        """Rotate word centers by the angle of a table, to order the words along its own axes
-
-        Args:
-            centers: the (N, 2) word centers
-            polys: the (C, 4, 2) cell polygons, vertices ordered TL, TR, BR, BL
-
-        Returns:
-            the (N, 2) de-skewed centers
-        """
-        top_edges = polys[:, 1] - polys[:, 0]  # TR - TL
-        angle = float(np.median(np.arctan2(top_edges[:, 1], top_edges[:, 0])))
-        cos_a, sin_a = np.cos(-angle), np.sin(-angle)
-        pivot = centers.mean(axis=0)
-        shifted = centers - pivot
-        return np.stack(
-            [
-                pivot[0] + shifted[:, 0] * cos_a - shifted[:, 1] * sin_a,
-                pivot[1] + shifted[:, 0] * sin_a + shifted[:, 1] * cos_a,
-            ],
-            axis=1,
-        )
-
     def _build_tables(
         self,
         boxes: np.ndarray,
         word_preds: list[tuple[str, float]],
         page_table: dict[str, Any] | list[dict[str, Any]] | None,
+        page_shape: tuple[int, int],
     ) -> tuple[list[Table], np.ndarray]:
-        """Assign detected words to table cells and build the page tables.
+        """Build the tables of a page from their structure and the words of the page.
 
         Args:
             boxes: word boxes of the page, of shape (N, 4) or (N, 4, 2), in relative coordinates
             word_preds: list of (text, confidence) for each of the N words
             page_table: the table structure prediction(s) for the page. Either a single grid
                 `{"cells": [{"geometry", "score", "row_start", "row_end", "col_start", "col_end"}], "num_rows",
-                "num_cols"}` (cell geometries in page-relative coordinates), a list of such grids, or None. When the
-                cells list the indices of their words (`"words"`, in reading order, cf. the OCR predictor), they are
-                used as is, otherwise each word goes to the cell containing its center
+                "num_cols"}` (cell geometries in page-relative coordinates), a list of such grids, or None. The cells
+                may list the indices of their words (`"words"`, in reading order, cf.
+                :meth:`~doctr.models.table_structure.predictor.TablePredictor.predict_regions`), otherwise the words
+                are assigned to them (cf. :func:`~doctr.models.table_structure.grid.assemble_page_table`)
+            page_shape: the (height, width) of the page
 
         Returns:
             a tuple with the list of `Table` objects of the page (one per provided table) and a boolean mask of
             shape (N,) that is True for words assigned to a table (to be removed from `blocks`)
         """
         consumed = np.zeros(boxes.shape[0], dtype=bool)
-        grids = self._table_grids(page_table)
-        if len(grids) == 0:
-            return [], consumed
+        raw_tables = [] if page_table is None else [page_table] if isinstance(page_table, dict) else list(page_table)
         # The geometries follow the page's word geometry: straight 2-point boxes for (N, 4) word boxes, 4-point polygons
-        # for (N, 4, 2) ones. Word heights are rotation-invariant (left edge length for polygons).
+        # for (N, 4, 2) ones
         straight = boxes.ndim != 3
-        centers = self._word_centers(boxes) if boxes.shape[0] > 0 else np.empty((0, 2))
-        if boxes.shape[0] == 0:
-            heights = np.empty(0)
-        else:
-            heights = boxes[:, 3] - boxes[:, 1] if straight else np.linalg.norm(boxes[:, 3] - boxes[:, 0], axis=1)
-
         tables: list[Table] = []
-        for cells, num_rows, num_cols in grids:
-            polys = np.stack([self._as_cell_polygon(cell["geometry"]) for cell in cells])  # (C, 4, 2)
-            if all("words" in cell for cell in cells):
-                # The OCR predictor assigned the words of the table to its cells, in reading order
-                cell_words = []
-                for cell in cells:
-                    cell_words.append([int(i) for i in cell["words"] if not consumed[i]])
-                    consumed[cell_words[-1]] = True
-            else:
-                # Reading order inside the cell: rows top to bottom, words left to right (table axes)
-                order_centers = centers if straight or centers.shape[0] == 0 else self._deskew_centers(centers, polys)
-                cell_words = [
-                    self._order_cell_words(w_idcs, order_centers, heights) if w_idcs else []
-                    for w_idcs in self._assign_cell_words(centers, polys, consumed)
-                ]
+        for raw in raw_tables:
+            if not raw or len(raw.get("cells", [])) == 0:
+                continue
+            cells, num_rows, num_cols = assemble_page_table(raw["cells"], boxes, page_shape, consumed)
             table_cells = []
-            for cell, poly, ordered in zip(cells, polys, cell_words):
-                if len(ordered) > 0:
-                    value = " ".join(word_preds[i][0] for i in ordered)
-                    confidence = float(np.mean([word_preds[i][1] for i in ordered]))
-                else:
-                    value, confidence = "", float(cell["score"] or 0.0)
+            for cell in cells:
+                words = [word_preds[idx] for idx in cell["words"]]
                 table_cells.append(
                     TableCell(
-                        value=value,
-                        confidence=confidence,
-                        geometry=self._export_geometry(poly, straight),
-                        row_start=int(cell["row_start"]),
-                        row_end=int(cell["row_end"]),
-                        col_start=int(cell["col_start"]),
-                        col_end=int(cell["col_end"]),
-                        objectness_score=None if cell["score"] is None else float(cell["score"]),
+                        value=" ".join(value for value, _ in words),
+                        # The recognition confidence of the words, the structure model's score for an empty cell
+                        confidence=float(np.mean([conf for _, conf in words])) if words else float(cell["score"] or 0),
+                        geometry=self._export_geometry(cell["geometry"], straight),
+                        row_start=cell["row_start"],
+                        row_end=cell["row_end"],
+                        col_start=cell["col_start"],
+                        col_end=cell["col_end"],
+                        objectness_score=cell["score"],
                     )
                 )
-            # Enclosing geometry of the whole table
-            (xmin, ymin), (xmax, ymax) = polys.reshape(-1, 2).min(axis=0), polys.reshape(-1, 2).max(axis=0)
-            corners = np.asarray([[xmin, ymin], [xmax, ymin], [xmax, ymax], [xmin, ymax]])
+            pts = np.concatenate([cell["geometry"] for cell in cells])
+            (xmin, ymin), (xmax, ymax) = pts.min(axis=0), pts.max(axis=0)
             # The cells made from the words of the table are not scored by the table model
-            scores = [float(cell["score"]) for cell in cells if cell["score"] is not None]
+            scores = [cell["score"] for cell in cells if cell["score"] is not None]
             tables.append(
                 Table(
                     cells=table_cells,
                     num_rows=num_rows,
                     num_cols=num_cols,
-                    geometry=self._export_geometry(corners, straight),
+                    geometry=self._export_geometry(
+                        np.array([[xmin, ymin], [xmax, ymin], [xmax, ymax], [xmin, ymax]]), straight
+                    ),
                     confidence=float(np.mean(scores)) if scores else 0.0,
                 )
             )
@@ -925,7 +719,7 @@ class DocumentBuilder(NestedObject):
             _tables,
         ):
             # Build the page tables and flag the words that belong to a table
-            page_tables, consumed = self._build_tables(page_boxes, word_preds, page_table)
+            page_tables, consumed = self._build_tables(page_boxes, word_preds, page_table, shape)
             if consumed.any():
                 # Remove the words assigned to a table from the regular blocks output
                 keep = ~consumed

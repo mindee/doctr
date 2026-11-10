@@ -1,6 +1,6 @@
 import numpy as np
 
-from doctr.models.table_structure.grid import _axis_slots, _grid_lines, _group, fill_table_grid
+from doctr.models.table_structure.grid import _axis_slots, _grid_lines, _group, as_polygon, fill_table_grid
 
 
 def _grid(xs, ys):
@@ -28,6 +28,11 @@ def _table(cells, logic, words):
 
 
 def test_table_grid_helpers():
+    # Straight boxes (flat or 2-point) and polygons, as (4, 2) polygons
+    expected = [[0.1, 0.2], [0.5, 0.2], [0.5, 0.6], [0.1, 0.6]]
+    np.testing.assert_allclose(as_polygon([0.1, 0.2, 0.5, 0.6]), expected)
+    np.testing.assert_allclose(as_polygon(((0.1, 0.2), (0.5, 0.6))), expected)
+    np.testing.assert_allclose(as_polygon(expected), expected)
     # Grid lines at the median of the cell edges, interpolated when no edge lies on them
     lines = _grid_lines(np.array([0, 2]), np.array([0, 2]), np.array([0.0, 20.0]), np.array([10.0, 30.0]), 3)
     np.testing.assert_allclose(lines, [0, 10, 20, 30])

@@ -5,14 +5,26 @@
 
 """Assemble the cells predicted by a table structure model and the words of the table into a consistent grid.
 
-Everything here works in the frame of the (rectified, upright) table image, where the cells and the words are
+`fill_table_grid` works in the frame of the (rectified, upright) table image, where the cells and the words are
 axis-aligned boxes `(x0, y0, x1, y1)`, and the logical coordinates of the cells are `(row_start, row_end, col_start,
-col_end)` (0-indexed, inclusive).
+col_end)` (0-indexed, inclusive). `assemble_page_table` applies it to a table given in page coordinates.
 """
+
+from typing import Any
 
 import numpy as np
 
-__all__ = ["fill_table_grid"]
+__all__ = ["fill_table_grid", "assemble_page_table"]
+
+
+def as_polygon(geometry: Any) -> np.ndarray:
+    """A straight box `(x0, y0, x1, y1)` / `((x0, y0), (x1, y1))`, or a polygon ordered (TL, TR, BR, BL) along its
+    reading direction, as a (4, 2) float32 polygon"""
+    raw = np.asarray(geometry, dtype=np.float32)
+    if raw.size == 4:
+        x0, y0, x1, y1 = raw.ravel()
+        return np.array([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], dtype=np.float32)
+    return raw.reshape(-1, 2).copy()
 
 
 def _grid_lines(start: np.ndarray, end: np.ndarray, lo: np.ndarray, hi: np.ndarray, size: int) -> np.ndarray:
@@ -346,3 +358,71 @@ def fill_table_grid(
         grid.localize()
         grid.cell_words = [_reading_order(w, idcs, line_height) if idcs else [] for idcs in grid.cell_words]
     return np.asarray(grid.boxes), np.asarray(grid.logic, dtype=np.int64), grid.cell_words, grid.origin
+
+
+def _rotate(points: np.ndarray, angle: float, pivot: np.ndarray) -> np.ndarray:
+    """Rotate (..., 2) points by `angle` radians around `pivot`"""
+    cos_a, sin_a = np.cos(angle), np.sin(angle)
+    x, y = points[..., 0] - pivot[0], points[..., 1] - pivot[1]
+    return np.stack([pivot[0] + x * cos_a - y * sin_a, pivot[1] + x * sin_a + y * cos_a], axis=-1)
+
+
+def assemble_page_table(
+    cells: list[dict[str, Any]], word_boxes: np.ndarray, page_shape: tuple[int, int], taken: np.ndarray
+) -> tuple[list[dict[str, Any]], int, int]:
+    """Assemble a table given in page coordinates with the words of the page.
+
+    The cells listing their words (`"words"`, cf. `TablePredictor.predict_regions`) keep them. Otherwise, the words
+    lying in the outline of the cells are assigned to the grid (cf. `fill_table_grid`), in the frame of the table rows.
+
+    Args:
+        cells: the cells `{"geometry", "score", "row_start", "row_end", "col_start", "col_end"}` of the table, with
+            page-relative geometries (straight boxes or polygons)
+        word_boxes: the (N, 4) or (N, 4, 2) page-relative word boxes
+        page_shape: the (height, width) of the page
+        taken: the (N,) mask of the words already assigned to a table, updated in place
+
+    Returns:
+        the cells with local logical coordinates, a page-relative (4, 2) polygon geometry, and the indices of their
+        words in reading order (`"words"`), and the numbers of rows and columns of the table
+    """
+    scale = np.array([page_shape[1], page_shape[0]], dtype=np.float64)
+    polys = np.stack([as_polygon(cell["geometry"]) for cell in cells]) * scale
+    logic = np.array([[c["row_start"], c["row_end"], c["col_start"], c["col_end"]] for c in cells], dtype=np.int64)
+    if all("words" in cell for cell in cells):
+        cell_words = [[int(i) for i in cell["words"] if not taken[i]] for cell in cells]
+        origin = list(range(len(cells)))
+        logic -= [logic[:, 0].min()] * 2 + [logic[:, 2].min()] * 2
+    else:
+        # The frame of the table rows
+        top_edges = polys[:, 1] - polys[:, 0]
+        angle, pivot = float(np.median(np.arctan2(top_edges[:, 1], top_edges[:, 0]))), polys.reshape(-1, 2).mean(0)
+        upright = _rotate(polys, -angle, pivot)
+        boxes = np.concatenate([upright.min(axis=1), upright.max(axis=1)], axis=1)
+        # The free words in the outline of the cells
+        free, word_coords = np.flatnonzero(~taken), np.zeros((0, 4))
+        if free.size:
+            words = _rotate(np.stack([as_polygon(box) for box in word_boxes[free]]) * scale, -angle, pivot)
+            centers = words.mean(axis=1)
+            inside = np.all((centers >= boxes[:, :2].min(axis=0)) & (centers <= boxes[:, 2:].max(axis=0)), axis=1)
+            free, words = free[inside], words[inside]
+            word_coords = np.concatenate([words.min(axis=1), words.max(axis=1)], axis=1)
+        boxes, logic, local_words, origin = fill_table_grid(boxes, logic, word_coords)
+        cell_words = [[int(free[j]) for j in idcs] for idcs in local_words]
+        corners = boxes[:, [[0, 1], [2, 1], [2, 3], [0, 3]]]
+        polys = _rotate(corners, angle, pivot)
+    for idcs in cell_words:
+        taken[idcs] = True
+    out = []
+    for poly, (rs, re, cs, ce), idcs, source in zip(polys / scale, logic, cell_words, origin):
+        score = None if source < 0 else cells[source]["score"]
+        out.append({
+            "geometry": poly,
+            "score": None if score is None else float(score),
+            "row_start": int(rs),
+            "row_end": int(re),
+            "col_start": int(cs),
+            "col_end": int(ce),
+            "words": idcs,
+        })
+    return out, int(logic[:, 1].max()) + 1, int(logic[:, 3].max()) + 1

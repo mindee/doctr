@@ -465,29 +465,6 @@ def test_resolve_lines(input_boxes, shape, lines):
     assert doc_builder._resolve_lines(np.asarray(input_boxes), shape) == lines
 
 
-def test_table_geometry_helpers():
-    polys = np.array(
-        [
-            [[0.1, 0.1], [0.4, 0.1], [0.4, 0.3], [0.1, 0.3]],  # axis-aligned quad
-            [[0.5, 0.5], [0.8, 0.6], [0.7, 0.9], [0.45, 0.8]],  # rotated quad
-        ],
-        dtype=np.float32,
-    )
-    points = np.array([[0.2, 0.2], [0.6, 0.7], [0.95, 0.95], [0.05, 0.05]], dtype=np.float32)
-    inside = builder.DocumentBuilder._points_in_polygons(points, polys)
-    assert inside.tolist() == [[True, False], [False, True], [False, False], [False, False]]
-    # empty inputs yield empty masks instead of raising
-    assert builder.DocumentBuilder._points_in_polygons(np.zeros((0, 2)), polys).shape == (0, 2)
-    assert builder.DocumentBuilder._points_in_polygons(points, np.zeros((0, 4, 2))).shape == (4, 0)
-    # flat straight box (xmin, ymin, xmax, ymax) -> (4, 2) polygon
-    poly = builder.DocumentBuilder._as_cell_polygon([0.1, 0.2, 0.5, 0.6])
-    assert poly.shape == (4, 2)
-    assert np.allclose(poly, [[0.1, 0.2], [0.5, 0.2], [0.5, 0.6], [0.1, 0.6]])
-    # (4, 2) polygons pass through unchanged
-    quad = np.array([[0.1, 0.2], [0.5, 0.25], [0.45, 0.6], [0.05, 0.55]], dtype=np.float32)
-    assert np.allclose(builder.DocumentBuilder._as_cell_polygon(quad), quad)
-
-
 def _table_cell(x0, y0, x1, y1, rs, re, cs, ce, score=0.9):
     return {
         "geometry": [[x0, y0], [x1, y0], [x1, y1], [x0, y1]],
@@ -573,17 +550,18 @@ def test_documentbuilder_tables():
             _table_cell(0.10, 0.10, 0.25, 0.20, 0, 0, 0, 0, score=0.8),
             _table_cell(0.28, 0.10, 0.45, 0.20, 0, 0, 1, 1, score=0.6),
             _table_cell(0.10, 0.22, 0.25, 0.32, 1, 1, 0, 0, score=0.4),  # no word inside this cell
+            _table_cell(0.28, 0.22, 0.45, 0.32, 1, 1, 1, 1, score=0.5),
         ],
         "num_rows": 2,
         "num_cols": 2,
     }
-    page = doc_builder(*_table_words("Name", "Age", confidences=[0.95, 0.85]), tables=[table]).pages[0]
+    page = doc_builder(*_table_words("Name", "Age", "30", confidences=[0.95, 0.85, 0.75]), tables=[table]).pages[0]
     cells = page.tables[0].cells
-    assert [cell.value for cell in cells] == ["Name", "Age", ""]
-    assert [cell.objectness_score for cell in cells] == [0.8, 0.6, 0.4]
-    assert [cell.confidence for cell in cells] == pytest.approx([0.95, 0.85, 0.4])
-    assert page.tables[0].confidence == pytest.approx(0.6)
-    assert [cell["objectness_score"] for cell in page.export()["tables"][0]["cells"]] == [0.8, 0.6, 0.4]
+    assert [cell.value for cell in cells] == ["Name", "Age", "", "30"]
+    assert [cell.objectness_score for cell in cells] == [0.8, 0.6, 0.4, 0.5]
+    assert [cell.confidence for cell in cells] == pytest.approx([0.95, 0.85, 0.4, 0.75])
+    assert page.tables[0].confidence == pytest.approx(0.575)
+    assert [cell["objectness_score"] for cell in page.export()["tables"][0]["cells"]] == [0.8, 0.6, 0.4, 0.5]
 
     # Multi-word cells are read line by line, left to right
     words = ["world", "hello", "second", "line", "solo"]
