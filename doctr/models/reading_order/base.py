@@ -442,13 +442,13 @@ def _column_gutter(
         if not on_left.any() or not on_right.any():
             continue
         # The elements above or below the columns (e.g. a title and its authors) do not cross the gutter
-        sides = vy[on_left | on_right]
-        crossing = int(np.count_nonzero(across & (vy > sides.min()) & (vy < sides.max())))
+        columns_y = vy[on_left | on_right]
+        crossing = int(np.count_nonzero(across & (vy > columns_y.min()) & (vy < columns_y.max())))
         left = int(np.count_nonzero(centers <= split))
         if crossing <= tolerance and left >= 0.25 * num_voters and num_voters - left >= 0.25 * num_voters:
-            sides = voters.copy()
-            sides[np.flatnonzero(voters)[across]] = False  # the elements on either side of the gutter
-            if _key_value_rows(boxes, sides, float(split), y_overlap, y_overlap_threshold, span):
+            beside = voters.copy()
+            beside[np.flatnonzero(voters)[across]] = False  # the elements on either side of the gutter
+            if _key_value_rows(boxes, beside, float(split), y_overlap, y_overlap_threshold, span):
                 return None  # rows of keys and values (e.g. a receipt): read row after row
             return float(split)
     return None
@@ -503,23 +503,21 @@ def _topological_order(
     np.fill_diagonal(edges, False)
 
     # A multi-column page favors the continuation of the current column (cf. `_continuation`)
-    spanning = (x1 - x0) > 0.5 * (float(x1.max() - x0.min()) or 1.0)
+    span = float(x1.max() - x0.min()) or 1.0
+    spanning = (x1 - x0) > 0.5 * span
     gutter = _column_gutter(
         boxes, np.ones(num_boxes, dtype=bool) if voters is None else voters, y_overlap, y_overlap_threshold
     )
     multi_column = gutter is not None
-    span = float(x1.max() - x0.min()) or 1.0
     crossing = np.zeros(num_boxes, dtype=bool)
-    if gutter is not None:
-        crossing = np.minimum(x1 - gutter, gutter - x0) > 0.02 * span
-    # On a multi-column page, the columns after the gutter are read once the ones before it are done, even when they
-    # start higher (e.g. beside a table whose caption is read with it): 1 for the elements after the gutter, else 0.
-    # Only for columns of several elements on both sides, not a lone element beside a column
+    # 1 for the columns after the gutter: they are read once the ones before it are done, even when they start higher
+    # (e.g. beside a table whose caption is read with it). Only for columns of several elements, not a lone element
     after_gutter = np.zeros(num_boxes, dtype=int)
     if gutter is not None:
-        after_gutter = (x0 >= gutter - 0.02 * span).astype(int)
-        if min(np.count_nonzero(after_gutter), np.count_nonzero(~crossing & (after_gutter == 0))) < 2:
-            after_gutter[:] = 0
+        crossing = np.minimum(x1 - gutter, gutter - x0) > 0.02 * span
+        after = x0 >= gutter - 0.02 * span
+        if np.count_nonzero(after) >= 2 and np.count_nonzero(~after & ~crossing) >= 2:
+            after_gutter = after.astype(int)
     # Column components: elements connected through horizontal overlap, except those which must not merge the columns
     # (page-wide or crossing the gutter). This keeps the traversal inside a column even when the direct top-to-bottom
     # continuation is momentarily broken by a fragmented or misaligned OCR line.

@@ -88,6 +88,9 @@ directly. See the [model zoo](../models/index.md) for benchmarks.
 ```{eval-rst}
 .. autofunction:: doctr.models.table_structure.table_predictor
 
+.. autoclass:: doctr.models.table_structure.predictor.TablePredictor
+   :members: predict_regions
+
 .. autofunction:: doctr.models.table_structure.tablecenternet
 ```
 

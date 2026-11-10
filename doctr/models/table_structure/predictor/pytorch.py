@@ -16,7 +16,7 @@ from doctr.models.detection._utils import _remove_padding
 from doctr.models.preprocessor import PreProcessor
 from doctr.models.utils import set_device_and_dtype
 
-from ..grid import as_polygon, fill_table_grid
+from ..grid import as_polygons, fill_table_grid
 from ..tablecenternet.base import _logic_from_geometry
 
 __all__ = ["TablePredictor"]
@@ -30,7 +30,7 @@ def _crop_region(page: np.ndarray, region: Any) -> tuple[np.ndarray, np.ndarray,
         degenerate region
     """
     h, w = page.shape[:2]
-    src = as_polygon(region) * np.array([w, h], dtype=np.float32)
+    src = as_polygons([region])[0] * np.array([w, h], dtype=np.float32)
     crop_w = int(round(max(np.linalg.norm(src[1] - src[0]), np.linalg.norm(src[2] - src[3]))))
     crop_h = int(round(max(np.linalg.norm(src[3] - src[0]), np.linalg.norm(src[2] - src[1]))))
     if crop_w < 2 or crop_h < 2:
@@ -193,24 +193,27 @@ class TablePredictor(nn.Module):
             return np.flatnonzero(np.all((points >= pad) & (points <= [crop_w - pad, crop_h - pad]), axis=1))
 
         # Cells in crop pixels, without the ones of the context margin
-        polys = np.stack([as_polygon(cell["geometry"]) for cell in grid["cells"]]) * [crop_w, crop_h]
+        polys = as_polygons([cell["geometry"] for cell in grid["cells"]]) * [crop_w, crop_h]
         keep = in_region(polys.mean(axis=1))
         if keep.size == 0:
             return None
-        cells = [grid["cells"][idx] for idx in keep]
-        logic = np.array([[c["col_start"], c["col_end"], c["row_start"], c["row_end"]] for c in cells])
-        if keep.size < polys.shape[0] and getattr(getattr(self.model, "postprocessor", None), "geometric_logic", 0):
+        polys, cells = polys[keep], [grid["cells"][idx] for idx in keep]
+        logic = np.array([[c["row_start"], c["row_end"], c["col_start"], c["col_end"]] for c in cells])
+        geometric_logic = getattr(getattr(self.model, "postprocessor", None), "geometric_logic", False)
+        if geometric_logic and keep.size < len(grid["cells"]):
             # The dropped cells made grid lines of their own: index the rows / columns of the remaining ones again
-            logic = _logic_from_geometry(polys[keep], logic, split_tables=False)
+            # (the logical coordinates of TableCenterNet are ordered (start_col, end_col, start_row, end_row))
+            by_col = _logic_from_geometry(polys, logic[:, [2, 3, 0, 1]], split_tables=False)
+            logic = by_col[:, [2, 3, 0, 1]]
         # The words of the region, in crop pixels
         word_idcs, words = np.zeros(0, dtype=np.int64), np.zeros((0, 4))
         if word_boxes is not None and len(word_boxes) > 0:
-            pts = np.stack([as_polygon(box) for box in word_boxes]) * np.array([w, h], dtype=np.float32)
+            pts = as_polygons(word_boxes) * np.array([w, h], dtype=np.float32)
             pts = cv2.perspectiveTransform(pts.reshape(1, -1, 2), transform).reshape(-1, 4, 2)
             word_idcs = in_region(pts.mean(axis=1))
             words = np.concatenate([pts[word_idcs].min(axis=1), pts[word_idcs].max(axis=1)], axis=1)
         boxes, cell_logic, cell_words, origin = fill_table_grid(
-            np.concatenate([polys[keep].min(axis=1), polys[keep].max(axis=1)], axis=1), logic[:, [2, 3, 0, 1]], words
+            np.concatenate([polys.min(axis=1), polys.max(axis=1)], axis=1), logic, words
         )
         # Crop pixels -> page-relative coordinates
         corners = boxes[:, [[0, 1], [2, 1], [2, 3], [0, 3]]].reshape(1, -1, 2).astype(np.float32)

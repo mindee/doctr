@@ -68,8 +68,9 @@ otherwise the regions cannot be located and nothing is masked. The CLI enables i
 ## Table structure recognition
 
 With `detect_tables=True`, each region the layout model labels as a `Table` is cropped and passed to a table
-structure model (`tablecenternet`), which predicts its cells and the rows and columns they span. The words falling
-inside a cell are regrouped into a {class}`~doctr.io.Table`:
+structure model (`tablecenternet`), which predicts its cells and the rows and columns they span. Every word inside the
+table region is regrouped into a {class}`~doctr.io.Table`: the words outside of the predicted cells (e.g. a missed
+header row or a row of totals) complete the grid, and the rows and columns follow the text lines of the cells:
 
 ```python
 from doctr.io import DocumentFile
@@ -135,7 +136,7 @@ for cell in table.cells:
 | `row_span`, `col_span`       | Number of rows / columns spanned                                    |
 | `geometry`                   | Position of the cell, relative to the page                          |
 | `confidence`                 | Mean recognition confidence of the words of the cell                |
-| `objectness_score`           | Score of the cell predicted by the table model                      |
+| `objectness_score`           | Table model score of the cell (`None` for a cell made from words)   |
 
 ## Standalone predictors
 
@@ -170,6 +171,18 @@ out[0]["num_rows"], out[0]["num_cols"]  # (5, 4)
 out[0]["cells"][0]
 # {'geometry': [[x1, y1], ..., [x4, y4]],  # relative to the table image
 #  'score': 0.42, 'row_start': 0, 'row_end': 0, 'col_start': 0, 'col_end': 0}
+```
+
+With the layout regions of whole pages and their words (e.g. from your own OCR), the table regions are cropped and
+the words assigned to the cells:
+
+```python
+from doctr.models import layout_predictor
+
+regions = layout_predictor("lw_detr_s", pretrained=True)(pages)
+tables = predictor.predict_regions(pages, regions, word_boxes)  # one (N, 4) array of relative boxes per page
+
+tables[0][0]["cells"][0]["words"]  # indices of the words of the cell in `word_boxes[0]`, in reading order
 ```
 :::
 ::::

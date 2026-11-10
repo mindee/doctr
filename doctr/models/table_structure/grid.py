@@ -17,14 +17,15 @@ import numpy as np
 __all__ = ["fill_table_grid", "assemble_page_table"]
 
 
-def as_polygon(geometry: Any) -> np.ndarray:
-    """A straight box `(x0, y0, x1, y1)` / `((x0, y0), (x1, y1))`, or a polygon ordered (TL, TR, BR, BL) along its
-    reading direction, as a (4, 2) float32 polygon"""
-    raw = np.asarray(geometry, dtype=np.float32)
-    if raw.size == 4:
-        x0, y0, x1, y1 = raw.ravel()
-        return np.array([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], dtype=np.float32)
-    return raw.reshape(-1, 2).copy()
+def as_polygons(geometries: Any) -> np.ndarray:
+    """Straight boxes `(x0, y0, x1, y1)` / `((x0, y0), (x1, y1))`, or polygons ordered (TL, TR, BR, BL) along their
+    reading direction, as (N, 4, 2) float32 polygons"""
+    flat = np.asarray(geometries, dtype=np.float32)
+    flat = flat.reshape(len(flat), -1) if flat.size else np.zeros((0, 4), dtype=np.float32)
+    if flat.shape[1] == 4:
+        x0, y0, x1, y1 = flat.T
+        return np.stack([np.stack(pt, axis=-1) for pt in ((x0, y0), (x1, y0), (x1, y1), (x0, y1))], axis=1)
+    return flat.reshape(-1, 4, 2)
 
 
 def _grid_lines(start: np.ndarray, end: np.ndarray, lo: np.ndarray, hi: np.ndarray, size: int) -> np.ndarray:
@@ -41,7 +42,8 @@ def _grid_lines(start: np.ndarray, end: np.ndarray, lo: np.ndarray, hi: np.ndarr
 def _group(values: np.ndarray, tol: float) -> np.ndarray:
     """Group 1D positions closer than `tol` to the mean of their group: the group index of each value, in order"""
     groups = np.zeros(values.size, dtype=np.int64)
-    group, members = 0, list[int]()
+    group = 0
+    members: list[int] = []  # the values of the current group
     for j in np.argsort(values, kind="stable"):
         if members and values[j] - np.mean(values[members]) >= tol:
             group, members = group + 1, []
@@ -62,11 +64,12 @@ def _axis_slots(lo: np.ndarray, hi: np.ndarray, lines: np.ndarray, line_tol: flo
             continue
         if line_tol is not None:
             groups = _group(center[members], line_tol)
-        else:  # chain the overlapping extents
-            order = members[np.argsort(lo[members], kind="stable")]
-            breaks = lo[order][1:] > np.maximum.accumulate(hi[order])[:-1]
-            groups = np.empty(members.size, dtype=np.int64)
-            groups[np.searchsorted(members, order)] = np.concatenate([[0], np.cumsum(breaks)])
+        else:  # chain the overlapping extents, from left to right
+            groups, group, reach = np.zeros(members.size, dtype=np.int64), -1, -np.inf
+            for j in np.argsort(lo[members], kind="stable"):
+                if lo[members[j]] > reach:  # starts after the extents of the current group
+                    group += 1
+                groups[j], reach = group, max(reach, hi[members[j]])
         idx[members] = groups - (groups.max() + 1) if before else size + groups
     return idx
 
@@ -133,15 +136,16 @@ def _complete(grid: _Grid, leftover: np.ndarray, line_height: float) -> None:
         else:
             new_cells.setdefault((slot[0], slot[0], slot[1], slot[1]), []).append(int(j))
     for r in np.unique(rows[~in_grid]):
+        # A new row, from left to right: a word starts a new cell in another column, unless it continues a sentence
         members = np.flatnonzero(rows == r)
-        members = members[np.argsort(words[members, 0], kind="stable")]
-        group = [int(members[0])]
-        for prev, j in zip(members[:-1], members[1:]):
-            if cols[j] != cols[group[-1]] and words[j, 0] - words[prev, 2] >= line_height / 2:
-                new_cells[(int(r), int(r), int(cols[group].min()), int(cols[group].max()))] = group
-                group = []
-            group.append(int(j))
-        new_cells[(int(r), int(r), int(cols[group].min()), int(cols[group].max()))] = group
+        groups: list[list[int]] = []
+        for j in members[np.argsort(words[members, 0], kind="stable")]:
+            prev = groups[-1][-1] if groups else None
+            if prev is None or (cols[j] != cols[prev] and words[j, 0] - words[prev, 2] >= line_height / 2):
+                groups.append([])
+            groups[-1].append(int(j))
+        for group in groups:
+            new_cells.setdefault((int(r), int(r), int(cols[group].min()), int(cols[group].max())), []).extend(group)
 
     def band(lines: np.ndarray, start: int, end: int) -> tuple[float, float]:
         # The extent of the grid lines from index start to end, unbounded beyond the grid
@@ -279,33 +283,35 @@ def _split_rows(grid: _Grid, line_height: float) -> None:
             present = np.unique(lines)
             split(i, np.searchsorted(present, lines), [(r + k, r + k) for k in present])
 
+    def level_with_row(c_idx: int, row: int, lo: float, hi: float) -> bool:
+        # Whether a text line, from lo to hi, is level with the text of another cell of the row
+        return any(
+            j != c_idx
+            and grid.logic[j][0] == row == grid.logic[j][1]
+            and any(min(hi, y1) - max(lo, y0) > 0.5 * (hi - lo) for _, y0, _, y1 in grid.words[grid.cell_words[j]])
+            for j in range(len(grid.boxes))
+        )
+
     # Cells spanning several rows whose text lines lie in different rows
     row_lines = grid.lines(0)
     for i in range(len(grid.boxes)):
         rs, re = grid.logic[i][:2]
         if re == rs or len(grid.cell_words[i]) < 2:
             continue
-        cell_lines = _group(centers[grid.cell_words[i]], line_height / 2)
-        rows = []
+        idcs = np.asarray(grid.cell_words[i])
+        cell_lines = _group(centers[idcs], line_height / 2)
+        rows: list[int] = []  # the row of each text line
         for k in range(int(cell_lines.max()) + 1):
-            text = grid.words[np.asarray(grid.cell_words[i])[cell_lines == k]]
-            lo, hi = text[:, 1].min(), text[:, 3].max()
+            lo, hi = grid.words[idcs[cell_lines == k], 1].min(), grid.words[idcs[cell_lines == k], 3].max()
             row = int(np.clip(np.searchsorted(row_lines, (lo + hi) / 2, side="right") - 1, rs, re))
-            aligned = any(
-                j != i
-                and grid.logic[j][0] == row == grid.logic[j][1]
-                and any(min(hi, w[3]) - max(lo, w[1]) > 0.5 * (hi - lo) for w in grid.words[grid.cell_words[j]])
-                for j in range(len(grid.boxes))
-            )
-            if not aligned or row in rows:
+            if row in rows or not level_with_row(i, row, lo, hi):
+                rows = []
                 break
             rows.append(row)
-        else:
-            if len(rows) > 1:
-                spans = [
-                    (rs if k == 0 else row, re if k == len(rows) - 1 else rows[k + 1] - 1) for k, row in enumerate(rows)
-                ]
-                split(i, cell_lines, spans)
+        if len(rows) > 1:
+            # Each text line until the row of the next one, the cell keeping its first and last rows
+            starts, ends = [rs, *rows[1:]], [*(row - 1 for row in rows[1:]), re]
+            split(i, cell_lines, list(zip(starts, ends)))
 
 
 def _reading_order(words: np.ndarray, idcs: list[int], line_height: float) -> list[int]:
@@ -387,7 +393,7 @@ def assemble_page_table(
         words in reading order (`"words"`), and the numbers of rows and columns of the table
     """
     scale = np.array([page_shape[1], page_shape[0]], dtype=np.float64)
-    polys = np.stack([as_polygon(cell["geometry"]) for cell in cells]) * scale
+    polys = as_polygons([cell["geometry"] for cell in cells]) * scale
     logic = np.array([[c["row_start"], c["row_end"], c["col_start"], c["col_end"]] for c in cells], dtype=np.int64)
     if all("words" in cell for cell in cells):
         cell_words = [[int(i) for i in cell["words"] if not taken[i]] for cell in cells]
@@ -402,7 +408,7 @@ def assemble_page_table(
         # The free words in the outline of the cells
         free, word_coords = np.flatnonzero(~taken), np.zeros((0, 4))
         if free.size:
-            words = _rotate(np.stack([as_polygon(box) for box in word_boxes[free]]) * scale, -angle, pivot)
+            words = _rotate(as_polygons(word_boxes[free]) * scale, -angle, pivot)
             centers = words.mean(axis=1)
             inside = np.all((centers >= boxes[:, :2].min(axis=0)) & (centers <= boxes[:, 2:].max(axis=0)), axis=1)
             free, words = free[inside], words[inside]
