@@ -427,7 +427,7 @@ def test_ocrpredictor_tables_from_regions():
                 return {"geometry": box, "score": 0.9, "row_start": r, "row_end": r, "col_start": c, "col_end": c}
 
             # 2 cells of the table, and a cell of the neighbouring content, above the region
-            cells = [cell(0, 0, 100, 50, 1, 0), cell(100, 0, 200, 50, 1, 1), cell(0, -18, 200, -4, 0, 0)]
+            cells = [cell(0, 0, 100, 30, 1, 0), cell(100, 0, 200, 30, 1, 1), cell(0, -18, 200, -4, 0, 0)]
             return [{"cells": cells, "num_rows": 2, "num_cols": 2}]
 
     fake = type("FakeOCRPredictor", (), {})()
@@ -435,25 +435,31 @@ def test_ocrpredictor_tables_from_regions():
     fake.table_class_name = "Table"
     fake._cell_polygon = OCRPredictor._cell_polygon
     page = np.full((400, 600, 3), 255, dtype=np.uint8)
-    region = {
-        "class_names": ["Text", "Table"],
-        "boxes": np.array([[0, 0, 0.1, 0.1], [0.1, 0.25, 0.1 + 200 / 600, 0.375]]),
-    }
-    tables = OCRPredictor._tables_from_regions(fake, [page], [region])
+    x0, y0, x1, y1 = 0.1, 0.25, 0.1 + 200 / 600, 0.375  # the cells cover the top 30 px of its 50 px
+    region = {"class_names": ["Text", "Table"], "boxes": np.array([[0, 0, 0.1, 0.1], [x0, y0, x1, y1]])}
+    # Words in each cell, one in the region below the cells, and one outside of the region
+    words = np.array([
+        [0.12, 0.27, 0.15, 0.29],
+        [0.30, 0.27, 0.33, 0.29],
+        [0.12, 0.345, 0.15, 0.365],
+        [0.12, 0.80, 0.15, 0.82],
+    ])
+    tables = OCRPredictor._tables_from_regions(fake, [page], [region], [words])
     # Only the table region is cropped, with a context margin
     assert len(fake.table_predictor.crops) == 1 and fake.table_predictor.crops[0].shape[:2] == (90, 240)
     assert len(tables) == 1 and len(tables[0]) == 1
     table = tables[0][0]
-    # The cell of the context margin is dropped, the others are mapped back to page-relative coordinates
-    assert len(table["cells"]) == 2
+    # The cell of the context margin is dropped, the word below the cells makes a new row
+    assert (table["num_rows"], table["num_cols"]) == (2, 2)
+    cells = sorted(table["cells"], key=lambda c: (c["row_start"], c["col_start"]))
+    assert [(c["row_start"], c["col_start"], c["words"], c["score"]) for c in cells] == [
+        (0, 0, [0], 0.9),
+        (0, 1, [1], 0.9),
+        (1, 0, [2], None),
+    ]
+    # The cells are mapped back to page-relative coordinates
     np.testing.assert_allclose(
-        table["cells"][0]["geometry"],
-        [[0.1, 0.25], [0.1 + 100 / 600, 0.25], [0.1 + 100 / 600, 0.375], [0.1, 0.375]],
-        atol=1e-5,
-    )
-    # The table region is attached to the grid
-    np.testing.assert_allclose(
-        table["geometry"], [[0.1, 0.25], [0.1 + 200 / 600, 0.25], [0.1 + 200 / 600, 0.375], [0.1, 0.375]], atol=1e-6
+        cells[0]["geometry"], [[x0, y0], [x0 + 100 / 600, y0], [x0 + 100 / 600, 0.325], [x0, 0.325]], atol=1e-5
     )
 
 

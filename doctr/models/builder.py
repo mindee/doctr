@@ -451,6 +451,20 @@ class DocumentBuilder(NestedObject):
         return elements
 
     @staticmethod
+    def _word_centers(boxes: np.ndarray) -> np.ndarray:
+        """Return the (x, y) center of each word box.
+
+        Args:
+            boxes: word boxes of shape (N, 4) (straight: x1, y1, x2, y2) or (N, 4, 2) (rotated polygon)
+
+        Returns:
+            array of shape (N, 2) with the relative center coordinates of each box
+        """
+        if boxes.ndim == 3:  # rotated polygons (N, 4, 2)
+            return boxes.mean(axis=1)
+        return np.stack([(boxes[:, 0] + boxes[:, 2]) / 2, (boxes[:, 1] + boxes[:, 3]) / 2], axis=1)
+
+    @staticmethod
     def _as_cell_polygon(geometry: Any) -> np.ndarray:
         """Normalize a cell geometry to a (4, 2) polygon.
 
@@ -464,8 +478,8 @@ class DocumentBuilder(NestedObject):
             array of shape (4, 2) with the polygon vertices
         """
         arr = np.asarray(geometry, dtype=np.float32)
-        if arr.size == 4:  # straight box (xmin, ymin, xmax, ymax) or ((xmin, ymin), (xmax, ymax))
-            x0, y0, x1, y1 = arr.ravel()
+        if arr.ndim == 1:  # straight box (xmin, ymin, xmax, ymax)
+            x0, y0, x1, y1 = arr
             return np.array([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], dtype=np.float32)
         return order_points(arr.reshape(-1, 2))
 
@@ -549,36 +563,28 @@ class DocumentBuilder(NestedObject):
     @classmethod
     def _table_grids(
         cls, page_table: dict[str, Any] | list[dict[str, Any]] | None
-    ) -> list[tuple[list[dict[str, Any]], int, int, np.ndarray | None]]:
+    ) -> list[tuple[list[dict[str, Any]], int, int]]:
         """Normalize the table structure prediction(s) of a page to non-empty grids with local logical coordinates
 
         Args:
             page_table: a single grid, a list of grids or None (cf. `_build_tables`)
 
         Returns:
-            the cells, number of rows, number of columns and (4, 2) region polygon (None if unknown) of each
-            non-empty grid
+            the cells, number of rows and number of columns of each non-empty grid
         """
         raw_tables = [] if page_table is None else [page_table] if isinstance(page_table, dict) else list(page_table)
-        grids = []
-        for raw in raw_tables:
-            if not raw or len(raw.get("cells", [])) == 0:
-                continue
-            region = raw.get("geometry")
-            grids.append((
-                *cls._localize_logic(raw["cells"]),
-                None if region is None else cls._as_cell_polygon(region),
-            ))
-        return grids
+        return [cls._localize_logic(raw["cells"]) for raw in raw_tables if raw and len(raw.get("cells", [])) > 0]
 
     @classmethod
     def _assign_cell_words(cls, centers: np.ndarray, polys: np.ndarray, consumed: np.ndarray) -> list[list[int]]:
-        """Assign each word not yet consumed whose center lies in a cell to the first such cell, and flag it as
-        consumed
+        """Assign each word not yet consumed to at most one cell of a table, and flag it as consumed
+
+        A word goes to the first cell containing its center. A word landing just outside every cell but inside the
+        table goes to the nearest cell, within half a median cell diagonal, so table text is not dropped into the body.
 
         Args:
             centers: the (N, 2) word centers
-            polys: the (C, 4, 2) cell polygons
+            polys: the (C, 4, 2) cell polygons, vertices ordered TL, TR, BR, BL
             consumed: the (N,) mask of the words already assigned to a table, updated in place
 
         Returns:
@@ -593,494 +599,60 @@ class DocumentBuilder(NestedObject):
         for w_idx, c_idx in zip(free[assigned], inside[assigned].argmax(axis=1)):
             cell_words[c_idx].append(int(w_idx))
             consumed[w_idx] = True
+        leftover = free[~assigned]
+        if leftover.size > 0:
+            cell_centers = polys.mean(axis=1)  # (C, 2)
+            max_dist = 0.5 * float(np.median(np.linalg.norm(polys[:, 2] - polys[:, 0], axis=1)))  # TL->BR diagonal
+            outline = cv2.boxPoints(cv2.minAreaRect(polys.reshape(-1, 2).astype(np.float32))).reshape(1, 4, 2)
+            in_table = cls._points_in_polygons(centers[leftover], outline)[:, 0]
+            for w_idx in leftover[in_table]:
+                dists = np.linalg.norm(cell_centers - centers[w_idx], axis=1)
+                nearest = int(dists.argmin())
+                if dists[nearest] <= max_dist:
+                    cell_words[nearest].append(int(w_idx))
+                    consumed[w_idx] = True
         return cell_words
 
     @staticmethod
-    def _rotate_points(points: np.ndarray, angle: float, pivot: np.ndarray) -> np.ndarray:
-        """Rotate (..., 2) points by `angle` radians around `pivot`"""
-        cos_a, sin_a = np.cos(angle), np.sin(angle)
-        shifted = points - pivot
+    def _deskew_centers(centers: np.ndarray, polys: np.ndarray) -> np.ndarray:
+        """Rotate word centers by the angle of a table, to order the words along its own axes
+
+        Args:
+            centers: the (N, 2) word centers
+            polys: the (C, 4, 2) cell polygons, vertices ordered TL, TR, BR, BL
+
+        Returns:
+            the (N, 2) de-skewed centers
+        """
+        top_edges = polys[:, 1] - polys[:, 0]  # TR - TL
+        angle = float(np.median(np.arctan2(top_edges[:, 1], top_edges[:, 0])))
+        cos_a, sin_a = np.cos(-angle), np.sin(-angle)
+        pivot = centers.mean(axis=0)
+        shifted = centers - pivot
         return np.stack(
             [
-                pivot[0] + shifted[..., 0] * cos_a - shifted[..., 1] * sin_a,
-                pivot[1] + shifted[..., 0] * sin_a + shifted[..., 1] * cos_a,
+                pivot[0] + shifted[:, 0] * cos_a - shifted[:, 1] * sin_a,
+                pivot[1] + shifted[:, 0] * sin_a + shifted[:, 1] * cos_a,
             ],
-            axis=-1,
+            axis=1,
         )
-
-    @staticmethod
-    def _grid_lines(start: np.ndarray, end: np.ndarray, lo: np.ndarray, hi: np.ndarray, size: int) -> np.ndarray:
-        """Positions of the `size + 1` grid lines of an axis, from the cell edges lying on each of them
-
-        Line `k` is where index `k` starts and index `k - 1` ends: it lies at the median of the corresponding cell
-        edges, the lines on which no cell edge lies are interpolated between their neighbours.
-
-        Args:
-            start: the first index of each cell along the axis, shape (C,)
-            end: the last index of each cell along the axis, shape (C,)
-            lo: the lower edge of each cell along the axis (in the table frame), shape (C,)
-            hi: the upper edge of each cell along the axis (in the table frame), shape (C,)
-            size: the number of indices (rows or columns) of the axis
-
-        Returns:
-            the non-decreasing positions of the grid lines, shape (size + 1,)
-        """
-        edges: list[list[float]] = [[] for _ in range(size + 1)]
-        for s, e, low, high in zip(start, end, lo, hi):
-            edges[int(s)].append(float(low))
-            edges[int(e) + 1].append(float(high))
-        known = [k for k, values in enumerate(edges) if values]
-        lines = np.interp(np.arange(size + 1), known, [float(np.median(edges[k])) for k in known])
-        return np.maximum.accumulate(lines)
-
-    @staticmethod
-    def _axis_slots(
-        center: np.ndarray, lo: np.ndarray, hi: np.ndarray, lines: np.ndarray, line_tol: float | None = None
-    ) -> tuple[np.ndarray, dict[int, tuple[float, float]]]:
-        """Index of each word along an axis of a table grid, adding new indices for the words beyond the grid
-
-        A word whose center lies between two grid lines takes their index. The words before the first line (resp.
-        after the last one) are grouped into new indices before (resp. after) the grid: by text line (centers closer
-        than `line_tol`) for rows, by overlapping extents for columns (`line_tol` is None).
-
-        Args:
-            center: the word centers along the axis (in the table frame), shape (W,)
-            lo: the lower word edges along the axis, shape (W,)
-            hi: the upper word edges along the axis, shape (W,)
-            lines: the positions of the grid lines of the axis, shape (size + 1,)
-            line_tol: the maximum distance between the centers of the words of a same new row
-
-        Returns:
-            the (possibly negative or beyond the grid) index of each word, and the (lo, hi) extent of every index
-        """
-        size = lines.size - 1
-        idx = np.clip(np.searchsorted(lines, center, side="right") - 1, 0, size - 1)
-        bands = {k: (float(lines[k]), float(lines[k + 1])) for k in range(size)}
-        for before, mask in ((True, center < lines[0]), (False, center > lines[-1])):
-            members = np.flatnonzero(mask)
-            if members.size == 0:
-                continue
-            groups: list[list[int]] = []
-            if line_tol is not None:
-                for j in members[np.argsort(center[members], kind="stable")]:
-                    if groups and center[j] - np.mean(center[groups[-1]]) < line_tol:
-                        groups[-1].append(int(j))
-                    else:
-                        groups.append([int(j)])
-            else:
-                reach = -np.inf
-                for j in members[np.argsort(lo[members], kind="stable")]:
-                    if groups and lo[j] <= reach:
-                        groups[-1].append(int(j))
-                    else:
-                        groups.append([int(j)])
-                        reach = -np.inf
-                    reach = max(reach, float(hi[j]))
-            new_ids = range(-len(groups), 0) if before else range(size, size + len(groups))
-            for g_id, group in zip(new_ids, groups):
-                idx[group] = g_id
-                bands[g_id] = (float(lo[group].min()), float(hi[group].max()))
-        return idx, bands
-
-    @classmethod
-    def _complete_grid(
-        cls,
-        cells: list[dict[str, Any]],
-        polys: np.ndarray,
-        cell_words: list[list[int]],
-        leftover: np.ndarray,
-        word_polys: np.ndarray,
-        angle: float,
-    ) -> tuple[list[dict[str, Any]], np.ndarray, list[list[int]]]:
-        """Place the words of a table that lie in no cell into its grid, so that no table text is left out
-
-        The row and column lines of the grid are located from the cell edges. A word between two lines of each axis
-        joins the cell covering that grid slot, or a new cell when no cell covers it (e.g. a missed cell). The words
-        beyond the grid (e.g. a missed header row or a row of totals) make new rows / columns: in a new row, the
-        words closer than half a text line, like the words of a sentence, share a single (possibly spanning) cell.
-
-        Args:
-            cells: the cells of the table, with local logical coordinates
-            polys: the (C, 4, 2) cell polygons (absolute coordinates)
-            cell_words: the word indices of each cell
-            leftover: the indices of the words of the table that lie in no cell
-            word_polys: the (N, 4, 2) word polygons (absolute coordinates)
-            angle: the angle of the table rows (radians)
-
-        Returns:
-            the cells, their polygons and the word indices of each cell, new cells included (the logical coordinates
-            of the new rows / columns before the grid are negative)
-        """
-        pivot = polys.reshape(-1, 2).mean(axis=0)
-        # Table frame: the rows and columns are horizontal and vertical
-        cell_pts = cls._rotate_points(polys, -angle, pivot)
-        word_pts = cls._rotate_points(word_polys[leftover], -angle, pivot)
-        w_x0, w_x1 = word_pts[..., 0].min(axis=1), word_pts[..., 0].max(axis=1)
-        w_y0, w_y1 = word_pts[..., 1].min(axis=1), word_pts[..., 1].max(axis=1)
-        logic = np.array([[c["row_start"], c["row_end"], c["col_start"], c["col_end"]] for c in cells], dtype=int)
-        num_rows, num_cols = int(logic[:, 1].max()) + 1, int(logic[:, 3].max()) + 1
-        row_lines = cls._grid_lines(
-            logic[:, 0], logic[:, 1], cell_pts[..., 1].min(axis=1), cell_pts[..., 1].max(axis=1), num_rows
-        )
-        col_lines = cls._grid_lines(
-            logic[:, 2], logic[:, 3], cell_pts[..., 0].min(axis=1), cell_pts[..., 0].max(axis=1), num_cols
-        )
-        med_h = float(np.median(w_y1 - w_y0))
-        med_h = med_h if np.isfinite(med_h) and med_h > 0 else 1.0
-        col_idx, col_bands = cls._axis_slots((w_x0 + w_x1) / 2, w_x0, w_x1, col_lines)
-        row_idx, row_bands = cls._axis_slots((w_y0 + w_y1) / 2, w_y0, w_y1, row_lines, line_tol=med_h / 2)
-
-        # The cell covering each slot of the grid
-        occupied: dict[tuple[int, int], int] = {}
-        for c_idx, (rs, re, cs, ce) in enumerate(logic):
-            for r in range(rs, re + 1):
-                for c in range(cs, ce + 1):
-                    occupied.setdefault((r, c), c_idx)
-
-        # New cells: (row_start, row_end, col_start, col_end) -> positions in `leftover`
-        new_cells: dict[tuple[int, int, int, int], list[int]] = {}
-        in_grid = (row_idx >= 0) & (row_idx < num_rows)
-        for j in np.flatnonzero(in_grid):
-            slot = (int(row_idx[j]), int(col_idx[j]))
-            if slot in occupied:
-                cell_words[occupied[slot]].append(int(leftover[j]))
-            else:
-                new_cells.setdefault((slot[0], slot[0], slot[1], slot[1]), []).append(int(j))
-        # New rows: the words of a same column, or closer than half a text line, share a cell
-        for r in np.unique(row_idx[~in_grid]):
-            members = np.flatnonzero(row_idx == r)
-            members = members[np.argsort(w_x0[members], kind="stable")]
-            group = [int(members[0])]
-            for prev, j in zip(members[:-1], members[1:]):
-                if col_idx[j] == col_idx[group[-1]] or w_x0[j] - w_x1[prev] < med_h / 2:
-                    group.append(int(j))
-                    continue
-                new_cells[(int(r), int(r), int(col_idx[group].min()), int(col_idx[group].max()))] = group
-                group = [int(j)]
-            new_cells[(int(r), int(r), int(col_idx[group].min()), int(col_idx[group].max()))] = group
-
-        cells, new_polys = list(cells), []
-        for (rs, re, cs, ce), positions in new_cells.items():
-            x0 = min(col_bands[cs][0], float(w_x0[positions].min()))
-            x1 = max(col_bands[ce][1], float(w_x1[positions].max()))
-            y0 = min(row_bands[rs][0], float(w_y0[positions].min()))
-            y1 = max(row_bands[re][1], float(w_y1[positions].max()))
-            rect = np.array([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], dtype=np.float64)
-            new_polys.append(cls._rotate_points(rect, angle, pivot))
-            # A cell added from the words: the table structure model did not score it
-            cells.append({"score": None, "row_start": rs, "row_end": re, "col_start": cs, "col_end": ce})
-            cell_words.append([int(leftover[j]) for j in positions])
-        if new_polys:
-            polys = np.concatenate([polys, np.stack(new_polys).astype(polys.dtype)])
-        return cells, polys, cell_words
-
-    @classmethod
-    def _simplify_grid(
-        cls,
-        cells: list[dict[str, Any]],
-        polys: np.ndarray,
-        cell_words: list[list[int]],
-        word_polys: np.ndarray,
-        angle: float,
-    ) -> tuple[list[dict[str, Any]], np.ndarray, list[list[int]]]:
-        """Merge the rows / columns of a table split by the structure model, and remove the ones without any text
-
-        Two adjacent rows (resp. columns) are merged when their text is complementary (no column, resp. row, has text
-        in both) and lies on the same text line (resp. column), i.e. their text extents mostly overlap: the table
-        structure model sometimes splits a row whose cell edges do not line up. A row (resp. column) without text of its
-        own (no cell holds text in this row only) is removed: the grid only keeps the rows and columns of the table's
-        content, and the cells spanning the removed ones span one less.
-
-        Args:
-            cells: the cells of the table, with local logical coordinates
-            polys: the (C, 4, 2) cell polygons (absolute coordinates)
-            cell_words: the word indices of each cell
-            word_polys: the (N, 4, 2) word polygons (absolute coordinates)
-            angle: the angle of the table rows (radians)
-
-        Returns:
-            the remaining cells, their polygons and the word indices of each cell
-        """
-        filled = np.array([len(w) > 0 for w in cell_words])
-        if not filled.any():
-            return cells, polys, cell_words
-        pivot = polys.reshape(-1, 2).mean(axis=0)
-        frame = cls._rotate_points(polys, -angle, pivot)
-        rects = np.concatenate([frame.min(axis=1), frame.max(axis=1)], axis=1)  # (C, 4) x0, y0, x1, y1
-        resized = np.zeros(len(cells), dtype=bool)
-        # Text extent of each cell in the table frame: x0, y0, x1, y1
-        content = np.full((len(cells), 4), np.nan)
-        for c_idx in np.flatnonzero(filled):
-            pts = cls._rotate_points(word_polys[cell_words[c_idx]], -angle, pivot).reshape(-1, 2)
-            content[c_idx] = [*pts.min(axis=0), *pts.max(axis=0)]
-        # row_start, row_end, col_start, col_end
-        logic = np.array([[c["row_start"], c["row_end"], c["col_start"], c["col_end"]] for c in cells], dtype=int)
-        alive = np.ones(len(cells), dtype=bool)
-
-        def mergeable(axis: int, k: int) -> bool:
-            start, end = logic[:, 2 * axis], logic[:, 2 * axis + 1]
-            o_start, o_end = logic[:, 2 - 2 * axis], logic[:, 3 - 2 * axis]
-            in_k, in_next = alive & (start <= k) & (end >= k), alive & (start <= k + 1) & (end >= k + 1)
-            only_k, only_next = np.flatnonzero(in_k & ~in_next & filled), np.flatnonzero(in_next & ~in_k & filled)
-            if only_k.size == 0 or only_next.size == 0:
-                return False
-            # Complementary: no index of the other axis holds text in both
-            if np.any(
-                (o_start[only_k, None] <= o_end[None, only_next]) & (o_start[None, only_next] <= o_end[only_k, None])
-            ):
-                return False
-            # On the same line: the text extents along the axis mostly overlap
-            lo, hi = (1, 3) if axis == 0 else (0, 2)
-            a_lo, a_hi = content[only_k, lo].min(), content[only_k, hi].max()
-            b_lo, b_hi = content[only_next, lo].min(), content[only_next, hi].max()
-            overlap = min(a_hi, b_hi) - max(a_lo, b_lo)
-            return bool(overlap >= 0.5 * min(a_hi - a_lo, b_hi - b_lo))
-
-        def shift(axis: int, k: int, merge: bool) -> None:
-            # Merge the index k + 1 into the index k, or remove the index k (its cells are removed beforehand)
-            start, end = logic[:, 2 * axis], logic[:, 2 * axis + 1]
-            end[alive & ((end > k) if merge else (end >= k))] -= 1
-            start[alive & (start > k)] -= 1
-
-        def resolve_overlaps() -> None:
-            # The cells merged onto a same slot: the empty ones are absorbed by the cells holding text
-            idx = np.flatnonzero(alive)
-            for pos, i in enumerate(idx):
-                if not alive[i]:
-                    continue
-                others = idx[pos + 1 :]
-                others = others[alive[others]]
-                hits = others[
-                    (logic[others, 0] <= logic[i, 1])
-                    & (logic[i, 0] <= logic[others, 1])
-                    & (logic[others, 2] <= logic[i, 3])
-                    & (logic[i, 2] <= logic[others, 3])
-                ]
-                for j in hits:
-                    keep, drop = (j, i) if filled[j] and not filled[i] else (i, j)
-                    if filled[drop]:  # both hold text: not merged
-                        continue
-                    rects[keep, :2] = np.minimum(rects[keep, :2], rects[drop, :2])
-                    rects[keep, 2:] = np.maximum(rects[keep, 2:], rects[drop, 2:])
-                    logic[keep, ::2] = np.minimum(logic[keep, ::2], logic[drop, ::2])
-                    logic[keep, 1::2] = np.maximum(logic[keep, 1::2], logic[drop, 1::2])
-                    resized[keep] = True
-                    alive[drop] = False
-                    if drop == i:
-                        break
-
-        changed = True
-        while changed:
-            changed = False
-            for axis in (0, 1):
-                size = int(logic[alive, 2 * axis + 1].max()) + 1
-                for k in range(size - 1):
-                    if mergeable(axis, k):
-                        shift(axis, k, merge=True)
-                        resolve_overlaps()
-                        changed = True
-                        break
-        # Remove the rows / columns without text of their own: no text, or only the text of cells spanning other rows
-        # / columns too (which then span one less)
-        for axis in (0, 1):
-            start, end = logic[:, 2 * axis], logic[:, 2 * axis + 1]
-            for k in range(int(end[alive].max()), -1, -1):
-                if np.any(alive & filled & (start == k) & (end == k)):
-                    continue
-                alive[alive & (start == k) & (end == k)] = False
-                shift(axis, k, merge=False)
-
-        keep = np.flatnonzero(alive)
-        new_polys = polys.copy()
-        for c_idx in np.flatnonzero(resized & alive):
-            x0, y0, x1, y1 = rects[c_idx]
-            rect = np.array([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], dtype=np.float64)
-            new_polys[c_idx] = cls._rotate_points(rect, angle, pivot)
-        new_cells = []
-        for c_idx in keep:
-            rs, re, cs, ce = (int(v) for v in logic[c_idx])
-            new_cells.append({**cells[c_idx], "row_start": rs, "row_end": re, "col_start": cs, "col_end": ce})
-        return new_cells, new_polys[keep], [cell_words[c_idx] for c_idx in keep]
-
-    @staticmethod
-    def _text_lines(centers: np.ndarray, tol: float) -> np.ndarray:
-        """Group 1D word centers (along the rows' normal) into text lines: the line index of each word, from the top"""
-        order = np.argsort(centers, kind="stable")
-        line_ids = np.zeros(centers.size, dtype=np.int64)
-        line, members = 0, [int(order[0])] if centers.size else []
-        for j in order[1:]:
-            if centers[j] - np.mean(centers[members]) >= tol:
-                line, members = line + 1, []
-            members.append(int(j))
-            line_ids[j] = line
-        return line_ids
-
-    @classmethod
-    def _split_rows(
-        cls,
-        cells: list[dict[str, Any]],
-        polys: np.ndarray,
-        cell_words: list[list[int]],
-        word_polys: np.ndarray,
-        angle: float,
-    ) -> tuple[list[dict[str, Any]], np.ndarray, list[list[int]]]:
-        """Split the rows merged by the table structure model, from the text lines of their cells
-
-        The model may merge several rows of a dense table (e.g. without rulings) into a single one: a row is split
-        into its text lines when most of its cells holding text (at least 2) hold several of them, so that a single
-        cell wrapping its text (e.g. a long header) does not split its row. Likewise, a cell spanning several rows
-        is split when each of its text lines lies in a different row, aligned with the text of that row.
-
-        Args:
-            cells: the cells of the table, with local logical coordinates
-            polys: the (C, 4, 2) cell polygons (absolute coordinates)
-            cell_words: the word indices of each cell
-            word_polys: the (N, 4, 2) word polygons (absolute coordinates)
-            angle: the angle of the table rows (radians)
-
-        Returns:
-            the cells, their polygons and the word indices of each cell
-        """
-        if not any(cell_words):
-            return cells, polys, cell_words
-        pivot = polys.reshape(-1, 2).mean(axis=0)
-        frame = cls._rotate_points(polys, -angle, pivot)
-        rects = [np.concatenate([f.min(axis=0), f.max(axis=0)]) for f in frame]  # x0, y0, x1, y1
-        all_words = np.unique(np.concatenate([w for w in cell_words if w])).astype(int)
-        w_pts = cls._rotate_points(word_polys[all_words], -angle, pivot)
-        w_y0 = dict(zip(all_words.tolist(), w_pts[..., 1].min(axis=1)))
-        w_y1 = dict(zip(all_words.tolist(), w_pts[..., 1].max(axis=1)))
-        heights = w_pts[..., 1].max(axis=1) - w_pts[..., 1].min(axis=1)
-        tol = 0.5 * float(np.median(heights)) if heights.size else 0.0
-        if not tol > 0:
-            return cells, polys, cell_words
-        cells = [dict(c) for c in cells]
-        cell_words = [list(w) for w in cell_words]
-        resized: set[int] = set()
-
-        def center(w: int) -> float:
-            return (w_y0[w] + w_y1[w]) / 2
-
-        def split_cell(c_idx: int, line_ids: np.ndarray, rows: list[tuple[int, int]]) -> None:
-            """Split a cell into one cell per text line, spanning the given rows"""
-            words = np.asarray(cell_words[c_idx])
-            x0, y0, x1, y1 = rects[c_idx]
-            n_lines = int(line_ids.max()) + 1
-            # The sub-cells share the cell's extent, split midway between its text lines
-            tops = [min(w_y0[w] for w in words[line_ids == line]) for line in range(n_lines)]
-            bottoms = [max(w_y1[w] for w in words[line_ids == line]) for line in range(n_lines)]
-            bounds = [y0] + [(bottoms[line] + tops[line + 1]) / 2 for line in range(n_lines - 1)] + [y1]
-            for line, (rs, re) in enumerate(rows):
-                new = {**cells[c_idx], "row_start": rs, "row_end": re}
-                rect = np.array([x0, bounds[line], x1, bounds[line + 1]])
-                if line == 0:
-                    cells[c_idx], rects[c_idx], cell_words[c_idx] = new, rect, words[line_ids == 0].tolist()
-                    resized.add(c_idx)
-                else:
-                    cells.append(new)
-                    rects.append(rect)
-                    cell_words.append(words[line_ids == line].tolist())
-                    resized.add(len(cells) - 1)
-
-        # 1. Rows merged by the model, from the bottom up so that the rows still to process do not move
-        num_rows = max(c["row_end"] for c in cells) + 1
-        for r in range(num_rows - 1, -1, -1):
-            in_row = [i for i, c in enumerate(cells) if c["row_start"] == r and c["row_end"] == r]
-            filled = [i for i in in_row if cell_words[i]]
-            if len(filled) < 2:
-                continue
-            words = [w for i in filled for w in cell_words[i]]
-            line_of = dict(zip(words, cls._text_lines(np.array([center(w) for w in words]), tol).tolist()))
-            n_lines = max(line_of.values()) + 1
-            multi = [i for i in filled if len({line_of[w] for w in cell_words[i]}) > 1]
-            if n_lines < 2 or len(multi) < 2 or 2 * len(multi) < len(filled):
-                continue
-            # The rows below move down, the cells spanning the row span its new rows too
-            for c in cells:
-                if c["row_start"] == r and c["row_end"] == r:
-                    continue
-                if c["row_start"] > r:
-                    c["row_start"] += n_lines - 1
-                if c["row_end"] >= r:
-                    c["row_end"] += n_lines - 1
-            for i in in_row:
-                if not cell_words[i]:
-                    cells[i]["row_end"] = r + n_lines - 1
-                    continue
-                cell_lines = np.array([line_of[w] for w in cell_words[i]])
-                present = np.unique(cell_lines)
-                # Local line indices of the cell -> rows of the table
-                split_cell(i, np.searchsorted(present, cell_lines), [(r + line, r + line) for line in present])
-
-        # 2. Cells spanning several rows whose text lines lie in different rows
-        logic = np.array([[c["row_start"], c["row_end"]] for c in cells], dtype=int)
-        if logic[:, 1].max() > 0:
-            row_y0 = np.array([r[1] for r in rects])
-            row_y1 = np.array([r[3] for r in rects])
-            lines = cls._grid_lines(logic[:, 0], logic[:, 1], row_y0, row_y1, int(logic[:, 1].max()) + 1)
-            for i in range(len(cells)):
-                rs, re = cells[i]["row_start"], cells[i]["row_end"]
-                if re == rs or len(cell_words[i]) < 2:
-                    continue
-                cell_lines = cls._text_lines(np.array([center(w) for w in cell_words[i]]), tol)
-                n_lines = int(cell_lines.max()) + 1
-                if n_lines < 2:
-                    continue
-                line_rows = []
-                for line in range(n_lines):
-                    members = [w for w, lid in zip(cell_words[i], cell_lines) if lid == line]
-                    lo, hi = min(w_y0[w] for w in members), max(w_y1[w] for w in members)
-                    row = int(np.clip(np.searchsorted(lines, (lo + hi) / 2, side="right") - 1, rs, re))
-                    # The text of the other cells of the row lies on the same line
-                    aligned = any(
-                        cells[j]["row_start"] == row == cells[j]["row_end"]
-                        and any(min(hi, w_y1[w]) - max(lo, w_y0[w]) > 0.5 * (hi - lo) for w in cell_words[j])
-                        for j in range(len(cells))
-                        if j != i and cell_words[j]
-                    )
-                    if not aligned:
-                        break
-                    line_rows.append(row)
-                if len(line_rows) < n_lines or len(set(line_rows)) < n_lines:
-                    continue
-                spans = [
-                    (rs if line == 0 else line_rows[line], re if line == n_lines - 1 else line_rows[line + 1] - 1)
-                    for line in range(n_lines)
-                ]
-                split_cell(i, cell_lines, spans)
-
-        if not resized:
-            return cells, polys, cell_words
-        new_polys = [
-            cls._rotate_points(
-                np.array([[r[0], r[1]], [r[2], r[1]], [r[2], r[3]], [r[0], r[3]]], dtype=np.float64), angle, pivot
-            )
-            if idx in resized
-            else polys[idx]
-            for idx, r in enumerate(rects)
-        ]
-        return cells, np.stack(new_polys).astype(polys.dtype), cell_words
 
     def _build_tables(
         self,
         boxes: np.ndarray,
         word_preds: list[tuple[str, float]],
         page_table: dict[str, Any] | list[dict[str, Any]] | None,
-        page_shape: tuple[int, int] | None = None,
     ) -> tuple[list[Table], np.ndarray]:
         """Assign detected words to table cells and build the page tables.
-
-        Every word whose center lies in a table (its layout region when provided, the cells otherwise) is part of
-        the table: the words outside the predicted cells complete the grid (cf. `_complete_grid`).
 
         Args:
             boxes: word boxes of the page, of shape (N, 4) or (N, 4, 2), in relative coordinates
             word_preds: list of (text, confidence) for each of the N words
             page_table: the table structure prediction(s) for the page. Either a single grid
                 `{"cells": [{"geometry", "score", "row_start", "row_end", "col_start", "col_end"}], "num_rows",
-                "num_cols", "geometry"}` (cell geometries in page-relative coordinates, the optional "geometry" being
-                the (4, 2) polygon of the table region), a list of such grids, or None
-            page_shape: the (height, width) of the page, to process the geometry in an isotropic space
+                "num_cols"}` (cell geometries in page-relative coordinates), a list of such grids, or None. When the
+                cells list the indices of their words (`"words"`, in reading order, cf. the OCR predictor), they are
+                used as is, otherwise each word goes to the cell containing its center
 
         Returns:
             a tuple with the list of `Table` objects of the page (one per provided table) and a boolean mask of
@@ -1091,43 +663,33 @@ class DocumentBuilder(NestedObject):
         if len(grids) == 0:
             return [], consumed
         # The geometries follow the page's word geometry: straight 2-point boxes for (N, 4) word boxes, 4-point polygons
-        # for (N, 4, 2) ones.
+        # for (N, 4, 2) ones. Word heights are rotation-invariant (left edge length for polygons).
         straight = boxes.ndim != 3
-        scale = np.ones(2) if page_shape is None else np.array([page_shape[1], page_shape[0]], dtype=np.float64)
-        if boxes.ndim == 3:  # (N, 4, 2) polygons, ordered TL, TR, BR, BL
-            word_polys = boxes.astype(np.float64) * scale
-        else:  # (N, 4) straight boxes (xmin, ymin, xmax, ymax)
-            x0, y0, x1, y1 = boxes.reshape(-1, 4).T.astype(np.float64)
-            word_polys = np.stack([np.stack(pt, axis=-1) for pt in ((x0, y0), (x1, y0), (x1, y1), (x0, y1))], 1) * scale
-        centers = word_polys.mean(axis=1)
-        heights = np.linalg.norm(word_polys[:, 3] - word_polys[:, 0], axis=1)  # rotation-invariant (left edge)
+        centers = self._word_centers(boxes) if boxes.shape[0] > 0 else np.empty((0, 2))
+        if boxes.shape[0] == 0:
+            heights = np.empty(0)
+        else:
+            heights = boxes[:, 3] - boxes[:, 1] if straight else np.linalg.norm(boxes[:, 3] - boxes[:, 0], axis=1)
 
         tables: list[Table] = []
-        for cells, num_rows, num_cols, region in grids:
-            polys = np.stack([self._as_cell_polygon(cell["geometry"]) for cell in cells]) * scale  # (C, 4, 2)
-            cell_words = self._assign_cell_words(centers, polys, consumed)
-            top_edges = polys[:, 1] - polys[:, 0]  # TR - TL
-            angle = 0.0 if straight else float(np.median(np.arctan2(top_edges[:, 1], top_edges[:, 0])))
-            # The words of the table that lie in no cell: in its layout region, or in the cells' outline
-            free = np.flatnonzero(~consumed)
-            outline = cv2.boxPoints(cv2.minAreaRect(polys.reshape(-1, 2).astype(np.float32))).reshape(1, 4, 2)
-            in_table = self._points_in_polygons(centers[free], outline)[:, 0]
-            if region is not None:
-                in_table |= self._points_in_polygons(centers[free], (region * scale)[None])[:, 0]
-            leftover = free[in_table]
-            if leftover.size > 0:
-                cells, polys, cell_words = self._complete_grid(cells, polys, cell_words, leftover, word_polys, angle)
-                consumed[leftover] = True
-                cells, num_rows, num_cols = self._localize_logic(cells)
-            cells, polys, cell_words = self._simplify_grid(cells, polys, cell_words, word_polys, angle)
-            cells, polys, cell_words = self._split_rows(cells, polys, cell_words, word_polys, angle)
-            cells, num_rows, num_cols = self._localize_logic(cells)
-            # Reading order inside the cells: rows top to bottom, words left to right (table axes)
-            order_centers = self._rotate_points(centers, -angle, centers.mean(axis=0)) if centers.size else centers
+        for cells, num_rows, num_cols in grids:
+            polys = np.stack([self._as_cell_polygon(cell["geometry"]) for cell in cells])  # (C, 4, 2)
+            if all("words" in cell for cell in cells):
+                # The OCR predictor assigned the words of the table to its cells, in reading order
+                cell_words = []
+                for cell in cells:
+                    cell_words.append([int(i) for i in cell["words"] if not consumed[i]])
+                    consumed[cell_words[-1]] = True
+            else:
+                # Reading order inside the cell: rows top to bottom, words left to right (table axes)
+                order_centers = centers if straight or centers.shape[0] == 0 else self._deskew_centers(centers, polys)
+                cell_words = [
+                    self._order_cell_words(w_idcs, order_centers, heights) if w_idcs else []
+                    for w_idcs in self._assign_cell_words(centers, polys, consumed)
+                ]
             table_cells = []
-            for cell, poly, w_idcs in zip(cells, polys / scale, cell_words):
-                if len(w_idcs) > 0:
-                    ordered = self._order_cell_words(w_idcs, order_centers, heights)
+            for cell, poly, ordered in zip(cells, polys, cell_words):
+                if len(ordered) > 0:
                     value = " ".join(word_preds[i][0] for i in ordered)
                     confidence = float(np.mean([word_preds[i][1] for i in ordered]))
                 else:
@@ -1145,9 +707,9 @@ class DocumentBuilder(NestedObject):
                     )
                 )
             # Enclosing geometry of the whole table
-            pts = (polys / scale).reshape(-1, 2)
-            (xmin, ymin), (xmax, ymax) = pts.min(axis=0), pts.max(axis=0)
+            (xmin, ymin), (xmax, ymax) = polys.reshape(-1, 2).min(axis=0), polys.reshape(-1, 2).max(axis=0)
             corners = np.asarray([[xmin, ymin], [xmax, ymin], [xmax, ymax], [xmin, ymax]])
+            # The cells made from the words of the table are not scored by the table model
             scores = [float(cell["score"]) for cell in cells if cell["score"] is not None]
             tables.append(
                 Table(
@@ -1363,7 +925,7 @@ class DocumentBuilder(NestedObject):
             _tables,
         ):
             # Build the page tables and flag the words that belong to a table
-            page_tables, consumed = self._build_tables(page_boxes, word_preds, page_table, shape)
+            page_tables, consumed = self._build_tables(page_boxes, word_preds, page_table)
             if consumed.any():
                 # Remove the words assigned to a table from the regular blocks output
                 keep = ~consumed
