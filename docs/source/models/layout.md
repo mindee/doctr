@@ -8,7 +8,7 @@ the text detection models, they work on rotated and skewed documents.
 | Architecture | Paper | Pretrained weights |
 | --- | --- | --- |
 | {func}`~doctr.models.layout.lw_detr_s` {bdg-secondary}`default` | [LW-DETR: A Transformer Replacement to YOLO for Real-Time Detection](https://arxiv.org/pdf/2406.03459v1) | {bdg-success}`available` |
-| {func}`~doctr.models.layout.lw_detr_m` | Same, larger backbone | {bdg-warning}`coming soon` |
+| {func}`~doctr.models.layout.lw_detr_m` | Same, larger backbone | {bdg-success}`available` |
 
 The pretrained model predicts 11 classes: `Caption`, `Footnote`, `Formula`, `List-item`, `Page-footer`,
 `Page-header`, `Picture`, `Section-header`, `Table`, `Text` and `Title`.
@@ -18,7 +18,7 @@ The pretrained model predicts 11 classes: `Caption`, `Footnote`, `Formula`, `Lis
 | Architecture | Input shape | # params | mAP@[.5:.95] | AP@.5 | AP@.75 | sec/it (batch 1) |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
 | `lw_detr_s` | (1024, 1024, 3) | 15.1 M | 66.89 | 82.83 | 73.75 | 0.5 |
-| `lw_detr_m` | (1024, 1024, 3) | 29.5 M | soon | soon | soon | 0.7 |
+| `lw_detr_m` | (1024, 1024, 3) | 29.5 M | 69.20 | 84.48 | 75.71 | 0.7 |
 
 ## Usage
 
