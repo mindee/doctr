@@ -65,7 +65,7 @@ default_cfgs: dict[str, dict[str, Any]] = {
             "Text",
             "Title",
         ],
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v1.1.0/lw_detr_m-12c799e1.pt",
     },
 }
 
