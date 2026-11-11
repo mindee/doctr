@@ -411,7 +411,7 @@ def _key_value_rows(
 
 def _column_gutter(
     boxes: np.ndarray, voters: np.ndarray, y_overlap: np.ndarray, y_overlap_threshold: float
-) -> np.ndarray | None:
+) -> float | None:
     """Detect a multi-column page: a vertical line separating the voters into two groups crossed by few of them
 
     Args:
@@ -421,7 +421,7 @@ def _column_gutter(
         y_overlap_threshold: the vertical overlap above which two boxes lie on the same row
 
     Returns:
-        the mask of the boxes crossing the gutter for a multi-column page, None for a single-column page
+        the position of the gutter for a multi-column page, None for a single-column page
     """
     if np.count_nonzero(voters) < 3:
         voters = np.ones(boxes.shape[0], dtype=bool)
@@ -429,6 +429,7 @@ def _column_gutter(
     vx0, vx1, num_voters = x0[voters], x1[voters], int(np.count_nonzero(voters))
     if num_voters < 3:
         return None
+    vy = (boxes[voters, 1] + boxes[voters, 3]) / 2
     # Measured on the voters only, so that a wide figure does not shift the search window
     left_edge = float(vx0.min())
     span = float(vx1.max()) - left_edge or 1.0
@@ -436,13 +437,48 @@ def _column_gutter(
     centers = (vx0 + vx1) / 2
     lo, hi = left_edge + 0.25 * span, left_edge + 0.75 * span
     for split in np.unique(vx1[(vx1 >= lo) & (vx1 <= hi)]):
-        crossing = int(np.count_nonzero(np.minimum(vx1 - split, split - vx0) > 0.02 * span))
+        across = np.minimum(vx1 - split, split - vx0) > 0.02 * span
+        on_left, on_right = ~across & (centers <= split), ~across & (centers > split)
+        if not on_left.any() or not on_right.any():
+            continue
+        # Elements above or below the columns (e.g. a title and its authors) do not count as crossing
+        columns_y = vy[on_left | on_right]
+        crossing = int(np.count_nonzero(across & (vy > columns_y.min()) & (vy < columns_y.max())))
         left = int(np.count_nonzero(centers <= split))
         if crossing <= tolerance and left >= 0.25 * num_voters and num_voters - left >= 0.25 * num_voters:
-            if _key_value_rows(boxes, voters, float(split), y_overlap, y_overlap_threshold, span):
+            beside = voters.copy()
+            beside[np.flatnonzero(voters)[across]] = False
+            if _key_value_rows(boxes, beside, float(split), y_overlap, y_overlap_threshold, span):
                 return None  # rows of keys and values (e.g. a receipt): read row after row
-            return np.minimum(x1 - split, split - x0) > 0.02 * span
+            return float(split)
     return None
+
+
+def _detached_above(y0: np.ndarray, y1: np.ndarray, column: np.ndarray, top: float) -> np.ndarray:
+    """The elements of a column separated by a wide gap from both the rest of the column and the other columns below
+    them (e.g. a right-aligned title or address block above the columns of a page)
+
+    Args:
+        y0: the top of each box
+        y1: the bottom of each box
+        column: the indices of the elements of the column
+        top: the position the other columns start at
+
+    Returns:
+        the indices of the detached elements
+    """
+    column = column[np.argsort(y0[column], kind="stable")]
+    level = np.flatnonzero(y1[column] > top)
+    if level.size == 0 or level[0] == 0:
+        return column[:0]
+    first = int(level[0])
+    bottoms = np.maximum.accumulate(y1[column])
+    gaps = y0[column[1:]] - bottoms[:-1]
+    # Wide: more than 3 times the usual gap of the column, and than the height of an element
+    limit = max(3 * float(np.median(gaps[first:])) if gaps[first:].size else 0.0, float(np.median(y1 - y0)))
+    while first > 0 and gaps[first - 1] <= limit:
+        first -= 1
+    return column[:first] if first > 0 and top - bottoms[first - 1] > limit else column[:0]
 
 
 def _topological_order(
@@ -494,15 +530,27 @@ def _topological_order(
     np.fill_diagonal(edges, False)
 
     # A multi-column page favors the continuation of the current column (cf. `_continuation`)
-    spanning = (x1 - x0) > 0.5 * (float(x1.max() - x0.min()) or 1.0)
-    crossing = _column_gutter(
+    span = float(x1.max() - x0.min()) or 1.0
+    spanning = (x1 - x0) > 0.5 * span
+    gutter = _column_gutter(
         boxes, np.ones(num_boxes, dtype=bool) if voters is None else voters, y_overlap, y_overlap_threshold
     )
-    multi_column = crossing is not None
+    multi_column = gutter is not None
+    crossing = np.zeros(num_boxes, dtype=bool)
+    # 1 for the columns after the gutter, read after the ones before it even when they start higher (only when both
+    # sides hold several elements)
+    after_gutter = np.zeros(num_boxes, dtype=int)
+    if gutter is not None:
+        crossing = np.minimum(x1 - gutter, gutter - x0) > 0.02 * span
+        after = x0 >= gutter - 0.02 * span
+        before = ~after & ~crossing
+        if np.count_nonzero(after) >= 2 and np.count_nonzero(before) >= 2:
+            after_gutter = after.astype(int)
+            after_gutter[_detached_above(y0, y1, np.flatnonzero(after), float(y0[before].min()))] = 0
     # Column components: elements connected through horizontal overlap, except those which must not merge the columns
     # (page-wide or crossing the gutter). This keeps the traversal inside a column even when the direct top-to-bottom
     # continuation is momentarily broken by a fragmented or misaligned OCR line.
-    bridging = spanning | crossing if multi_column else spanning
+    bridging = spanning | crossing
     col_edges = np.triu(x_linked, 1)  # each pair once
     col_edges &= ~bridging[:, None]
     col_edges &= ~bridging[None, :]
@@ -529,9 +577,11 @@ def _topological_order(
         if ready.size == 0:  # cycle safety net (can only happen with degenerate overlapping geometries)
             candidates = np.flatnonzero(~emitted)
         else:
+            # The columns before the gutter first
+            ready = ready[after_gutter[ready] == after_gutter[ready].min()]
             candidates = _continuation(order[-1], ready) if order else ready
         # Topmost first, then leftmost (in canonical space)
-        next_idx = int(candidates[np.lexsort((x0[candidates], y0[candidates]))[0]])
+        next_idx = int(candidates[np.lexsort((x0[candidates], y0[candidates], after_gutter[candidates]))[0]])
         order.append(next_idx)
         emitted[next_idx] = True
         in_degree = in_degree - edges[next_idx]

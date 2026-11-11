@@ -186,3 +186,52 @@ def test_torch_compiled_models(arch_name, mock_table_image):
         assert np.allclose(cell["geometry"], compiled_cell["geometry"], atol=1e-4)
         assert np.isclose(cell["score"], compiled_cell["score"], atol=1e-4)
         assert all(cell[k] == compiled_cell[k] for k in ("row_start", "row_end", "col_start", "col_end"))
+
+
+def test_table_predictor_regions(monkeypatch):
+    predictor = table_structure.zoo.table_predictor("tablecenternet", pretrained=False)
+    crops = []
+
+    def fake_forward(images, **kwargs):
+        # A fixed grid (crop-relative cells) for every crop: 2 cells, and 1 of the context margin, above the region
+        crops.extend(images)
+        h, w = images[0].shape[:2]
+        pad = 20  # the context margin of a region smaller than 2000 px
+
+        def cell(x0, y0, x1, y1, r, c):
+            box = [(pad + x0) / w, (pad + y0) / h, (pad + x1) / w, (pad + y1) / h]
+            return {"geometry": box, "score": 0.9, "row_start": r, "row_end": r, "col_start": c, "col_end": c}
+
+        cells = [cell(0, 0, 100, 30, 1, 0), cell(100, 0, 200, 30, 1, 1), cell(0, -18, 200, -4, 0, 0)]
+        return [{"cells": cells, "num_rows": 2, "num_cols": 2} for _ in images]
+
+    monkeypatch.setattr(predictor, "forward", fake_forward)
+    page = np.full((400, 600, 3), 255, dtype=np.uint8)
+    x0, y0, x1 = 0.1, 0.25, 0.1 + 200 / 600  # a 200 x 50 px table region, its cells cover its top 30 px
+    regions = [{"class_names": ["Text", "Table"], "boxes": np.array([[0, 0, 0.1, 0.1], [x0, y0, x1, 0.375]])}, None]
+    # Words in each cell, one in the region below the cells, and one outside of the region
+    words = np.array([
+        [0.12, 0.27, 0.15, 0.29],
+        [0.30, 0.27, 0.33, 0.29],
+        [0.12, 0.345, 0.15, 0.365],
+        [0.12, 0.80, 0.15, 0.82],
+    ])
+    tables = predictor.predict_regions([page, page], regions, [words, words[:0]])
+    # Only the table region is cropped, with a context margin
+    assert len(crops) == 1 and crops[0].shape[:2] == (90, 240)
+    assert len(tables) == 2 and len(tables[0]) == 1 and tables[1] == []
+    table = tables[0][0]
+    # The cell of the context margin is dropped, the word below the cells makes a new row
+    assert (table["num_rows"], table["num_cols"]) == (2, 2)
+    cells = sorted(table["cells"], key=lambda c: (c["row_start"], c["col_start"]))
+    assert [(c["row_start"], c["col_start"], c["words"], c["score"]) for c in cells] == [
+        (0, 0, [0], 0.9),
+        (0, 1, [1], 0.9),
+        (1, 0, [2], None),
+    ]
+    # The cells are mapped back to page-relative coordinates
+    expected = [[x0, y0], [x0 + 100 / 600, y0], [x0 + 100 / 600, 0.325], [x0, 0.325]]
+    np.testing.assert_allclose(cells[0]["geometry"], expected, atol=1e-5)
+    # Without words, the cells are empty
+    tables = predictor.predict_regions([page], regions[:1])
+    assert all(cell["words"] == [] for cell in tables[0][0]["cells"])
