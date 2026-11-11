@@ -366,6 +366,33 @@ def test_layout_labels(label, normalized, role):
             id="right-column-starting-higher",
         ),
         pytest.param(
+            # A right-aligned title far above both columns is not the start of the right column
+            [_box(0.6, 0.03, 0.95, 0.06)]
+            + _column(0.05, 0.45, 0.2, 0.05, 6, 0.035)
+            + _column(0.55, 0.95, 0.2, 0.05, 6, 0.035),
+            {},
+            list(range(13)),
+            id="right-aligned-title-over-columns",
+        ),
+        pytest.param(
+            # The same title above a right column starting higher: title, left column, right column
+            [_box(0.6, 0.03, 0.95, 0.06)]
+            + _column(0.05, 0.45, 0.3, 0.05, 6, 0.035)
+            + _column(0.55, 0.95, 0.2, 0.05, 8, 0.035),
+            {},
+            list(range(15)),
+            id="right-aligned-title-over-higher-right-column",
+        ),
+        pytest.param(
+            # A heading right above the right column belongs to it
+            [_box(0.55, 0.14, 0.95, 0.18)]
+            + _column(0.05, 0.45, 0.2, 0.05, 6, 0.035)
+            + _column(0.55, 0.95, 0.2, 0.05, 6, 0.035),
+            {},
+            [*range(1, 7), 0, *range(7, 13)],
+            id="heading-of-the-right-column",
+        ),
+        pytest.param(
             SPLIT_CAPTION,
             {"labels": SPLIT_CAPTION_LABELS},
             lambda order: order.index(4) == order.index(1) + 1,

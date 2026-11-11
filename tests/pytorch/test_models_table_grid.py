@@ -73,6 +73,13 @@ def test_fill_table_grid_complete():
     # The cells made from the words have no source cell
     assert sorted(origin) == [-1] * 5 + [0, 1, 2]
 
+    # Overlapping words below the grid (e.g. duplicate detections) do not make cells sharing a column
+    words = {"A": _word(300, 350), "B": _word(500, 350)}
+    words |= {"a": [210, 440, 250, 460], "b": [300, 440, 520, 460], "c": [320, 440, 360, 460]}
+    grid, out_logic, origin = _table(cells[:2], logic[:2], words)
+    assert grid == [["A", "B"], ["a b c", ""]]
+    assert out_logic.tolist() == [[0, 0, 0, 0], [0, 0, 1, 1], [1, 1, 0, 1]] and origin == [0, 1, -1]
+
     # Without words: the predicted grid, with local logical coordinates
     boxes, out_logic, cell_words, origin = fill_table_grid(cells, logic + 3, np.zeros((0, 4)))
     np.testing.assert_array_equal(out_logic, logic)
@@ -119,6 +126,16 @@ def test_fill_table_grid_split_rows():
     words |= {"10": _word(200, 250), "2": _word(400, 250)}
     grid, _, _ = _table(cells, logic, words)
     assert grid == [["Unit price", "Qty"], ["10", "2"]]
+
+    # A cell shorter than its row holds a word of its slot lying below it: the split cells enclose their text
+    cells, logic = _grid([100, 300, 500, 700], [100, 160, 340])
+    cells[4, 3] = 200
+    words = {
+        f"{name}{line}": _word(cx, cy) for line, cy in enumerate((190, 310)) for name, cx in zip("abc", (200, 400, 600))
+    }
+    boxes, out_logic, cell_words, _ = fill_table_grid(cells, logic, np.array(list(words.values()), dtype=float))
+    assert out_logic[:, 1].max() == 1 and all(len(idcs) == 1 for idcs in cell_words)
+    assert np.all(boxes[:, 3] > boxes[:, 1])
 
     # A cell spanning 2 rows whose text lines lie in each of them, aligned with the text of the row
     cells, logic = [[100, 100, 300, 200], [100, 200, 300, 300], [300, 100, 500, 300]], [[0, 0, 0, 0], [1, 1, 0, 0]]

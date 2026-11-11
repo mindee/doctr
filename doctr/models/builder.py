@@ -464,9 +464,8 @@ class DocumentBuilder(NestedObject):
             page_table: the table structure prediction(s) for the page. Either a single grid
                 `{"cells": [{"geometry", "score", "row_start", "row_end", "col_start", "col_end"}], "num_rows",
                 "num_cols"}` (cell geometries in page-relative coordinates), a list of such grids, or None. The cells
-                may list the indices of their words (`"words"`, in reading order, cf.
-                :meth:`~doctr.models.table_structure.predictor.TablePredictor.predict_regions`), otherwise the words
-                are assigned to them (cf. :func:`~doctr.models.table_structure.grid.assemble_page_table`)
+                may list the indices of their words (`"words"`, cf. `TablePredictor.predict_regions`), otherwise the
+                words are assigned to them
             page_shape: the (height, width) of the page
 
         Returns:
@@ -475,8 +474,7 @@ class DocumentBuilder(NestedObject):
         """
         consumed = np.zeros(boxes.shape[0], dtype=bool)
         raw_tables = [] if page_table is None else [page_table] if isinstance(page_table, dict) else list(page_table)
-        # The geometries follow the page's word geometry: straight 2-point boxes for (N, 4) word boxes, 4-point polygons
-        # for (N, 4, 2) ones
+        # Geometries follow the word boxes: 2-point boxes for (N, 4), 4-point polygons for (N, 4, 2)
         straight = boxes.ndim != 3
         tables: list[Table] = []
         for raw in raw_tables:
@@ -489,7 +487,7 @@ class DocumentBuilder(NestedObject):
                 table_cells.append(
                     TableCell(
                         value=" ".join(value for value, _ in words),
-                        # The recognition confidence of the words, the structure model's score for an empty cell
+                        # An empty cell falls back to the score of the table model
                         confidence=float(np.mean([conf for _, conf in words])) if words else float(cell["score"] or 0),
                         geometry=self._export_geometry(cell["geometry"], straight),
                         row_start=cell["row_start"],
@@ -501,7 +499,7 @@ class DocumentBuilder(NestedObject):
                 )
             pts = np.concatenate([cell["geometry"] for cell in cells])
             (xmin, ymin), (xmax, ymax) = pts.min(axis=0), pts.max(axis=0)
-            # The cells made from the words of the table are not scored by the table model
+            # The cells made from words have no score
             scores = [cell["score"] for cell in cells if cell["score"] is not None]
             tables.append(
                 Table(

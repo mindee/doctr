@@ -150,10 +150,8 @@ def _cluster_lines(values: np.ndarray, tol: float) -> np.ndarray:
 def _index_lines(lines: np.ndarray, start: np.ndarray, end: np.ndarray, cell_size: float) -> np.ndarray:
     """Logical index of each grid line of an axis, from the cells lying between the lines.
 
-    Every cell spans at least one index (the line it ends on comes after the line it starts on), and the lines are
-    otherwise given the smallest possible indices: the lines no cell separates (e.g. the edges of a row that do not
-    line up) share an index. A gap covered by no cell (e.g. a row with no detected cell) counts as many empty indices
-    as cells of the typical size fit in it.
+    Every cell spans at least one index, and the lines no cell separates share an index. A gap covered by no cell
+    counts as many indices as cells of the typical size fit in it.
 
     Args:
         lines: the sorted positions of the grid lines, shape (L,)
@@ -230,8 +228,7 @@ def _align_table_logic(edges: tuple[np.ndarray, ...], logic: np.ndarray) -> np.n
         end = np.clip(end, 1, lines.size - 1)
         start = np.minimum(start, end - 1)
         values = _index_lines(lines, start, end, float(np.median(end_edge - start_edge)))
-        # The indices follow the geometry, from the absolute position the model predicts for most of the cells (e.g.
-        # the cells below a row with no detected cell, apart from the cells above it, keep their indices)
+        # Keep the absolute position the model predicts for most of the cells
         values += max(int(round(float(np.median(logic[:, offset] - values[start])))), 0)
         logic[:, offset] = values[start]
         logic[:, offset + 1] = values[end] - 1
@@ -243,10 +240,8 @@ def _logic_from_geometry(polys: np.ndarray, model_logic: np.ndarray, split_table
     consistent with their geometry.
 
     The cells are split into tables (groups of touching cells), and in each table the cell edges are grouped into
-    the row and column lines of the grid, indexed from the geometry (cf. `_index_lines`): the cells of a visual row /
-    column share their indices, even when the logical-coordinate head of the model drifts (e.g. on borderless
-    tables). The model coordinates give the direction of the axes and the absolute position of each table (e.g. the
-    cells below a row with no detected cell keep their indices).
+    the row and column lines of the grid, indexed from the geometry (cf. `_index_lines`). The model coordinates only
+    give the direction of the axes and the absolute position of each table.
 
     Args:
         polys: the cells, of shape (N, 4, 2)
@@ -286,9 +281,8 @@ class TableCenterNetPostProcessor:
         corner_thresh: minimum score for a corner to be used during relocation
         not_relocate: if True, skip the corner-relocation step (faster, less accurate)
         assume_straight_pages: whether the pages are assumed to be straight (i.e., no rotation)
-        geometric_logic: if True, remove the duplicate (overlapping) cells and make the logical coordinates
-            consistent with the cell geometry: the rows and columns are indexed from the grid lines the cell edges
-            lie on (the logical-coordinate head drifts on borderless tables)
+        geometric_logic: if True, remove the duplicate (overlapping) cells. `TablePredictor.predict_regions` then
+            indexes the rows and columns from the cell edges instead of the logical coordinates of the model
     """
 
     def __init__(
@@ -392,9 +386,7 @@ class TableCenterNetPostProcessor:
             scores = cs[keep].astype(np.float32)
             logic = (logic[keep] - 1).astype(np.int32)  # start_col, end_col, start_row, end_row (0-indexed)
             if self.geometric_logic and polys.shape[0] > 0:
-                # The duplicate detections of a cell are dropped; the logical coordinates are the model's (the page
-                # pipeline, which assembles the words of a page on the grid lines of the cell edges, re-indexes them
-                # from the geometry itself, cf. `TablePredictor._region_table`)
+                # The logical coordinates stay the model's: `TablePredictor._region_table` indexes them from geometry
                 kept = _suppress_overlapping_cells(polys, scores)
                 polys, scores, logic = polys[kept], scores[kept], logic[kept]
             if self.assume_straight_pages:

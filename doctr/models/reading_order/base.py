@@ -441,17 +441,44 @@ def _column_gutter(
         on_left, on_right = ~across & (centers <= split), ~across & (centers > split)
         if not on_left.any() or not on_right.any():
             continue
-        # The elements above or below the columns (e.g. a title and its authors) do not cross the gutter
+        # Elements above or below the columns (e.g. a title and its authors) do not count as crossing
         columns_y = vy[on_left | on_right]
         crossing = int(np.count_nonzero(across & (vy > columns_y.min()) & (vy < columns_y.max())))
         left = int(np.count_nonzero(centers <= split))
         if crossing <= tolerance and left >= 0.25 * num_voters and num_voters - left >= 0.25 * num_voters:
             beside = voters.copy()
-            beside[np.flatnonzero(voters)[across]] = False  # the elements on either side of the gutter
+            beside[np.flatnonzero(voters)[across]] = False
             if _key_value_rows(boxes, beside, float(split), y_overlap, y_overlap_threshold, span):
                 return None  # rows of keys and values (e.g. a receipt): read row after row
             return float(split)
     return None
+
+
+def _detached_above(y0: np.ndarray, y1: np.ndarray, column: np.ndarray, top: float) -> np.ndarray:
+    """The elements of a column separated by a wide gap from both the rest of the column and the other columns below
+    them (e.g. a right-aligned title or address block above the columns of a page)
+
+    Args:
+        y0: the top of each box
+        y1: the bottom of each box
+        column: the indices of the elements of the column
+        top: the position the other columns start at
+
+    Returns:
+        the indices of the detached elements
+    """
+    column = column[np.argsort(y0[column], kind="stable")]
+    level = np.flatnonzero(y1[column] > top)
+    if level.size == 0 or level[0] == 0:
+        return column[:0]
+    first = int(level[0])
+    bottoms = np.maximum.accumulate(y1[column])
+    gaps = y0[column[1:]] - bottoms[:-1]
+    # Wide: more than 3 times the usual gap of the column, and than the height of an element
+    limit = max(3 * float(np.median(gaps[first:])) if gaps[first:].size else 0.0, float(np.median(y1 - y0)))
+    while first > 0 and gaps[first - 1] <= limit:
+        first -= 1
+    return column[:first] if first > 0 and top - bottoms[first - 1] > limit else column[:0]
 
 
 def _topological_order(
@@ -510,14 +537,16 @@ def _topological_order(
     )
     multi_column = gutter is not None
     crossing = np.zeros(num_boxes, dtype=bool)
-    # 1 for the columns after the gutter: they are read once the ones before it are done, even when they start higher
-    # (e.g. beside a table whose caption is read with it). Only for columns of several elements, not a lone element
+    # 1 for the columns after the gutter, read after the ones before it even when they start higher (only when both
+    # sides hold several elements)
     after_gutter = np.zeros(num_boxes, dtype=int)
     if gutter is not None:
         crossing = np.minimum(x1 - gutter, gutter - x0) > 0.02 * span
         after = x0 >= gutter - 0.02 * span
-        if np.count_nonzero(after) >= 2 and np.count_nonzero(~after & ~crossing) >= 2:
+        before = ~after & ~crossing
+        if np.count_nonzero(after) >= 2 and np.count_nonzero(before) >= 2:
             after_gutter = after.astype(int)
+            after_gutter[_detached_above(y0, y1, np.flatnonzero(after), float(y0[before].min()))] = 0
     # Column components: elements connected through horizontal overlap, except those which must not merge the columns
     # (page-wide or crossing the gutter). This keeps the traversal inside a column even when the direct top-to-bottom
     # continuation is momentarily broken by a fragmented or misaligned OCR line.
@@ -548,8 +577,10 @@ def _topological_order(
         if ready.size == 0:  # cycle safety net (can only happen with degenerate overlapping geometries)
             candidates = np.flatnonzero(~emitted)
         else:
+            # The columns before the gutter first
+            ready = ready[after_gutter[ready] == after_gutter[ready].min()]
             candidates = _continuation(order[-1], ready) if order else ready
-        # Topmost first, then leftmost (in canonical space), the columns before the gutter first
+        # Topmost first, then leftmost (in canonical space)
         next_idx = int(candidates[np.lexsort((x0[candidates], y0[candidates], after_gutter[candidates]))[0]])
         order.append(next_idx)
         emitted[next_idx] = True

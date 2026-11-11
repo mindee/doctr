@@ -23,11 +23,10 @@ __all__ = ["TablePredictor"]
 
 
 def _crop_region(page: np.ndarray, region: Any) -> tuple[np.ndarray, np.ndarray, int] | None:
-    """Rectify a (page-relative) table region to an upright crop, with a margin of page context around it
+    """Rectify a page-relative table region to an upright crop with a margin of page context
 
     Returns:
-        the crop, the perspective transform from page pixels to crop pixels, and the margin (pixels), None for a
-        degenerate region
+        the crop, the page-to-crop perspective transform and the margin in pixels, or None for a degenerate region
     """
     h, w = page.shape[:2]
     src = as_polygons([region])[0] * np.array([w, h], dtype=np.float32)
@@ -142,10 +141,8 @@ class TablePredictor(nn.Module):
     ) -> list[list[dict[str, Any]]]:
         """Recognize the tables a layout model located on pages, and assign the words of the pages to their cells
 
-        Each table region is rectified to an upright crop (so straight boxes and rotated polygons are both handled),
-        with a margin of page context: the cells centered in this margin belong to the neighbouring content and are
-        dropped. The words of the page lying in the region are assigned to the cells and complete the grid (cf.
-        :func:`~doctr.models.table_structure.grid.fill_table_grid`), then the cells are mapped back to the page.
+        Each table region (straight box or polygon) is rectified to an upright crop, and the words lying in it are
+        assigned to the cells and complete the grid (cf. :func:`~doctr.models.table_structure.grid.fill_table_grid`).
 
         Args:
             pages: the page images
@@ -156,8 +153,7 @@ class TablePredictor(nn.Module):
 
         Returns:
             a per-page list of tables `{"cells": [...], "num_rows": int, "num_cols": int}` in page-relative
-            coordinates, one per table region, each cell listing the indices of its words in the page (`"words"`) in
-            reading order
+            coordinates, each cell listing the page indices of its words in reading order (`"words"`)
         """
         crops, meta = [], []
         for p_idx, (page, region) in enumerate(zip(pages, regions)):
@@ -192,7 +188,7 @@ class TablePredictor(nn.Module):
         def in_region(points: np.ndarray) -> np.ndarray:
             return np.flatnonzero(np.all((points >= pad) & (points <= [crop_w - pad, crop_h - pad]), axis=1))
 
-        # Cells in crop pixels, without the ones of the context margin
+        # Cells in crop pixels; the ones centered in the context margin belong to the neighbouring content
         polys = as_polygons([cell["geometry"] for cell in grid["cells"]]) * [crop_w, crop_h]
         keep = in_region(polys.mean(axis=1))
         if keep.size == 0:
@@ -201,11 +197,10 @@ class TablePredictor(nn.Module):
         logic = np.array([[c["row_start"], c["row_end"], c["col_start"], c["col_end"]] for c in cells])
         geometric_logic = getattr(getattr(self.model, "postprocessor", None), "geometric_logic", False)
         if geometric_logic:
-            # The dropped cells made grid lines of their own: index the rows / columns of the remaining ones again
-            # (the logical coordinates of TableCenterNet are ordered (start_col, end_col, start_row, end_row))
+            # Index the rows / columns from the cell edges (TableCenterNet logic is ordered columns first)
             by_col = _logic_from_geometry(polys, logic[:, [2, 3, 0, 1]], split_tables=False)
             logic = by_col[:, [2, 3, 0, 1]]
-        # The words of the region, in crop pixels
+        # Words of the region, in crop pixels
         word_idcs, words = np.zeros(0, dtype=np.int64), np.zeros((0, 4))
         if word_boxes is not None and len(word_boxes) > 0:
             pts = as_polygons(word_boxes) * np.array([w, h], dtype=np.float32)
@@ -222,8 +217,7 @@ class TablePredictor(nn.Module):
             "cells": [
                 {
                     "geometry": poly.tolist(),
-                    # The cells made from the words are not scored by the table model
-                    "score": None if source < 0 else float(cells[source]["score"]),
+                    "score": None if source < 0 else float(cells[source]["score"]),  # None for a cell made from words
                     "row_start": int(rs),
                     "row_end": int(re),
                     "col_start": int(cs),

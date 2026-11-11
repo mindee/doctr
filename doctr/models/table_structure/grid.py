@@ -3,11 +3,10 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-"""Assemble the cells predicted by a table structure model and the words of the table into a consistent grid.
+"""Assemble the cells of a table structure model and the words of the table into a consistent grid.
 
-`fill_table_grid` works in the frame of the (rectified, upright) table image, where the cells and the words are
-axis-aligned boxes `(x0, y0, x1, y1)`, and the logical coordinates of the cells are `(row_start, row_end, col_start,
-col_end)` (0-indexed, inclusive). `assemble_page_table` applies it to a table given in page coordinates.
+Boxes are `(x0, y0, x1, y1)` in the upright table frame, logical coordinates are `(row_start, row_end, col_start,
+col_end)` (0-indexed, inclusive).
 """
 
 from typing import Any
@@ -18,8 +17,7 @@ __all__ = ["fill_table_grid", "assemble_page_table"]
 
 
 def as_polygons(geometries: Any) -> np.ndarray:
-    """Straight boxes `(x0, y0, x1, y1)` / `((x0, y0), (x1, y1))`, or polygons ordered (TL, TR, BR, BL) along their
-    reading direction, as (N, 4, 2) float32 polygons"""
+    """Convert straight boxes or (TL, TR, BR, BL) polygons to (N, 4, 2) float32 polygons"""
     flat = np.asarray(geometries, dtype=np.float32)
     flat = flat.reshape(len(flat), -1) if flat.size else np.zeros((0, 4), dtype=np.float32)
     if flat.shape[1] == 4:
@@ -29,8 +27,8 @@ def as_polygons(geometries: Any) -> np.ndarray:
 
 
 def _grid_lines(start: np.ndarray, end: np.ndarray, lo: np.ndarray, hi: np.ndarray, size: int) -> np.ndarray:
-    """Positions of the `size + 1` lines of an axis: line `k`, where index `k` starts and index `k - 1` ends, lies at
-    the median of the cell edges on it (interpolated when no edge lies on it)"""
+    """Positions of the `size + 1` grid lines of an axis: the median of the cell edges on each line, interpolated
+    where no edge lies"""
     edges: list[list[float]] = [[] for _ in range(size + 1)]
     for s, e, low, high in zip(start, end, lo, hi):
         edges[int(s)].append(float(low))
@@ -40,10 +38,10 @@ def _grid_lines(start: np.ndarray, end: np.ndarray, lo: np.ndarray, hi: np.ndarr
 
 
 def _group(values: np.ndarray, tol: float) -> np.ndarray:
-    """Group 1D positions closer than `tol` to the mean of their group: the group index of each value, in order"""
+    """Group index of each 1D position, a group gathering the positions closer than `tol` to its mean"""
     groups = np.zeros(values.size, dtype=np.int64)
     group = 0
-    members: list[int] = []  # the values of the current group
+    members: list[int] = []
     for j in np.argsort(values, kind="stable"):
         if members and values[j] - np.mean(values[members]) >= tol:
             group, members = group + 1, []
@@ -53,9 +51,8 @@ def _group(values: np.ndarray, tol: float) -> np.ndarray:
 
 
 def _axis_slots(lo: np.ndarray, hi: np.ndarray, lines: np.ndarray, line_tol: float | None) -> np.ndarray:
-    """Index of each word along an axis of the grid: the index between the 2 lines around its center, or a new index
-    before / after the grid for the words beyond it, grouped by text line (rows, `line_tol`) or by overlapping
-    extent (columns, `line_tol` is None)"""
+    """Index of each word along an axis. The words beyond the grid get new indices, grouped by text line (rows,
+    `line_tol`) or by overlapping extent (columns, `line_tol=None`)"""
     size, center = lines.size - 1, (lo + hi) / 2
     idx = np.clip(np.searchsorted(lines, center, side="right") - 1, 0, size - 1)
     for before, mask in ((True, center < lines[0]), (False, center > lines[-1])):
@@ -64,10 +61,10 @@ def _axis_slots(lo: np.ndarray, hi: np.ndarray, lines: np.ndarray, line_tol: flo
             continue
         if line_tol is not None:
             groups = _group(center[members], line_tol)
-        else:  # chain the overlapping extents, from left to right
+        else:  # chain the overlapping extents
             groups, group, reach = np.zeros(members.size, dtype=np.int64), -1, -np.inf
             for j in np.argsort(lo[members], kind="stable"):
-                if lo[members[j]] > reach:  # starts after the extents of the current group
+                if lo[members[j]] > reach:
                     group += 1
                 groups[j], reach = group, max(reach, hi[members[j]])
         idx[members] = groups - (groups.max() + 1) if before else size + groups
@@ -75,8 +72,7 @@ def _axis_slots(lo: np.ndarray, hi: np.ndarray, lines: np.ndarray, line_tol: flo
 
 
 class _Grid:
-    """The cells of a table: boxes, logical coordinates, word indices and source cell (-1 for a cell made from the
-    words)"""
+    """The cells of a table: boxes, logical coordinates, word indices and source cell (-1 if made from words)"""
 
     def __init__(self, boxes: np.ndarray, logic: np.ndarray, words: np.ndarray):
         self.boxes = [np.asarray(b, dtype=np.float64) for b in boxes]
@@ -114,9 +110,8 @@ class _Grid:
 
 
 def _complete(grid: _Grid, leftover: np.ndarray, line_height: float) -> None:
-    """Place the words lying in no cell into the grid: in the cell covering their slot, or in a new cell (a missed
-    cell, or a new row / column beyond the grid). In a new row, the words of a column or closer than half a text line
-    (e.g. a sentence) share a cell."""
+    """Place the words lying in no cell: in the cell covering their slot, or in a new cell (a missed cell, or a new
+    row / column beyond the grid)"""
     words = grid.words[leftover]
     row_lines, col_lines = grid.lines(0), grid.lines(1)
     rows = _axis_slots(words[:, 1], words[:, 3], row_lines, line_height / 2)
@@ -136,7 +131,7 @@ def _complete(grid: _Grid, leftover: np.ndarray, line_height: float) -> None:
         else:
             new_cells.setdefault((slot[0], slot[0], slot[1], slot[1]), []).append(int(j))
     for r in np.unique(rows[~in_grid]):
-        # A new row, from left to right: a word starts a new cell in another column, unless it continues a sentence
+        # New row: a word starts a new cell in another column, unless it continues a sentence
         members = np.flatnonzero(rows == r)
         groups: list[list[int]] = []
         for j in members[np.argsort(words[members, 0], kind="stable")]:
@@ -144,11 +139,18 @@ def _complete(grid: _Grid, leftover: np.ndarray, line_height: float) -> None:
             if prev is None or (cols[j] != cols[prev] and words[j, 0] - words[prev, 2] >= line_height / 2):
                 groups.append([])
             groups[-1].append(int(j))
+        spans: list[tuple[int, int, list[int]]] = []
         for group in groups:
-            new_cells.setdefault((int(r), int(r), int(cols[group].min()), int(cols[group].max())), []).extend(group)
+            lo, hi = int(cols[group].min()), int(cols[group].max())
+            while spans and lo <= spans[-1][1]:  # overlapping words: a column belongs to a single cell
+                prev_lo, prev_hi, prev_group = spans.pop()
+                lo, hi, group = min(lo, prev_lo), max(hi, prev_hi), prev_group + group
+            spans.append((lo, hi, group))
+        for lo, hi, group in spans:
+            new_cells[(int(r), int(r), lo, hi)] = group
 
     def band(lines: np.ndarray, start: int, end: int) -> tuple[float, float]:
-        # The extent of the grid lines from index start to end, unbounded beyond the grid
+        # Unbounded beyond the grid
         size = lines.size - 1
         return (lines[start] if 0 <= start < size else np.inf, lines[end + 1] if 0 <= end < size else -np.inf)
 
@@ -162,10 +164,8 @@ def _complete(grid: _Grid, leftover: np.ndarray, line_height: float) -> None:
 
 
 def _merge_and_prune(grid: _Grid) -> None:
-    """Merge the adjacent rows (resp. columns) whose text is complementary (no column, resp. row, holds text in both)
-    and lies on the same text line (resp. column): the model splits a row when the edges of its cells do not line up.
-    Then remove the rows / columns without text of their own (no cell holds text in this row / column only): the cells
-    spanning them span one less."""
+    """Merge the adjacent rows / columns the model split (complementary text on the same text line / column), then
+    remove the rows / columns in which no single-span cell holds text"""
     logic = np.asarray(grid.logic)
     filled = np.array([len(w) > 0 for w in grid.cell_words])
     if not filled.any():
@@ -182,7 +182,7 @@ def _merge_and_prune(grid: _Grid) -> None:
         if a.size == 0 or b.size == 0:
             return False
         if np.any((o_start[a, None] <= o_end[None, b]) & (o_start[None, b] <= o_end[a, None])):
-            return False  # some column (resp. row) holds text in both
+            return False  # both hold text in a same column / row
         lo, hi = (1, 3) if axis == 0 else (0, 2)
         a_lo, a_hi, b_lo, b_hi = text[a, lo].min(), text[a, hi].max(), text[b, lo].min(), text[b, hi].max()
         return bool(min(a_hi, b_hi) - max(a_lo, b_lo) >= 0.5 * min(a_hi - a_lo, b_hi - b_lo))
@@ -194,7 +194,7 @@ def _merge_and_prune(grid: _Grid) -> None:
         start[alive & (start > k)] -= 1
 
     def absorb_overlaps() -> None:
-        # The empty cells now sharing a slot with another cell are absorbed by it
+        # A cell absorbs the empty cells now sharing a slot with it
         for i in np.flatnonzero(alive & filled).tolist() + np.flatnonzero(alive & ~filled).tolist():
             if not alive[i]:
                 continue
@@ -235,18 +235,17 @@ def _merge_and_prune(grid: _Grid) -> None:
 
 
 def _split_rows(grid: _Grid, line_height: float) -> None:
-    """Split the rows the model merged, from the text lines of their cells: a row whose cells holding text (at least
-    2) mostly hold several text lines is split into its text lines (a single cell wrapping its text, e.g. a long
-    header, does not split its row), and a cell spanning several rows is split when each of its text lines lies in a
-    different row, aligned with the text of that row."""
+    """Split the rows the model merged along their text lines: a row most of whose filled cells hold several lines
+    (a single cell wrapping its text does not split its row), and a spanning cell whose text lines each lie level
+    with a different row"""
     centers = (grid.words[:, 1] + grid.words[:, 3]) / 2
 
     def split(c_idx: int, line_of: np.ndarray, spans: list[tuple[int, int]]) -> None:
-        # One cell per text line, the cell being cut midway between its text lines
+        # One cell per text line, cut midway between the lines (the text may lie beyond the box of its cell)
         words, (x0, y0, x1, y1) = np.asarray(grid.cell_words[c_idx]), grid.boxes[c_idx]
         tops = [grid.words[words[line_of == k], 1].min() for k in range(len(spans))]
         bottoms = [grid.words[words[line_of == k], 3].max() for k in range(len(spans))]
-        cuts = [y0, *[(b + t) / 2 for b, t in zip(bottoms[:-1], tops[1:])], y1]
+        cuts = [min(y0, tops[0]), *[(b + t) / 2 for b, t in zip(bottoms[:-1], tops[1:])], max(y1, bottoms[-1])]
         _, _, cs, ce = grid.logic[c_idx]
         for k, (rs, re) in enumerate(spans):
             box, logic, members = (
@@ -259,7 +258,7 @@ def _split_rows(grid: _Grid, line_height: float) -> None:
             else:
                 grid.add(box, logic, members, grid.origin[c_idx])
 
-    # Rows merged by the model, from the bottom up so that the rows still to process do not move
+    # From the bottom up, so that the rows still to process do not move
     for r in range(max(lc[1] for lc in grid.logic), -1, -1):
         in_row = [i for i, lc in enumerate(grid.logic) if lc[0] == lc[1] == r]
         filled = [i for i in in_row if grid.cell_words[i]]
@@ -271,7 +270,7 @@ def _split_rows(grid: _Grid, line_height: float) -> None:
         multi = [i for i in filled if len({line_of[w] for w in grid.cell_words[i]}) > 1]
         if len(multi) < 2 or 2 * len(multi) < len(filled):
             continue
-        for lc in grid.logic:  # the rows below move down, the cells spanning the row span its new rows too
+        for lc in grid.logic:  # the rows below move down, the cells spanning the row grow
             if not lc[0] == lc[1] == r:
                 lc[0] += n_lines - 1 if lc[0] > r else 0
                 lc[1] += n_lines - 1 if lc[1] >= r else 0
@@ -284,7 +283,7 @@ def _split_rows(grid: _Grid, line_height: float) -> None:
             split(i, np.searchsorted(present, lines), [(r + k, r + k) for k in present])
 
     def level_with_row(c_idx: int, row: int, lo: float, hi: float) -> bool:
-        # Whether a text line, from lo to hi, is level with the text of another cell of the row
+        # Whether a text line (lo to hi) is level with the text of another cell of the row
         return any(
             j != c_idx
             and grid.logic[j][0] == row == grid.logic[j][1]
@@ -292,7 +291,6 @@ def _split_rows(grid: _Grid, line_height: float) -> None:
             for j in range(len(grid.boxes))
         )
 
-    # Cells spanning several rows whose text lines lie in different rows
     row_lines = grid.lines(0)
     for i in range(len(grid.boxes)):
         rs, re = grid.logic[i][:2]
@@ -300,7 +298,7 @@ def _split_rows(grid: _Grid, line_height: float) -> None:
             continue
         idcs = np.asarray(grid.cell_words[i])
         cell_lines = _group(centers[idcs], line_height / 2)
-        rows: list[int] = []  # the row of each text line
+        rows: list[int] = []  # row of each text line
         for k in range(int(cell_lines.max()) + 1):
             lo, hi = grid.words[idcs[cell_lines == k], 1].min(), grid.words[idcs[cell_lines == k], 3].max()
             row = int(np.clip(np.searchsorted(row_lines, (lo + hi) / 2, side="right") - 1, rs, re))
@@ -309,7 +307,7 @@ def _split_rows(grid: _Grid, line_height: float) -> None:
                 break
             rows.append(row)
         if len(rows) > 1:
-            # Each text line until the row of the next one, the cell keeping its first and last rows
+            # Each text line spans until the row of the next one
             starts, ends = [rs, *rows[1:]], [*(row - 1 for row in rows[1:]), re]
             split(i, cell_lines, list(zip(starts, ends)))
 
@@ -325,18 +323,17 @@ def fill_table_grid(
 ) -> tuple[np.ndarray, np.ndarray, list[list[int]], list[int]]:
     """Make the grid of a table consistent with its text, and assign every word of the table to a cell.
 
-    The words in a cell are assigned to it, the other ones complete the grid (missed cells, header row, totals...).
-    The rows / columns split by the model are merged, the ones without text are removed, and the rows merged by the
-    model are split along their text lines.
+    The words outside of every cell complete the grid, the rows / columns split by the model are merged, the ones
+    without text are removed, and the rows merged by the model are split along their text lines.
 
     Args:
-        cells: the (C, 4) cell boxes `(x0, y0, x1, y1)` predicted by the table model, in the frame of the table image
-        logic: the (C, 4) logical coordinates `(row_start, row_end, col_start, col_end)` of the cells
+        cells: the (C, 4) cell boxes predicted by the table model
+        logic: the (C, 4) logical coordinates of the cells
         words: the (W, 4) boxes of the words of the table, in the same frame
 
     Returns:
         the cell boxes, their local logical coordinates, the indices of their words in reading order, and the index of
-        the predicted cell each one comes from (-1 for the cells made from the words)
+        the predicted cell each one comes from (-1 for a cell made from words)
     """
     grid = _Grid(cells, logic, np.asarray(words, dtype=np.float64).reshape(-1, 4))
     if len(grid.boxes) == 0:
@@ -378,8 +375,8 @@ def assemble_page_table(
 ) -> tuple[list[dict[str, Any]], int, int]:
     """Assemble a table given in page coordinates with the words of the page.
 
-    The cells listing their words (`"words"`, cf. `TablePredictor.predict_regions`) keep them. Otherwise, the words
-    lying in the outline of the cells are assigned to the grid (cf. `fill_table_grid`), in the frame of the table rows.
+    The cells listing their words (`"words"`) keep them, otherwise the free words inside the outline of the cells are
+    assigned with `fill_table_grid`.
 
     Args:
         cells: the cells `{"geometry", "score", "row_start", "row_end", "col_start", "col_end"}` of the table, with
@@ -389,8 +386,8 @@ def assemble_page_table(
         taken: the (N,) mask of the words already assigned to a table, updated in place
 
     Returns:
-        the cells with local logical coordinates, a page-relative (4, 2) polygon geometry, and the indices of their
-        words in reading order (`"words"`), and the numbers of rows and columns of the table
+        the cells (local logical coordinates, (4, 2) page-relative polygon, `"words"` in reading order), the number of
+        rows and the number of columns
     """
     scale = np.array([page_shape[1], page_shape[0]], dtype=np.float64)
     polys = as_polygons([cell["geometry"] for cell in cells]) * scale
@@ -400,12 +397,11 @@ def assemble_page_table(
         origin = list(range(len(cells)))
         logic -= [logic[:, 0].min()] * 2 + [logic[:, 2].min()] * 2
     else:
-        # The frame of the table rows
+        # Upright frame of the table rows
         top_edges = polys[:, 1] - polys[:, 0]
         angle, pivot = float(np.median(np.arctan2(top_edges[:, 1], top_edges[:, 0]))), polys.reshape(-1, 2).mean(0)
         upright = _rotate(polys, -angle, pivot)
         boxes = np.concatenate([upright.min(axis=1), upright.max(axis=1)], axis=1)
-        # The free words in the outline of the cells
         free, word_coords = np.flatnonzero(~taken), np.zeros((0, 4))
         if free.size:
             words = _rotate(as_polygons(word_boxes[free]) * scale, -angle, pivot)

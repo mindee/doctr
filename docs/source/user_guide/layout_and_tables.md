@@ -70,7 +70,8 @@ otherwise the regions cannot be located and nothing is masked. The CLI enables i
 With `detect_tables=True`, each region the layout model labels as a `Table` is cropped and passed to a table
 structure model (`tablecenternet`), which predicts its cells and the rows and columns they span. Every word inside the
 table region is regrouped into a {class}`~doctr.io.Table`: the words outside of the predicted cells (e.g. a missed
-header row or a row of totals) complete the grid, and the rows and columns follow the text lines of the cells:
+header row or a row of totals) complete the grid, and the rows and columns follow the text lines of the cells (the
+rows and columns without any text are removed):
 
 ```python
 from doctr.io import DocumentFile

@@ -149,7 +149,7 @@ class TableCenterNet(nn.Module, _TableCenterNet):
         center_k: maximum number of cell centers
         corner_k: maximum number of corners
         not_relocate: if True, skip the corner-relocation step
-        geometric_logic: if True, remove the duplicate cells and align the logical coordinates on the cell geometry
+        geometric_logic: if True, remove the duplicate cells (cf. `TableCenterNetPostProcessor`)
         assume_straight_pages: if True, the predictor will fit straight boxes to the cells
         exportable: onnx exportable returns only the raw head maps
         cfg: the configuration dict of the model
