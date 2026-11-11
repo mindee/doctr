@@ -105,16 +105,11 @@ def test_tablecenternet_logic_from_geometry(angle):
     )
 
 
-def test_tablecenternet_logic_from_geometry_tables():
+def test_tablecenternet_logic_from_geometry_model_drift():
     target = _grid_target(3, 3, use_polygons=True)
     polys, gt = target["cells"], target["logic"]
     drifted = gt.copy()
     drifted[2] += [0, 0, 1, 1]  # last cell of row 0 one row too low
-
-    # 2 tables in an image: each one keeps its own indices (both start at 0)
-    top, bottom = polys * [1, 0.4], polys * [1, 0.4] + [0, 0.55]
-    cells = np.concatenate([top, bottom])
-    np.testing.assert_array_equal(_logic_from_geometry(cells, np.concatenate([drifted, gt])), np.concatenate([gt, gt]))
 
     # An upside-down table (rows growing upwards): the axes follow the model coordinates
     flipped = polys.copy()

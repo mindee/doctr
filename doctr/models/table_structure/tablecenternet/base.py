@@ -172,33 +172,8 @@ def _index_lines(lines: np.ndarray, start: np.ndarray, end: np.ndarray, cell_siz
     return values
 
 
-def _connected_tables(left: np.ndarray, right: np.ndarray, top: np.ndarray, bottom: np.ndarray) -> np.ndarray:
-    """Label the groups of touching cells (deskewed extents), i.e. the separate tables of an image."""
-    n = left.size
-    # Neighbouring cells of a table share their edges, up to a fraction of the smallest cell sizes
-    margin = 0.25 * float(min(np.percentile(right - left, 10), np.percentile(bottom - top, 10)))
-    touch = (
-        (left[:, None] <= right[None] + margin)
-        & (left[None] <= right[:, None] + margin)
-        & (top[:, None] <= bottom[None] + margin)
-        & (top[None] <= bottom[:, None] + margin)
-    )
-    labels = -np.ones(n, dtype=np.int64)
-    for seed in range(n):
-        if labels[seed] >= 0:
-            continue
-        labels[seed] = seed
-        stack = [seed]
-        while stack:
-            i = stack.pop()
-            for j in np.flatnonzero(touch[i] & (labels < 0)):
-                labels[j] = seed
-                stack.append(int(j))
-    return labels
-
-
 def _align_table_logic(edges: tuple[np.ndarray, ...], logic: np.ndarray) -> np.ndarray:
-    """Align the (N, 4) logical coordinates of the cells of a single table on their deskewed edges."""
+    """Align the (N, 4) logical coordinates of the cells of a table on their deskewed edges."""
     left, right, top, bottom = edges
     logic = logic.copy()
     # The table may be rotated by any multiple of 90 degrees (or the corners ordered by the image axes): match each
@@ -235,29 +210,24 @@ def _align_table_logic(edges: tuple[np.ndarray, ...], logic: np.ndarray) -> np.n
     return logic
 
 
-def _logic_from_geometry(polys: np.ndarray, model_logic: np.ndarray, split_tables: bool = True) -> np.ndarray:
-    """Make the logical coordinates `[start_col, end_col, start_row, end_row]` (0-indexed) of (N, 4, 2) cells
-    consistent with their geometry.
+def _logic_from_geometry(polys: np.ndarray, model_logic: np.ndarray) -> np.ndarray:
+    """Make the logical coordinates `[start_col, end_col, start_row, end_row]` (0-indexed) of the (N, 4, 2) cells of a
+    table consistent with their geometry.
 
-    The cells are split into tables (groups of touching cells), and in each table the cell edges are grouped into
-    the row and column lines of the grid, indexed from the geometry (cf. `_index_lines`). The model coordinates only
-    give the direction of the axes and the absolute position of each table.
+    The cell edges are grouped into the row and column lines of the grid, indexed from the geometry (cf.
+    `_index_lines`). The model coordinates only give the direction of the axes and the absolute position of the table.
 
     Args:
         polys: the cells, of shape (N, 4, 2)
         model_logic: the logical coordinates predicted by the model, of shape (N, 4)
-        split_tables: if False, the cells are known to belong to a single table and are aligned together
 
     Returns:
         the logical coordinates, of shape (N, 4)
     """
-    edges = _cell_edges(_deskew_cells(polys))
-    logic = np.asarray(model_logic, dtype=np.int64).copy()
-    labels = _connected_tables(*edges) if split_tables else np.zeros(logic.shape[0], dtype=np.int64)
-    for label in np.unique(labels):
-        idx = np.flatnonzero(labels == label)
-        logic[idx] = _align_table_logic(tuple(e[idx] for e in edges), logic[idx])
-    return logic
+    logic = np.asarray(model_logic, dtype=np.int64)
+    if logic.shape[0] == 0:
+        return logic.copy()
+    return _align_table_logic(_cell_edges(_deskew_cells(polys)), logic)
 
 
 def _lookup_logic(lc_map: np.ndarray, x: float, y: float) -> np.ndarray:

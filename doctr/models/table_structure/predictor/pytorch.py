@@ -198,7 +198,7 @@ class TablePredictor(nn.Module):
         geometric_logic = getattr(getattr(self.model, "postprocessor", None), "geometric_logic", False)
         if geometric_logic:
             # Index the rows / columns from the cell edges (TableCenterNet logic is ordered columns first)
-            by_col = _logic_from_geometry(polys, logic[:, [2, 3, 0, 1]], split_tables=False)
+            by_col = _logic_from_geometry(polys, logic[:, [2, 3, 0, 1]])
             logic = by_col[:, [2, 3, 0, 1]]
         # Words of the region, in crop pixels
         word_idcs, words = np.zeros(0, dtype=np.int64), np.zeros((0, 4))
