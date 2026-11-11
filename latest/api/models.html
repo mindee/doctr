@@ -31,7 +31,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=6a604523" />
     <link rel="stylesheet" type="text/css" href="../_static/css/doctr.css?v=376da089" />
   
   <!-- So that users can add custom icons -->
@@ -45,7 +45,7 @@
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=08e7b316"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../_static/design-tabs.js?v=fcb327ea"></script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -549,7 +549,7 @@
                 <article class="bd-article">
                   
   <section id="module-doctr.models">
-<span id="doctr-models"></span><h1>doctr.models<a class="headerlink" href="#module-doctr.models" title="Link to this heading">#</a></h1>
+<span id="doctr-models"></span><span id="doctrmodels"></span><h1>doctr.models<a class="headerlink" href="#module-doctr.models" title="Link to this heading">#</a></h1>
 <p>Predictors and model architectures. All the factory functions below are also importable from <code class="docutils literal notranslate"><span class="pre">doctr.models</span></code>
 directly. See the <a class="reference internal" href="../models/index.html"><span class="std std-doc">model zoo</span></a> for benchmarks.</p>
 <section id="end-to-end-predictors">
@@ -759,7 +759,7 @@ page. Doing so will slightly deteriorate the overall latency.</p></li>
 <li><p><strong>preserve_original_coords</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – if True and straighten_pages is True, the returned bounding boxes are mapped back
 to the original page coordinate space. Useful for redaction and annotation.</p></li>
 <li><p><strong>layout_predictor</strong> (<em>LayoutPredictor</em><em> | </em><em>None</em>) – optional layout detection module</p></li>
-<li><p><strong>table_predictor</strong> (<em>TablePredictor</em><em> | </em><em>None</em>) – optional table structure recognition module. Requires <cite>layout_predictor</cite>: table
+<li><p><strong>table_predictor</strong> (<a class="reference internal" href="#doctr.models.table_structure.predictor.TablePredictor" title="doctr.models.table_structure.predictor.pytorch.TablePredictor"><em>TablePredictor</em></a><em> | </em><em>None</em>) – optional table structure recognition module. Requires <cite>layout_predictor</cite>: table
 regions are located by the layout model, cropped, and passed to this module. Words falling inside a
 detected table are regrouped into a structured table and removed from the regular text output.</p></li>
 <li><p><strong>page_chunk_size</strong> – the maximum number of pages processed at once (32 by default) for lazy page sources
@@ -1778,9 +1778,63 @@ lazy page sources (cf. <cite>DocumentFile.from_images(…, lazy=True)</cite>) ar
 <dd class="field-even"><p>Table structure recognition predictor</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><em>TablePredictor</em></p>
+<dd class="field-odd"><p><a class="reference internal" href="#doctr.models.table_structure.predictor.TablePredictor" title="doctr.models.table_structure.predictor.pytorch.TablePredictor"><em>TablePredictor</em></a></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.models.table_structure.predictor.TablePredictor">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">TablePredictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pre_processor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/models/table_structure/predictor/pytorch.html#TablePredictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.table_structure.predictor.TablePredictor" title="Link to this definition">#</a></dt>
+<dd><p>Implements an object able to recognize the cell structure of tables in a document.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pre_processor</strong> (<a class="reference internal" href="#doctr.models.preprocessor.PreProcessor" title="doctr.models.preprocessor.pytorch.PreProcessor"><em>PreProcessor</em></a>) – transform inputs for easier batched model inference</p></li>
+<li><p><strong>model</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" title="(in PyTorch v2.15)"><em>Module</em></a>) – core table-structure-recognition architecture</p></li>
+<li><p><strong>chunk_size</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – the maximum number of table images decoded and processed at once (32 by default). Longer
+inputs, lazy page sources (cf. <cite>DocumentFile.from_images(…, lazy=True)</cite>) and iterators are processed
+chunk by chunk, with a memory footprint that does not grow with the number of table images. It is rounded
+up to a multiple of the batch size, so that the predictions are the same as in a single pass.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.models.table_structure.predictor.TablePredictor.predict_regions">
+<span class="sig-name descname"><span class="pre">predict_regions</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">pages</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">regions</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">word_boxes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">class_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Table'</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/models/table_structure/predictor/pytorch.html#TablePredictor.predict_regions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.table_structure.predictor.TablePredictor.predict_regions" title="Link to this definition">#</a></dt>
+<dd><p>Recognize the tables a layout model located on pages, and assign the words of the pages to their cells</p>
+<p>Each table region (straight box or polygon) is rectified to an upright crop, and the words lying in it are
+assigned to the cells and complete the grid (cf. <code class="xref py py-func docutils literal notranslate"><span class="pre">fill_table_grid()</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pages</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><em>list</em></a><em>[</em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em>]</em>) – the page images</p></li>
+<li><p><strong>regions</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>] </em><em>| </em><em>None</em><em>]</em>) – the per-page layout predictions <cite>{“class_names”, “boxes”, “scores”}</cite> (None for none)</p></li>
+<li><p><strong>word_boxes</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><em>list</em></a><em>[</em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em>] </em><em>| </em><em>None</em>) – the per-page word boxes, of shape (N, 4) or (N, 4, 2) in relative coordinates</p></li>
+<li><p><strong>class_name</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – the layout class of the table regions</p></li>
+<li><p><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>) – keyword arguments forwarded to the model</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a per-page list of tables <cite>{“cells” – […], “num_rows”: int, “num_cols”: int}</cite> in page-relative
+coordinates, each cell listing the page indices of its words in reading order (<cite>“words”</cite>)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)">list</a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)">list</a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)">dict</a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py function">
@@ -3041,6 +3095,10 @@ nothing is done.</p></li>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#table-structure-recognition">Table structure recognition</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.models.table_structure.table_predictor"><code class="docutils literal notranslate"><span class="pre">table_predictor()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.models.table_structure.predictor.TablePredictor"><code class="docutils literal notranslate"><span class="pre">TablePredictor</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.models.table_structure.predictor.TablePredictor.predict_regions"><code class="docutils literal notranslate"><span class="pre">TablePredictor.predict_regions()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.models.table_structure.tablecenternet"><code class="docutils literal notranslate"><span class="pre">tablecenternet()</span></code></a></li>
 </ul>
 </li>

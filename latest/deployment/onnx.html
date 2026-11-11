@@ -31,7 +31,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=6a604523" />
     <link rel="stylesheet" type="text/css" href="../_static/css/doctr.css?v=376da089" />
   
   <!-- So that users can add custom icons -->
@@ -45,7 +45,7 @@
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=08e7b316"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../_static/design-tabs.js?v=fcb327ea"></script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -548,7 +548,7 @@
                 <article class="bd-article">
                   
   <section id="onnx-onnxtr">
-<h1>ONNX &amp; OnnxTR<a class="headerlink" href="#onnx-onnxtr" title="Link to this heading">#</a></h1>
+<span id="onnx--onnxtr"></span><h1>ONNX &amp; OnnxTR<a class="headerlink" href="#onnx-onnxtr" title="Link to this heading">#</a></h1>
 <p><a class="reference external" href="https://onnx.ai">ONNX</a> is an open format for machine learning models, supported by many runtimes and hardware
 vendors. Exporting docTR models to ONNX lets you run them <strong>without PyTorch</strong>, with a smaller footprint and
 often a faster CPU inference.</p>
@@ -579,22 +579,22 @@ often a faster CPU inference.</p>
 models and loads your exported ones:</p>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-0">
-CPU</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-0-content" class="sd-tab-label" for="sd-tab-item-0">
+CPU</label><div class="sd-tab-content docutils" id="sd-tab-item-0-content">
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"onnxtr[cpu]"</span>
 </pre></div>
 </div>
 </div>
 <input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-1">
-NVIDIA GPU</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-1-content" class="sd-tab-label" for="sd-tab-item-1">
+NVIDIA GPU</label><div class="sd-tab-content docutils" id="sd-tab-item-1-content">
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"onnxtr[gpu]"</span>
 </pre></div>
 </div>
 </div>
 <input id="sd-tab-item-2" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-2">
-Intel (OpenVINO)</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-2-content" class="sd-tab-label" for="sd-tab-item-2">
+Intel (OpenVINO)</label><div class="sd-tab-content docutils" id="sd-tab-item-2-content">
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"onnxtr[openvino]"</span>
 </pre></div>
 </div>

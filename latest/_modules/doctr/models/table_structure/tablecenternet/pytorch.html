@@ -30,7 +30,7 @@
 
     <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/sphinx-design.min.css?v=6a604523" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/css/doctr.css?v=376da089" />
   
   <!-- So that users can add custom icons -->
@@ -44,7 +44,7 @@
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../../_static/copybutton.js?v=08e7b316"></script>
-    <script src="../../../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../../../../../_static/design-tabs.js?v=fcb327ea"></script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -547,7 +547,7 @@
         <span class="s2">"input_shape"</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span>
         <span class="s2">"mean"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
         <span class="s2">"std"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
-        <span class="s2">"url"</span><span class="p">:</span> <span class="s2">"https://github.com/mindee/doctr/releases/download/v1.1.0/tablecenternet-fdc82796.pt"</span><span class="p">,</span>
+        <span class="s2">"url"</span><span class="p">:</span> <span class="s2">"https://github.com/mindee/doctr/releases/download/v1.1.0/tablecenternet-b0d6f603.pt"</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
@@ -670,7 +670,7 @@
 <span class="sd">        center_k: maximum number of cell centers</span>
 <span class="sd">        corner_k: maximum number of corners</span>
 <span class="sd">        not_relocate: if True, skip the corner-relocation step</span>
-<span class="sd">        geometric_logic: if True, remove the duplicate cells and align the logical coordinates on the cell geometry</span>
+<span class="sd">        geometric_logic: if True, remove the duplicate cells (cf. `TableCenterNetPostProcessor`)</span>
 <span class="sd">        assume_straight_pages: if True, the predictor will fit straight boxes to the cells</span>
 <span class="sd">        exportable: onnx exportable returns only the raw head maps</span>
 <span class="sd">        cfg: the configuration dict of the model</span>

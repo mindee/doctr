@@ -31,7 +31,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=6a604523" />
     <link rel="stylesheet" type="text/css" href="../_static/css/doctr.css?v=376da089" />
   
   <!-- So that users can add custom icons -->
@@ -45,7 +45,7 @@
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=08e7b316"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../_static/design-tabs.js?v=fcb327ea"></script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -557,7 +557,7 @@ page and save it as <code class="docutils literal notranslate"><span class="pre"
 <a class="reference internal image-reference" href="../_images/invoice_input.png"><img alt="The sample invoice used on this page" class="align-center" src="../_images/invoice_input.png" style="width: 560px;" />
 </a>
 <section id="load-the-document">
-<h2>1. Load the document<a class="headerlink" href="#load-the-document" title="Link to this heading">#</a></h2>
+<span id="1-load-the-document"></span><h2>1. Load the document<a class="headerlink" href="#load-the-document" title="Link to this heading">#</a></h2>
 <p><a class="reference internal" href="../api/io.html#doctr.io.DocumentFile" title="doctr.io.DocumentFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">DocumentFile</span></code></a> turns PDFs, images and web pages into a list of pages:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentFile</span>
 
@@ -567,7 +567,7 @@ page and save it as <code class="docutils literal notranslate"><span class="pre"
 </div>
 </section>
 <section id="run-ocr">
-<h2>2. Run OCR<a class="headerlink" href="#run-ocr" title="Link to this heading">#</a></h2>
+<span id="2-run-ocr"></span><h2>2. Run OCR<a class="headerlink" href="#run-ocr" title="Link to this heading">#</a></h2>
 <p><a class="reference internal" href="../api/models.html#doctr.models.ocr_predictor" title="doctr.models.ocr_predictor"><code class="xref py py-func docutils literal notranslate"><span class="pre">ocr_predictor()</span></code></a> builds a complete pipeline: a text detection model followed by a text
 recognition model. With <code class="docutils literal notranslate"><span class="pre">pretrained=True</span></code>, the weights are downloaded on first use and cached.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
@@ -579,7 +579,7 @@ recognition model. With <code class="docutils literal notranslate"><span class="
 <p>That’s it: <code class="docutils literal notranslate"><span class="pre">result</span></code> is a <a class="reference internal" href="../api/io.html#doctr.io.Document" title="doctr.io.Document"><code class="xref py py-class docutils literal notranslate"><span class="pre">Document</span></code></a> holding every word, its position and its confidence.</p>
 </section>
 <section id="get-the-text">
-<h2>3. Get the text<a class="headerlink" href="#get-the-text" title="Link to this heading">#</a></h2>
+<span id="3-get-the-text"></span><h2>3. Get the text<a class="headerlink" href="#get-the-text" title="Link to this heading">#</a></h2>
 <p><a class="reference internal" href="../api/io.html#doctr.io.Document.render" title="doctr.io.Document.render"><code class="xref py py-meth docutils literal notranslate"><span class="pre">render()</span></code></a> returns the text of the whole document, in reading order:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">render</span><span class="p">())</span>
 </pre></div>
@@ -601,7 +601,7 @@ Jane Doe
 </div>
 </section>
 <section id="explore-the-structure">
-<h2>4. Explore the structure<a class="headerlink" href="#explore-the-structure" title="Link to this heading">#</a></h2>
+<span id="4-explore-the-structure"></span><h2>4. Explore the structure<a class="headerlink" href="#explore-the-structure" title="Link to this heading">#</a></h2>
 <p>The result mirrors the document: pages contain blocks, blocks contain lines, lines contain words.
 Printing it shows the tree:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
@@ -647,7 +647,7 @@ INVOICE    conf=1.00  box=(0.697, 0.057, 0.855, 0.074)
 <a class="reference internal" href="concepts.html#coordinates"><span class="std std-ref">Coordinates</span></a> shows how to convert them to pixels.</p>
 </section>
 <section id="visualize-the-predictions">
-<h2>5. Visualize the predictions<a class="headerlink" href="#visualize-the-predictions" title="Link to this heading">#</a></h2>
+<span id="5-visualize-the-predictions"></span><h2>5. Visualize the predictions<a class="headerlink" href="#visualize-the-predictions" title="Link to this heading">#</a></h2>
 <p>With the <code class="docutils literal notranslate"><span class="pre">viz</span></code> extra installed (<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">&quot;python-doctr[viz]&quot;</span></code>), <a class="reference internal" href="../api/io.html#doctr.io.Document.show" title="doctr.io.Document.show"><code class="xref py py-meth docutils literal notranslate"><span class="pre">show()</span></code></a> overlays the
 predictions on the pages in an interactive window:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
@@ -657,12 +657,12 @@ predictions on the pages in an interactive window:</p>
 </a>
 </section>
 <section id="export-the-results">
-<h2>6. Export the results<a class="headerlink" href="#export-the-results" title="Link to this heading">#</a></h2>
+<span id="6-export-the-results"></span><h2>6. Export the results<a class="headerlink" href="#export-the-results" title="Link to this heading">#</a></h2>
 <p>Turn the result into the format your application needs:</p>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-0">
-JSON</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-0-content" class="sd-tab-label" for="sd-tab-item-0">
+JSON</label><div class="sd-tab-content docutils" id="sd-tab-item-0-content">
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 
 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"invoice.json"</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -672,22 +672,22 @@ JSON</label><div class="sd-tab-content docutils">
 <p>The export is a nested dictionary with the same structure as the <code class="docutils literal notranslate"><span class="pre">Document</span></code> (pages → blocks → lines → words).</p>
 </div>
 <input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-1">
-Markdown</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-1-content" class="sd-tab-label" for="sd-tab-item-1">
+Markdown</label><div class="sd-tab-content docutils" id="sd-tab-item-1-content">
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">markdown</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export_as_markdown</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <input id="sd-tab-item-2" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-2">
-HTML</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-2-content" class="sd-tab-label" for="sd-tab-item-2">
+HTML</label><div class="sd-tab-content docutils" id="sd-tab-item-2-content">
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">html</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export_as_html</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <input id="sd-tab-item-3" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-3">
-hOCR (XML)</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-3-content" class="sd-tab-label" for="sd-tab-item-3">
+hOCR (XML)</label><div class="sd-tab-content docutils" id="sd-tab-item-3-content">
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># One (bytes, ElementTree) pair per page</span>
 <span class="n">xml_pages</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export_as_xml</span><span class="p">()</span>
 </pre></div>
@@ -697,7 +697,7 @@ hOCR (XML)</label><div class="sd-tab-content docutils">
 <p><a class="reference internal" href="../user_guide/exporting.html"><span class="std std-doc">Exporting results</span></a> covers every format and its options.</p>
 </section>
 <section id="go-further-layout-tables">
-<h2>7. Go further: layout &amp; tables<a class="headerlink" href="#go-further-layout-tables" title="Link to this heading">#</a></h2>
+<span id="7-go-further-layout--tables"></span><h2>7. Go further: layout &amp; tables<a class="headerlink" href="#go-further-layout-tables" title="Link to this heading">#</a></h2>
 <p>Add <code class="docutils literal notranslate"><span class="pre">detect_tables=True</span></code> and docTR also finds the layout of the page and reconstructs its tables. Here is the
 Markdown export of the same invoice:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">detect_tables</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>

@@ -31,7 +31,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=6a604523" />
     <link rel="stylesheet" type="text/css" href="../_static/css/doctr.css?v=376da089" />
   
   <!-- So that users can add custom icons -->
@@ -45,7 +45,7 @@
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=08e7b316"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../_static/design-tabs.js?v=fcb327ea"></script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -571,45 +571,45 @@ plain text, Markdown, AsciiDoc, HTML or hOCR. It is installed with the package.<
 <h2>Common recipes<a class="headerlink" href="#common-recipes" title="Link to this heading">#</a></h2>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-0">
-Text</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-0-content" class="sd-tab-label" for="sd-tab-item-0">
+Text</label><div class="sd-tab-content docutils" id="sd-tab-item-0-content">
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>doctr-cli<span class="w"> </span>--input_path<span class="w"> </span>scan.jpg<span class="w"> </span>--output<span class="w"> </span>scan.txt
 </pre></div>
 </div>
 </div>
 <input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-1">
-Markdown with tables</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-1-content" class="sd-tab-label" for="sd-tab-item-1">
+Markdown with tables</label><div class="sd-tab-content docutils" id="sd-tab-item-1-content">
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>doctr-cli<span class="w"> </span>--input_path<span class="w"> </span>report.pdf<span class="w"> </span>--detect_tables<span class="w"> </span>--output<span class="w"> </span>report.md
 </pre></div>
 </div>
 </div>
 <input id="sd-tab-item-2" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-2">
-Several files</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-2-content" class="sd-tab-label" for="sd-tab-item-2">
+Several files</label><div class="sd-tab-content docutils" id="sd-tab-item-2-content">
 <p>Every page of every input is appended to a single document:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>doctr-cli<span class="w"> </span>--input_path<span class="w"> </span>page1.jpg<span class="w"> </span>page2.jpg<span class="w"> </span>annex.pdf<span class="w"> </span>--output<span class="w"> </span>dossier.json
 </pre></div>
 </div>
 </div>
 <input id="sd-tab-item-3" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-3">
-Rotated scans</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-3-content" class="sd-tab-label" for="sd-tab-item-3">
+Rotated scans</label><div class="sd-tab-content docutils" id="sd-tab-item-3-content">
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>doctr-cli<span class="w"> </span>--input_path<span class="w"> </span>skewed.pdf<span class="w"> </span>--straighten_pages<span class="w"> </span>--output<span class="w"> </span>skewed.txt
 </pre></div>
 </div>
 </div>
 <input id="sd-tab-item-4" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-4">
-GPU &amp; hOCR</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-4-content" class="sd-tab-label" for="sd-tab-item-4">
+GPU &amp; hOCR</label><div class="sd-tab-content docutils" id="sd-tab-item-4-content">
 <p>On a CUDA device of compute capability 8.0 or newer, the models run in bfloat16:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>doctr-cli<span class="w"> </span>--input_path<span class="w"> </span>doc.pdf<span class="w"> </span>--device<span class="w"> </span>cuda:0<span class="w"> </span>--output<span class="w"> </span>doc.xml
 </pre></div>
 </div>
 </div>
 <input id="sd-tab-item-5" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-5">
-Web page</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-5-content" class="sd-tab-label" for="sd-tab-item-5">
+Web page</label><div class="sd-tab-content docutils" id="sd-tab-item-5-content">
 <p>Requires the <code class="docutils literal notranslate"><span class="pre">html</span></code> extra:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>doctr-cli<span class="w"> </span>--input_path<span class="w"> </span>https://www.example.com<span class="w"> </span>--output<span class="w"> </span>page.md
 </pre></div>

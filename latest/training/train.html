@@ -31,7 +31,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=6a604523" />
     <link rel="stylesheet" type="text/css" href="../_static/css/doctr.css?v=376da089" />
   
   <!-- So that users can add custom icons -->
@@ -45,7 +45,7 @@
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=08e7b316"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../_static/design-tabs.js?v=fcb327ea"></script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -585,8 +585,8 @@ correct polygons with automatic suggestions, and exports the formats below.</p>
 pixel coordinates</strong>.</p>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-0">
-Detection</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-0-content" class="sd-tab-label" for="sd-tab-item-0">
+Detection</label><div class="sd-tab-content docutils" id="sd-tab-item-0-content">
 <div class="literal-block-wrapper docutils container" id="id1">
 <div class="code-block-caption"><span class="caption-text">labels.json</span><a class="headerlink" href="#id1" title="Link to this code">#</a></div>
 <div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -609,8 +609,8 @@ Detection</label><div class="sd-tab-content docutils">
 <p>Every class must appear in both splits; an image without a box of a class has an empty list for it.</p>
 </div>
 <input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-1">
-Recognition</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-1-content" class="sd-tab-label" for="sd-tab-item-1">
+Recognition</label><div class="sd-tab-content docutils" id="sd-tab-item-1-content">
 <p><code class="docutils literal notranslate"><span class="pre">images/</span></code> contains <strong>word crops</strong> and <code class="docutils literal notranslate"><span class="pre">labels.json</span></code> their transcription, in UTF-8:</p>
 <div class="literal-block-wrapper docutils container" id="id2">
 <div class="code-block-caption"><span class="caption-text">labels.json</span><a class="headerlink" href="#id2" title="Link to this code">#</a></div>
@@ -626,8 +626,8 @@ Recognition</label><div class="sd-tab-content docutils">
 <p>Labels must not contain spaces, and their characters must be part of the vocabulary you train with.</p>
 </div>
 <input id="sd-tab-item-2" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-2">
-Layout</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-2-content" class="sd-tab-label" for="sd-tab-item-2">
+Layout</label><div class="sd-tab-content docutils" id="sd-tab-item-2-content">
 <div class="literal-block-wrapper docutils container" id="id3">
 <div class="code-block-caption"><span class="caption-text">labels.json</span><a class="headerlink" href="#id3" title="Link to this code">#</a></div>
 <div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -643,8 +643,8 @@ Layout</label><div class="sd-tab-content docutils">
 </div>
 </div>
 <input id="sd-tab-item-3" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-3">
-Table structure</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-3-content" class="sd-tab-label" for="sd-tab-item-3">
+Table structure</label><div class="sd-tab-content docutils" id="sd-tab-item-3-content">
 <p><code class="docutils literal notranslate"><span class="pre">images/</span></code> contains images of <strong>tables</strong>:</p>
 <div class="literal-block-wrapper docutils container" id="id4">
 <div class="code-block-caption"><span class="caption-text">labels.json</span><a class="headerlink" href="#id4" title="Link to this code">#</a></div>
@@ -661,8 +661,8 @@ Table structure</label><div class="sd-tab-content docutils">
 inclusive: a cell spanning one row and one column has equal start and end indices.</p>
 </div>
 <input id="sd-tab-item-4" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-4">
-Orientation</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-4-content" class="sd-tab-label" for="sd-tab-item-4">
+Orientation</label><div class="sd-tab-content docutils" id="sd-tab-item-4-content">
 <p>No labels: a folder of <strong>upright</strong> images. The script rotates them to generate the training targets.</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>train_set/
 ├── sample_img_01.png
@@ -728,8 +728,8 @@ python<span class="w"> </span>references/classification/train_orientation.py<spa
 <h2>Hardware<a class="headerlink" href="#hardware" title="Link to this heading">#</a></h2>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-5" name="sd-tab-set-1" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-5">
-Single GPU</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-5-content" class="sd-tab-label" for="sd-tab-item-5">
+Single GPU</label><div class="sd-tab-content docutils" id="sd-tab-item-5-content">
 <p>Every script accepts <code class="docutils literal notranslate"><span class="pre">--device</span></code>: a CUDA index (<code class="docutils literal notranslate"><span class="pre">0</span></code>), <code class="docutils literal notranslate"><span class="pre">cuda:N</span></code>, <code class="docutils literal notranslate"><span class="pre">mps</span></code> or <code class="docutils literal notranslate"><span class="pre">cpu</span></code>. By default, the script picks CUDA,
 then MPS, then the CPU.</p>
 <p><code class="docutils literal notranslate"><span class="pre">--amp</span></code> enables automatic mixed precision on CUDA; add <code class="docutils literal notranslate"><span class="pre">--amp-dtype</span> <span class="pre">bfloat16</span></code> on Ampere GPUs or newer to avoid the
@@ -740,8 +740,8 @@ overflows of float16:</p>
 </div>
 </div>
 <input id="sd-tab-item-6" name="sd-tab-set-1" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-6">
-Multi-GPU</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-6-content" class="sd-tab-label" for="sd-tab-item-6">
+Multi-GPU</label><div class="sd-tab-content docutils" id="sd-tab-item-6-content">
 <p>Launch the same scripts with <a class="reference external" href="https://pytorch.org/docs/stable/elastic/run.html"><code class="docutils literal notranslate"><span class="pre">torchrun</span></code></a> to train with
 DistributedDataParallel:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="m">0</span>,2<span class="w"> </span>torchrun<span class="w"> </span>--nproc_per_node<span class="o">=</span><span class="m">2</span><span class="w"> </span>references/detection/train.py<span class="w"> </span>db_resnet50<span class="w"> </span><span class="se">\</span>
@@ -750,8 +750,8 @@ DistributedDataParallel:</p>
 </div>
 </div>
 <input id="sd-tab-item-7" name="sd-tab-set-1" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-7">
-Apple Silicon</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-7-content" class="sd-tab-label" for="sd-tab-item-7">
+Apple Silicon</label><div class="sd-tab-content docutils" id="sd-tab-item-7-content">
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Let the few operations MPS lacks fall back to the CPU</span>
 <span class="nv">PYTORCH_ENABLE_MPS_FALLBACK</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>python<span class="w"> </span>references/detection/train.py<span class="w"> </span>db_resnet50<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--train_path<span class="w"> </span>train<span class="w"> </span>--val_path<span class="w"> </span>val<span class="w"> </span>--device<span class="w"> </span>mps

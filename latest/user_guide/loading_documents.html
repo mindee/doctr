@@ -31,7 +31,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=6a604523" />
     <link rel="stylesheet" type="text/css" href="../_static/css/doctr.css?v=376da089" />
   
   <!-- So that users can add custom icons -->
@@ -45,7 +45,7 @@
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=08e7b316"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../_static/design-tabs.js?v=fcb327ea"></script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -577,8 +577,8 @@ about it.</p>
 <code class="docutils literal notranslate"><span class="pre">pages[i]</span></code> and <code class="docutils literal notranslate"><span class="pre">result.pages[i]</span></code> always correspond to the <em>i</em>-th page of the file.</p>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-0">
-Rendering resolution</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-0-content" class="sd-tab-label" for="sd-tab-item-0">
+Rendering resolution</label><div class="sd-tab-content docutils" id="sd-tab-item-0-content">
 <p>The <code class="docutils literal notranslate"><span class="pre">scale</span></code> parameter controls the rendering resolution, where <code class="docutils literal notranslate"><span class="pre">1</span></code> corresponds to 72 dpi. The default, <code class="docutils literal notranslate"><span class="pre">2</span></code>
 (144 dpi), is a good trade-off for most documents; increase it for small print:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pages</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_pdf</span><span class="p">(</span><span class="s2">"path/to/report.pdf"</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>  <span class="c1"># 216 dpi</span>
@@ -586,15 +586,15 @@ Rendering resolution</label><div class="sd-tab-content docutils">
 </div>
 </div>
 <input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-1">
-Encrypted PDF</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-1-content" class="sd-tab-label" for="sd-tab-item-1">
+Encrypted PDF</label><div class="sd-tab-content docutils" id="sd-tab-item-1-content">
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pages</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_pdf</span><span class="p">(</span><span class="s2">"path/to/protected.pdf"</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">"s3cr3t"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <input id="sd-tab-item-2" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-2">
-From memory</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-2-content" class="sd-tab-label" for="sd-tab-item-2">
+From memory</label><div class="sd-tab-content docutils" id="sd-tab-item-2-content">
 <p>Pass the raw bytes, e.g. a file received by a web API or downloaded from object storage:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"path/to/report.pdf"</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
     <span class="n">pages</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_pdf</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
@@ -676,7 +676,7 @@ URLs (folders are expanded to the PDFs and images they contain, sorted by name):
 </div>
 </section>
 <section id="long-documents-large-collections">
-<h2>Long documents &amp; large collections<a class="headerlink" href="#long-documents-large-collections" title="Link to this heading">#</a></h2>
+<span id="long-documents--large-collections"></span><h2>Long documents &amp; large collections<a class="headerlink" href="#long-documents-large-collections" title="Link to this heading">#</a></h2>
 <p>Every page of a list is decoded in memory: at the default resolution (<code class="docutils literal notranslate"><span class="pre">scale=2</span></code>, 1684 x 1191 pixels), an A4 page
 weighs about 6 MB, so a 1,000-page PDF would need about 6 GB. Pass <code class="docutils literal notranslate"><span class="pre">lazy=True</span></code> to get a <strong>page source</strong> instead: it behaves like the list (<code class="docutils literal notranslate"><span class="pre">len</span></code>,
 indexing, slicing, iteration), but a page is only decoded when it is accessed.</p>

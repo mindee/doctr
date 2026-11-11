@@ -31,7 +31,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=6a604523" />
     <link rel="stylesheet" type="text/css" href="../_static/css/doctr.css?v=376da089" />
   
   <!-- So that users can add custom icons -->
@@ -45,7 +45,7 @@
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=08e7b316"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../_static/design-tabs.js?v=fcb327ea"></script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -561,7 +561,7 @@
                 <article class="bd-article">
                   
   <section id="layout-analysis-tables">
-<h1>Layout analysis &amp; tables<a class="headerlink" href="#layout-analysis-tables" title="Link to this heading">#</a></h1>
+<span id="layout-analysis--tables"></span><h1>Layout analysis &amp; tables<a class="headerlink" href="#layout-analysis-tables" title="Link to this heading">#</a></h1>
 <p>Text alone loses the structure of a document. docTR can also tell <em>what</em> each region of a page is (a title, a
 paragraph, a table, a figure…) and rebuild tables as rows and columns.</p>
 <section id="layout-analysis">
@@ -619,8 +619,10 @@ otherwise the regions cannot be located and nothing is masked. The CLI enables i
 <section id="table-structure-recognition">
 <h2>Table structure recognition<a class="headerlink" href="#table-structure-recognition" title="Link to this heading">#</a></h2>
 <p>With <code class="docutils literal notranslate"><span class="pre">detect_tables=True</span></code>, each region the layout model labels as a <code class="docutils literal notranslate"><span class="pre">Table</span></code> is cropped and passed to a table
-structure model (<code class="docutils literal notranslate"><span class="pre">tablecenternet</span></code>), which predicts its cells and the rows and columns they span. The words falling
-inside a cell are regrouped into a <a class="reference internal" href="../api/io.html#doctr.io.Table" title="doctr.io.Table"><code class="xref py py-class docutils literal notranslate"><span class="pre">Table</span></code></a>:</p>
+structure model (<code class="docutils literal notranslate"><span class="pre">tablecenternet</span></code>), which predicts its cells and the rows and columns they span. Every word inside the
+table region is regrouped into a <a class="reference internal" href="../api/io.html#doctr.io.Table" title="doctr.io.Table"><code class="xref py py-class docutils literal notranslate"><span class="pre">Table</span></code></a>: the words outside of the predicted cells (e.g. a missed
+header row or a row of totals) complete the grid, and the rows and columns follow the text lines of the cells (the
+rows and columns without any text are removed):</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentFile</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
 
@@ -697,7 +699,7 @@ rows or columns has its value at its top-left position:</p>
 <td><p>Mean recognition confidence of the words of the cell</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">objectness_score</span></code></p></td>
-<td><p>Score of the cell predicted by the table model</p></td>
+<td><p>Table model score of the cell (<code class="docutils literal notranslate"><span class="pre">None</span></code> for a cell made from words)</p></td>
 </tr>
 </tbody>
 </table>
@@ -709,8 +711,8 @@ rows or columns has its value at its top-left position:</p>
 <p>Both models can also run on their own, without text recognition:</p>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-0">
-Layout</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-0-content" class="sd-tab-label" for="sd-tab-item-0">
+Layout</label><div class="sd-tab-content docutils" id="sd-tab-item-0-content">
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">layout_predictor</span>
 
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">layout_predictor</span><span class="p">(</span><span class="s2">"lw_detr_s"</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -724,8 +726,8 @@ Layout</label><div class="sd-tab-content docutils">
 </div>
 </div>
 <input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-1">
-Table structure</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-1-content" class="sd-tab-label" for="sd-tab-item-1">
+Table structure</label><div class="sd-tab-content docutils" id="sd-tab-item-1-content">
 <p>Pass images of tables, e.g. crops of the <code class="docutils literal notranslate"><span class="pre">Table</span></code> regions:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">table_predictor</span>
 
@@ -736,6 +738,16 @@ Table structure</label><div class="sd-tab-content docutils">
 <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"cells"</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
 <span class="c1"># {'geometry': [[x1, y1], ..., [x4, y4]],  # relative to the table image</span>
 <span class="c1">#  'score': 0.42, 'row_start': 0, 'row_end': 0, 'col_start': 0, 'col_end': 0}</span>
+</pre></div>
+</div>
+<p>With the layout regions of whole pages and their words (e.g. from your own OCR), the table regions are cropped and
+the words assigned to the cells:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">layout_predictor</span>
+
+<span class="n">regions</span> <span class="o">=</span> <span class="n">layout_predictor</span><span class="p">(</span><span class="s2">"lw_detr_s"</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)(</span><span class="n">pages</span><span class="p">)</span>
+<span class="n">tables</span> <span class="o">=</span> <span class="n">predictor</span><span class="o">.</span><span class="n">predict_regions</span><span class="p">(</span><span class="n">pages</span><span class="p">,</span> <span class="n">regions</span><span class="p">,</span> <span class="n">word_boxes</span><span class="p">)</span>  <span class="c1"># one (N, 4) array of relative boxes per page</span>
+
+<span class="n">tables</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"cells"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"words"</span><span class="p">]</span>  <span class="c1"># indices of the words of the cell in `word_boxes[0]`, in reading order</span>
 </pre></div>
 </div>
 </div>

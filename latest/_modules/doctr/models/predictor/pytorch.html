@@ -30,7 +30,7 @@
 
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=6a604523" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/doctr.css?v=376da089" />
   
   <!-- So that users can add custom icons -->
@@ -44,7 +44,7 @@
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../_static/copybutton.js?v=08e7b316"></script>
-    <script src="../../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../../../../_static/design-tabs.js?v=fcb327ea"></script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -527,7 +527,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">nn</span>
@@ -734,7 +733,7 @@
 
         <span class="c1"># Recognize table structure: locate tables with the layout model, crop each one and run the table model</span>
         <span class="n">tables</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_tables_from_regions</span><span class="p">(</span><span class="n">pages</span><span class="p">,</span> <span class="n">regions</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">table_predictor</span><span class="o">.</span><span class="n">predict_regions</span><span class="p">(</span><span class="n">pages</span><span class="p">,</span> <span class="n">regions</span><span class="p">,</span> <span class="n">boxes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">table_class_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">table_predictor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">regions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="k">else</span> <span class="kc">None</span>
         <span class="p">)</span>
@@ -754,98 +753,7 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">straighten_pages</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">preserve_original_coords</span><span class="p">:</span>
             <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_remap_to_original_coords</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">_orig_shapes</span><span class="p">,</span> <span class="n">_straight_shapes</span><span class="p">,</span> <span class="n">m_invs</span><span class="p">,</span> <span class="n">_orig_pages</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">out</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_tables_from_regions</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">pages</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
-        <span class="n">regions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
-        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]:</span>
-<span class="w">        </span><span class="sd">"""Crop the table regions found by the layout model and run the table model on each crop.</span>
-
-<span class="sd">        Each `Table` region is rectified to an upright crop with a perspective transform (so straight boxes and</span>
-<span class="sd">        rotated polygons are both handled), the table model is applied per crop, and the predicted cell polygons</span>
-<span class="sd">        are mapped back to page-relative coordinates through the inverse transform. A page therefore yields one</span>
-<span class="sd">        structured table per detected `Table` region.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            pages: the (possibly straightened) page images</span>
-<span class="sd">            regions: the per-page layout predictions `{"class_names", "boxes", "scores"}`</span>
-<span class="sd">            **kwargs: keyword arguments forwarded to the table predictor</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            a per-page list of table grids `{"cells": [...], "num_rows": int, "num_cols": int}` in page-relative</span>
-<span class="sd">            coordinates</span>
-<span class="sd">        """</span>
-        <span class="n">crops</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="c1"># (page index, inverse transform, crop width, crop height, page width, page height)</span>
-        <span class="n">crop_meta</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">p_idx</span><span class="p">,</span> <span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">region</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">pages</span><span class="p">,</span> <span class="n">regions</span><span class="p">)):</span>
-            <span class="k">if</span> <span class="n">region</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">continue</span>
-            <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">cls_name</span><span class="p">,</span> <span class="n">box</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">region</span><span class="p">[</span><span class="s2">"class_names"</span><span class="p">],</span> <span class="n">region</span><span class="p">[</span><span class="s2">"boxes"</span><span class="p">]):</span>
-                <span class="k">if</span> <span class="n">cls_name</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table_class_name</span><span class="p">:</span>
-                    <span class="k">continue</span>
-                <span class="n">pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">pts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>  <span class="c1"># straight box (x_min, y_min, x_max, y_max) -&gt; corners</span>
-                    <span class="p">(</span><span class="n">bx0</span><span class="p">,</span> <span class="n">by0</span><span class="p">),</span> <span class="p">(</span><span class="n">bx1</span><span class="p">,</span> <span class="n">by1</span><span class="p">)</span> <span class="o">=</span> <span class="n">pts</span>
-                    <span class="n">src</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">bx0</span><span class="p">,</span> <span class="n">by0</span><span class="p">],</span> <span class="p">[</span><span class="n">bx1</span><span class="p">,</span> <span class="n">by0</span><span class="p">],</span> <span class="p">[</span><span class="n">bx1</span><span class="p">,</span> <span class="n">by1</span><span class="p">],</span> <span class="p">[</span><span class="n">bx0</span><span class="p">,</span> <span class="n">by1</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>  <span class="c1"># rotated 4-point polygon, already ordered (top-left, top-right, bottom-right, bottom-left)</span>
-                    <span class="n">src</span> <span class="o">=</span> <span class="n">pts</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-                <span class="c1"># Relative -&gt; absolute pixel corners</span>
-                <span class="n">src</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*=</span> <span class="n">w</span>
-                <span class="n">src</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="n">h</span>
-                <span class="c1"># Upright crop size from the region side lengths</span>
-                <span class="n">crop_w</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">src</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">src</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">src</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">src</span><span class="p">[</span><span class="mi">3</span><span class="p">]))))</span>
-                <span class="n">crop_h</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">src</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">src</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">src</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">src</span><span class="p">[</span><span class="mi">1</span><span class="p">]))))</span>
-                <span class="k">if</span> <span class="n">crop_w</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">crop_h</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
-                    <span class="k">continue</span>
-                <span class="c1"># Map the region onto an inset rectangle so the warp samples `pad` extra pixels of page</span>
-                <span class="c1"># context on each side. Crop-relative [0, 1] still maps exactly to [0, out_w] / [0, out_h].</span>
-                <span class="n">pad</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="mf">0.01</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span><span class="n">crop_w</span><span class="p">,</span> <span class="n">crop_h</span><span class="p">)))</span>
-                <span class="n">out_w</span><span class="p">,</span> <span class="n">out_h</span> <span class="o">=</span> <span class="n">crop_w</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">pad</span><span class="p">,</span> <span class="n">crop_h</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">pad</span>
-                <span class="n">dst</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-                    <span class="p">[[</span><span class="n">pad</span><span class="p">,</span> <span class="n">pad</span><span class="p">],</span> <span class="p">[</span><span class="n">pad</span> <span class="o">+</span> <span class="n">crop_w</span><span class="p">,</span> <span class="n">pad</span><span class="p">],</span> <span class="p">[</span><span class="n">pad</span> <span class="o">+</span> <span class="n">crop_w</span><span class="p">,</span> <span class="n">pad</span> <span class="o">+</span> <span class="n">crop_h</span><span class="p">],</span> <span class="p">[</span><span class="n">pad</span><span class="p">,</span> <span class="n">pad</span> <span class="o">+</span> <span class="n">crop_h</span><span class="p">]],</span>
-                    <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
-                <span class="p">)</span>
-                <span class="n">transform</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">getPerspectiveTransform</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">)</span>
-                <span class="n">inverse</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">getPerspectiveTransform</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">src</span><span class="p">)</span>
-                <span class="n">crops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">warpPerspective</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">transform</span><span class="p">,</span> <span class="p">(</span><span class="n">out_w</span><span class="p">,</span> <span class="n">out_h</span><span class="p">),</span> <span class="n">borderMode</span><span class="o">=</span><span class="n">cv2</span><span class="o">.</span><span class="n">BORDER_REPLICATE</span><span class="p">))</span>
-                <span class="n">crop_meta</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">p_idx</span><span class="p">,</span> <span class="n">inverse</span><span class="p">,</span> <span class="n">out_w</span><span class="p">,</span> <span class="n">out_h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">))</span>
-
-        <span class="n">tables_per_page</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">pages</span><span class="p">]</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">crops</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">tables_per_page</span>
-
-        <span class="n">grids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table_predictor</span><span class="p">(</span><span class="n">crops</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># type: ignore[misc]</span>
-        <span class="k">for</span> <span class="p">(</span><span class="n">p_idx</span><span class="p">,</span> <span class="n">inverse</span><span class="p">,</span> <span class="n">crop_w</span><span class="p">,</span> <span class="n">crop_h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">),</span> <span class="n">grid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">crop_meta</span><span class="p">,</span> <span class="n">grids</span><span class="p">):</span>
-            <span class="n">remapped_cells</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">grid</span><span class="p">[</span><span class="s2">"cells"</span><span class="p">]:</span>
-                <span class="c1"># Cell polygon is crop-relative -&gt; crop pixels -&gt; page pixels (inverse transform) -&gt; page-relative</span>
-                <span class="n">raw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cell</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">raw</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">raw</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>  <span class="c1"># straight box (xmin, ymin, xmax, ymax)</span>
-                    <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="n">raw</span>
-                    <span class="n">poly</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">],</span> <span class="p">[</span><span class="n">x1</span><span class="p">,</span> <span class="n">y0</span><span class="p">],</span> <span class="p">[</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">],</span> <span class="p">[</span><span class="n">x0</span><span class="p">,</span> <span class="n">y1</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">poly</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-                <span class="n">poly</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*=</span> <span class="n">crop_w</span>
-                <span class="n">poly</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="n">crop_h</span>
-                <span class="n">poly</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">perspectiveTransform</span><span class="p">(</span><span class="n">poly</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:],</span> <span class="n">inverse</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">poly</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">/=</span> <span class="n">w</span>
-                <span class="n">poly</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/=</span> <span class="n">h</span>
-                <span class="n">new_cell</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span>
-                <span class="n">new_cell</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">]</span> <span class="o">=</span> <span class="n">poly</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-                <span class="n">remapped_cells</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_cell</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">remapped_cells</span><span class="p">:</span>
-                <span class="k">continue</span>
-            <span class="n">tables_per_page</span><span class="p">[</span><span class="n">p_idx</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-                <span class="s2">"cells"</span><span class="p">:</span> <span class="n">remapped_cells</span><span class="p">,</span>
-                <span class="s2">"num_rows"</span><span class="p">:</span> <span class="n">grid</span><span class="p">[</span><span class="s2">"num_rows"</span><span class="p">],</span>
-                <span class="s2">"num_cols"</span><span class="p">:</span> <span class="n">grid</span><span class="p">[</span><span class="s2">"num_cols"</span><span class="p">],</span>
-            <span class="p">})</span>
-        <span class="k">return</span> <span class="n">tables_per_page</span></div>
+        <span class="k">return</span> <span class="n">out</span></div>
 
 </pre></div>
 

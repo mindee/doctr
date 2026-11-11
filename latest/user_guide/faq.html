@@ -31,7 +31,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=6a604523" />
     <link rel="stylesheet" type="text/css" href="../_static/css/doctr.css?v=376da089" />
   
   <!-- So that users can add custom icons -->
@@ -45,7 +45,7 @@
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=08e7b316"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../_static/design-tabs.js?v=fcb327ea"></script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -561,7 +561,7 @@
                 <article class="bd-article">
                   
   <section id="troubleshooting-faq">
-<h1>Troubleshooting &amp; FAQ<a class="headerlink" href="#troubleshooting-faq" title="Link to this heading">#</a></h1>
+<span id="troubleshooting--faq"></span><h1>Troubleshooting &amp; FAQ<a class="headerlink" href="#troubleshooting-faq" title="Link to this heading">#</a></h1>
 <section id="installation-and-setup">
 <h2>Installation and setup<a class="headerlink" href="#installation-and-setup" title="Link to this heading">#</a></h2>
 <details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3" open="open">
@@ -626,10 +626,10 @@ same way. If your PDFs have a reliable text layer and you only need the text, a 
 <summary class="sd-summary-title sd-card-header">
 <span class="sd-summary-text">Some words are missing</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
 <ul class="simple">
-<li><p class="sd-card-text">Small print: render PDFs at a higher resolution, e.g. <code class="docutils literal notranslate"><span class="pre">DocumentFile.from_pdf(path,</span> <span class="pre">scale=3)</span></code>.</p></li>
-<li><p class="sd-card-text">Faint or low-contrast text: lower the detection thresholds (<code class="docutils literal notranslate"><span class="pre">bin_thresh</span></code>, <code class="docutils literal notranslate"><span class="pre">box_thresh</span></code>), see
+<li><p>Small print: render PDFs at a higher resolution, e.g. <code class="docutils literal notranslate"><span class="pre">DocumentFile.from_pdf(path,</span> <span class="pre">scale=3)</span></code>.</p></li>
+<li><p>Faint or low-contrast text: lower the detection thresholds (<code class="docutils literal notranslate"><span class="pre">bin_thresh</span></code>, <code class="docutils literal notranslate"><span class="pre">box_thresh</span></code>), see
 <a class="reference internal" href="ocr_predictor.html#tune-the-text-detection"><span class="std std-ref">Tune the text detection</span></a>.</p></li>
-<li><p class="sd-card-text">Very large images: keep <code class="docutils literal notranslate"><span class="pre">preserve_aspect_ratio=True</span></code> (default) so the page is not distorted.</p></li>
+<li><p>Very large images: keep <code class="docutils literal notranslate"><span class="pre">preserve_aspect_ratio=True</span></code> (default) so the page is not distorted.</p></li>
 </ul>
 </div>
 </details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
@@ -665,11 +665,11 @@ detection fails. See <a class="reference internal" href="exporting.html#reading-
 <summary class="sd-summary-title sd-card-header">
 <span class="sd-summary-text">OCR is slow</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
 <ul class="simple">
-<li><p class="sd-card-text">Run on a GPU, and use half precision (see <a class="reference internal" href="../deployment/performance.html"><span class="std std-doc">Performance</span></a>).</p></li>
-<li><p class="sd-card-text">Create the predictor <strong>once</strong> and reuse it.</p></li>
-<li><p class="sd-card-text">Pass several pages per call and increase <code class="docutils literal notranslate"><span class="pre">det_bs</span></code> / <code class="docutils literal notranslate"><span class="pre">reco_bs</span></code> if your hardware allows it.</p></li>
-<li><p class="sd-card-text">Try lighter architectures (<code class="docutils literal notranslate"><span class="pre">fast_tiny</span></code>, <code class="docutils literal notranslate"><span class="pre">crnn_mobilenet_v3_small</span></code>), see the <a class="reference internal" href="../models/index.html"><span class="std std-doc">model zoo</span></a>.</p></li>
-<li><p class="sd-card-text">Keep <code class="docutils literal notranslate"><span class="pre">assume_straight_pages=True</span></code> when your pages are upright.</p></li>
+<li><p>Run on a GPU, and use half precision (see <a class="reference internal" href="../deployment/performance.html"><span class="std std-doc">Performance</span></a>).</p></li>
+<li><p>Create the predictor <strong>once</strong> and reuse it.</p></li>
+<li><p>Pass several pages per call and increase <code class="docutils literal notranslate"><span class="pre">det_bs</span></code> / <code class="docutils literal notranslate"><span class="pre">reco_bs</span></code> if your hardware allows it.</p></li>
+<li><p>Try lighter architectures (<code class="docutils literal notranslate"><span class="pre">fast_tiny</span></code>, <code class="docutils literal notranslate"><span class="pre">crnn_mobilenet_v3_small</span></code>), see the <a class="reference internal" href="../models/index.html"><span class="std std-doc">model zoo</span></a>.</p></li>
+<li><p>Keep <code class="docutils literal notranslate"><span class="pre">assume_straight_pages=True</span></code> when your pages are upright.</p></li>
 </ul>
 </div>
 </details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">

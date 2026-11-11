@@ -31,7 +31,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=6a604523" />
     <link rel="stylesheet" type="text/css" href="../_static/css/doctr.css?v=376da089" />
   
   <!-- So that users can add custom icons -->
@@ -45,7 +45,7 @@
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=08e7b316"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../_static/design-tabs.js?v=fcb327ea"></script>
     <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
@@ -621,8 +621,8 @@ noise:</p>
 dimensions to get pixels:</p>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-0">
-Straight boxes</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-0-content" class="sd-tab-label" for="sd-tab-item-0">
+Straight boxes</label><div class="sd-tab-content docutils" id="sd-tab-item-0-content">
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">dimensions</span>
@@ -636,8 +636,8 @@ Straight boxes</label><div class="sd-tab-content docutils">
 </div>
 </div>
 <input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-1">
-Rotated boxes</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-1-content" class="sd-tab-label" for="sd-tab-item-1">
+Rotated boxes</label><div class="sd-tab-content docutils" id="sd-tab-item-1-content">
 <p>With <code class="docutils literal notranslate"><span class="pre">assume_straight_pages=False</span></code>, geometries are <code class="docutils literal notranslate"><span class="pre">(4,</span> <span class="pre">2)</span></code> arrays of points:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
@@ -672,8 +672,8 @@ hand-written rules.</p>
 <h2>Visualize the predictions<a class="headerlink" href="#visualize-the-predictions" title="Link to this heading">#</a></h2>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-2" name="sd-tab-set-1" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-2">
-Interactive window</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-2-content" class="sd-tab-label" for="sd-tab-item-2">
+Interactive window</label><div class="sd-tab-content docutils" id="sd-tab-item-2-content">
 <p>Requires the <code class="docutils literal notranslate"><span class="pre">viz</span></code> extra. Hover a box to see the word and its confidence:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>  <span class="c1"># all pages; or result.pages[0].show()</span>
 </pre></div>
@@ -681,8 +681,8 @@ Interactive window</label><div class="sd-tab-content docutils">
 <p>When the layout model ran, its regions are drawn as well (<code class="docutils literal notranslate"><span class="pre">display_layout=False</span></code> hides them).</p>
 </div>
 <input id="sd-tab-item-3" name="sd-tab-set-1" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-3">
-Image file</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-3-content" class="sd-tab-label" for="sd-tab-item-3">
+Image file</label><div class="sd-tab-content docutils" id="sd-tab-item-3-content">
 <p><a class="reference internal" href="../api/utils.html#doctr.utils.visualization.visualize_page" title="doctr.utils.visualization.visualize_page"><code class="xref py py-func docutils literal notranslate"><span class="pre">visualize_page()</span></code></a> returns a Matplotlib figure that you can save, e.g. on a
 server without display:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib</span>
