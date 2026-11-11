@@ -83,6 +83,10 @@ class RecognitionPredictor(nn.Module):
         # Dimension check
         if any(crop.ndim != 3 for crop in crops):
             raise ValueError("incorrect input shape: all crops are expected to be multi-channel 2D images.")
+        # An empty crop would otherwise fail with a ZeroDivisionError while splitting or resizing
+        empty = next((crop for crop in crops if not all(s > 0 for s in crop.shape)), None)
+        if empty is not None:
+            raise ValueError(f"incorrect input shape: crops are expected to be non-empty, got shape {empty.shape}.")
 
         # Split crops that are too wide
         remapped = False

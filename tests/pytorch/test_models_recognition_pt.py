@@ -196,6 +196,19 @@ def test_recognition_predictor_split_confidence_aggregation(postprocessor):
         predictor([np.zeros((32, 128, 3), dtype=np.uint8)])
 
 
+@pytest.mark.parametrize("empty_shape", [(0, 0, 3), (0, 20, 3), (20, 0, 3), (32, 128, 0)])
+def test_recognition_predictor_empty_crop(empty_shape):
+    predictor = RecognitionPredictor(
+        PreProcessor(output_size=(32, 128), batch_size=32, preserve_aspect_ratio=True),
+        _MockRecoModel([0.9, 0.8]),
+    )
+    crop = np.zeros((32, 128, 3), dtype=np.uint8)
+    with pytest.raises(ValueError, match=r"non-empty, got shape \(" + ", ".join(map(str, empty_shape)) + r"\)"):
+        predictor([crop, np.zeros(empty_shape, dtype=np.uint8)])
+    # The OCR predictor drops empty crops before recognition, so valid crops are unaffected
+    assert predictor([crop]) == [("ab", 0.9)]
+
+
 @pytest.mark.parametrize(
     "arch_name", ["crnn_mobilenet_v3_small", "sar_resnet31", "master", "vitstr_small", "parseq", "viptr_tiny"]
 )
