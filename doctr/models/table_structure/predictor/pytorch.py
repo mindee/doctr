@@ -200,7 +200,7 @@ class TablePredictor(nn.Module):
         polys, cells = polys[keep], [grid["cells"][idx] for idx in keep]
         logic = np.array([[c["row_start"], c["row_end"], c["col_start"], c["col_end"]] for c in cells])
         geometric_logic = getattr(getattr(self.model, "postprocessor", None), "geometric_logic", False)
-        if geometric_logic and keep.size < len(grid["cells"]):
+        if geometric_logic:
             # The dropped cells made grid lines of their own: index the rows / columns of the remaining ones again
             # (the logical coordinates of TableCenterNet are ordered (start_col, end_col, start_row, end_row))
             by_col = _logic_from_geometry(polys, logic[:, [2, 3, 0, 1]], split_tables=False)

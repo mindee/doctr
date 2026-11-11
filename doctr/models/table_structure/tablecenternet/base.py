@@ -392,9 +392,11 @@ class TableCenterNetPostProcessor:
             scores = cs[keep].astype(np.float32)
             logic = (logic[keep] - 1).astype(np.int32)  # start_col, end_col, start_row, end_row (0-indexed)
             if self.geometric_logic and polys.shape[0] > 0:
+                # The duplicate detections of a cell are dropped; the logical coordinates are the model's (the page
+                # pipeline, which assembles the words of a page on the grid lines of the cell edges, re-indexes them
+                # from the geometry itself, cf. `TablePredictor._region_table`)
                 kept = _suppress_overlapping_cells(polys, scores)
-                polys, scores = polys[kept], scores[kept]
-                logic = _logic_from_geometry(polys, logic[kept]).astype(np.int32)
+                polys, scores, logic = polys[kept], scores[kept], logic[kept]
             if self.assume_straight_pages:
                 cells = np.concatenate([polys.min(axis=1), polys.max(axis=1)], axis=1).astype(np.float32)
             else:

@@ -26,7 +26,7 @@ default_cfgs: dict[str, dict[str, Any]] = {
         "input_shape": (3, 1024, 1024),
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
-        "url": "https://github.com/mindee/doctr/releases/download/v1.1.0/tablecenternet-0d349a85.pt",
+        "url": "https://github.com/mindee/doctr/releases/download/v1.1.0/tablecenternet-b0d6f603.pt",
     },
 }
 
