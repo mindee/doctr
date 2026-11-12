@@ -253,7 +253,9 @@ class MASTER(_MASTER, nn.Module):
             output = self.decoder(ys, encoded, source_mask, target_mask)
             # update ys with the next token and ignore the first token (SOS)
             ys[:, i + 1] = self.linear(output[:, i]).argmax(-1)
-            if (ys == self.vocab_size).any(dim=-1).all():  # every sequence has emitted EOS
+            # Stop decoding if all sequences have reached the EOS token
+            # NOTE: `break` isn't correctly translated to Onnx so we don't break here if we want to export
+            if not self.exportable and (ys == self.vocab_size).any(dim=-1).all():
                 break
 
         # Shape (N, max_length, vocab_size + 1)
