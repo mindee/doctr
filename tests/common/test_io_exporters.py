@@ -622,6 +622,52 @@ def test_table_exports():
     assert page.export_as_html() == "<p>only text</p>"
 
 
+def test_table_html_export_spans():
+    geo = ((0.1, 0.6), (0.4, 0.65))
+
+    def _table(cells, num_rows, num_cols):
+        return elements.Table(
+            cells=[elements.TableCell(value, 0.9, geo, *logic) for value, *logic in cells],
+            num_rows=num_rows,
+            num_cols=num_cols,
+            geometry=geo,
+        )
+
+    # A cell merged over rows, a cell merged over columns: written with rowspan / colspan, the covered positions skipped
+    merged = _table(
+        [
+            ("Item", 0, 1, 0, 0),
+            ("Revenue", 0, 0, 1, 2),
+            ("2023", 1, 1, 1, 1),
+            ("2024", 1, 1, 2, 2),
+            ("Widgets", 2, 2, 0, 0),
+            ("10", 2, 2, 1, 1),
+            ("12", 2, 2, 2, 2),
+        ],
+        3,
+        3,
+    )
+    assert HTMLExporter().render_table(merged) == (
+        '<table>\n<tr><th rowspan="2">Item</th><th colspan="2">Revenue</th></tr>\n'
+        "<tr><td>2023</td><td>2024</td></tr>\n"
+        "<tr><td>Widgets</td><td>10</td><td>12</td></tr>\n</table>"
+    )
+    # The dense grid of the other formats is unchanged
+    assert merged.to_grid() == [["Item", "Revenue", ""], ["", "2023", "2024"], ["Widgets", "10", "12"]]
+
+    # A merge that would hide the text of another cell is not written: the dense layout is kept, no text is lost
+    hiding = _table([("wide", 0, 0, 0, 1), ("inside", 0, 0, 1, 1), ("a", 1, 1, 0, 0), ("b", 1, 1, 1, 1)], 2, 2)
+    assert HTMLExporter().render_table(hiding) == (
+        "<table>\n<tr><th>wide</th><th>inside</th></tr>\n<tr><td>a</td><td>b</td></tr>\n</table>"
+    )
+
+    # A span reaching outside the grid is clipped to it
+    clipped = _table([("head", 0, 0, 0, 5), ("a", 1, 1, 0, 0), ("b", 1, 1, 1, 1)], 2, 2)
+    assert HTMLExporter().render_table(clipped) == (
+        '<table>\n<tr><th colspan="2">head</th></tr>\n<tr><td>a</td><td>b</td></tr>\n</table>'
+    )
+
+
 # --- XML / JSON ------------------------------------------------------------------------------------------------------
 
 
