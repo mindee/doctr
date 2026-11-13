@@ -300,20 +300,29 @@ def test_models_onnx_export(arch_name, input_shape):
         pytest.skip(f"Output of {arch_name}:\nMax element-wise difference: {np.max(np.abs(pt_logits - ort_outs[0]))}")
 
 
+@pytest.mark.parametrize("arch_name, head", [["master", "linear"], ["parseq", "head"]])
 @pytest.mark.parametrize("exportable", [False, True])
-def test_master_decode_early_stop(exportable):
-    # The early stop must stay out of an exported graph: tracing would freeze the number of
-    # decoding steps to the one the dummy input needed
-    model = recognition.master(pretrained=False, pretrained_backbone=False, exportable=exportable).eval()
-    # Force EOS at the first decoding step
-    with torch.no_grad():
-        model.linear.bias[model.vocab_size] = 1e4
-    decoder_calls = []
-    hook = model.decoder.register_forward_hook(lambda *_: decoder_calls.append(1))
-    with torch.no_grad():
-        model(torch.rand((2, 3, 32, 128), dtype=torch.float32))
-    hook.remove()
-    assert len(decoder_calls) == (model.max_length - 1 if exportable else 1)
+def test_autoregressive_decoding_early_stop(arch_name, head, exportable):
+    # Decoding stops once every sequence has emitted EOS, except when the model is exportable: tracing would
+    # freeze the number of decoding steps to the one the dummy input needed
+    model = recognition.__dict__[arch_name](pretrained=False, pretrained_backbone=False, exportable=exportable).eval()
+    input_tensor = torch.rand((2, 3, 32, 128))
+
+    def _decoder_calls(eos_bias: float) -> int:
+        calls = []
+        with torch.no_grad():
+            getattr(model, head).bias[model.vocab_size] = eos_bias
+        hook = model.decoder.register_forward_hook(lambda *_: calls.append(1))
+        try:
+            with torch.no_grad():
+                model(input_tensor)
+        finally:
+            hook.remove()
+        return len(calls)
+
+    # EOS emitted at the first step vs. never emitted
+    early, full = _decoder_calls(1e4), _decoder_calls(-1e4)
+    assert early == full if exportable else early < full
 
 
 @pytest.mark.parametrize(
