@@ -1003,18 +1003,55 @@ class HTMLExporter(_PageTextExporter):
         return f'<figure><img src="{_html_escape(source, quote=True)}" alt="{alt}">{figcaption}</figure>'
 
     def render_table(self, table: "Table", escape: bool = True) -> str:
-        """Render a table as an HTML table (first row used as header)"""
+        """Render a table as an HTML table (first row used as header). A cell spanning several rows / columns is
+        written with `rowspan` / `colspan` when the positions it covers hold no other text."""
         grid = table.to_grid()
         if len(grid) == 0 or len(grid[0]) == 0:
             return ""
+        num_rows, num_cols = len(grid), len(grid[0])
 
-        def _cell(value: str, tag: str) -> str:
+        # Top-left position -> (row span, column span) of the merged cells, and the positions they cover
+        spans: dict[tuple[int, int], tuple[int, int]] = {}
+        covered: set[tuple[int, int]] = set()
+        # The merge whose top-left comes first (row-major) wins, whatever the order of `table.cells`; with the same
+        # top-left, the one ending first
+        for cell in sorted(table.cells, key=lambda cell: (cell.row_start, cell.col_start, cell.row_end, cell.col_end)):
+            r0, c0 = cell.row_start, cell.col_start
+            r1, c1 = min(cell.row_end, num_rows - 1), min(cell.col_end, num_cols - 1)
+            if r0 < 0 or c0 < 0 or r1 < r0 or c1 < c0 or (r1 == r0 and c1 == c0):
+                continue
+            area = {(r, c) for r in range(r0, r1 + 1) for c in range(c0, c1 + 1)}
+            others = area - {(r0, c0)}
+            # Keep the dense layout when the merge would hide text or cross another merged cell
+            if area & covered or any(pos in spans for pos in area) or any(grid[r][c].strip() for r, c in others):
+                continue
+            spans[(r0, c0)] = (r1 - r0 + 1, c1 - c0 + 1)
+            covered |= others
+
+        # Drop the rows entirely covered by merges from above (no `<tr></tr>`), shrinking the row spans crossing them
+        dropped = {r for r in range(num_rows) if all((r, c) in covered for c in range(num_cols))}
+        if dropped:
+            spans = {
+                (r0, c0): (row_span - sum(r in dropped for r in range(r0, r0 + row_span)), col_span)
+                for (r0, c0), (row_span, col_span) in spans.items()
+            }
+
+        def _cell(value: str, tag: str, position: tuple[int, int]) -> str:
             content = self.escape_text(value) if escape else value
-            return f"<{tag}>{content.strip()}</{tag}>"
+            row_span, col_span = spans.get(position, (1, 1))
+            attrs = (f' rowspan="{row_span}"' if row_span > 1 else "") + (
+                f' colspan="{col_span}"' if col_span > 1 else ""
+            )
+            return f"<{tag}{attrs}>{content.strip()}</{tag}>"
 
-        head = "<tr>" + "".join(_cell(value, "th") for value in grid[0]) + "</tr>"
-        body = "\n".join("<tr>" + "".join(_cell(value, "td") for value in row) + "</tr>" for row in grid[1:])
-        return f"<table>\n{head}\n{body}\n</table>" if body else f"<table>\n{head}\n</table>"
+        rows = [
+            "<tr>"
+            + "".join(_cell(value, "td" if r else "th", (r, c)) for c, value in enumerate(row) if (r, c) not in covered)
+            + "</tr>"
+            for r, row in enumerate(grid)
+            if r not in dropped
+        ]
+        return "<table>\n" + "\n".join(rows) + "\n</table>"
 
     def export_kie_page(self, page: "KIEPage", direction: str = "auto", escape: bool = True) -> str:
         parts: list[str] = []

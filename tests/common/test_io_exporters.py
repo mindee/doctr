@@ -622,6 +622,77 @@ def test_table_exports():
     assert page.export_as_html() == "<p>only text</p>"
 
 
+def test_table_html_export_spans():
+    geo = ((0.1, 0.6), (0.4, 0.65))
+
+    def _table(cells, num_rows, num_cols):
+        return elements.Table(
+            cells=[elements.TableCell(value, 0.9, geo, *logic) for value, *logic in cells],
+            num_rows=num_rows,
+            num_cols=num_cols,
+            geometry=geo,
+        )
+
+    # A cell merged over rows, a cell merged over columns: written with rowspan / colspan, the covered positions skipped
+    merged = _table(
+        [
+            ("Item", 0, 1, 0, 0),
+            ("Revenue", 0, 0, 1, 2),
+            ("2023", 1, 1, 1, 1),
+            ("2024", 1, 1, 2, 2),
+            ("Widgets", 2, 2, 0, 0),
+            ("10", 2, 2, 1, 1),
+            ("12", 2, 2, 2, 2),
+        ],
+        3,
+        3,
+    )
+    assert HTMLExporter().render_table(merged) == (
+        '<table>\n<tr><th rowspan="2">Item</th><th colspan="2">Revenue</th></tr>\n'
+        "<tr><td>2023</td><td>2024</td></tr>\n"
+        "<tr><td>Widgets</td><td>10</td><td>12</td></tr>\n</table>"
+    )
+    # The dense grid of the other formats is unchanged
+    assert merged.to_grid() == [["Item", "Revenue", ""], ["", "2023", "2024"], ["Widgets", "10", "12"]]
+
+    # A merge that would hide the text of another cell is not written: the dense layout is kept, no text is lost
+    hiding = _table([("wide", 0, 0, 0, 1), ("inside", 0, 0, 1, 1), ("a", 1, 1, 0, 0), ("b", 1, 1, 1, 1)], 2, 2)
+    assert HTMLExporter().render_table(hiding) == (
+        "<table>\n<tr><th>wide</th><th>inside</th></tr>\n<tr><td>a</td><td>b</td></tr>\n</table>"
+    )
+
+    # A span reaching outside the grid is clipped to it
+    clipped = _table([("head", 0, 0, 0, 5), ("a", 1, 1, 0, 0), ("b", 1, 1, 1, 1)], 2, 2)
+    assert HTMLExporter().render_table(clipped) == (
+        '<table>\n<tr><th colspan="2">head</th></tr>\n<tr><td>a</td><td>b</td></tr>\n</table>'
+    )
+
+    # Crossing merges: the first one in row-major order wins, whatever the order of the cells
+    first, second, corner = ("", 0, 1, 0, 1), ("", 1, 2, 1, 2), ("z", 0, 0, 2, 2)
+    expected = (
+        '<table>\n<tr><th rowspan="2" colspan="2"></th><th>z</th></tr>\n'
+        "<tr><td></td></tr>\n<tr><td></td><td></td><td></td></tr>\n</table>"
+    )
+    assert HTMLExporter().render_table(_table([first, second, corner], 3, 3)) == expected
+    assert HTMLExporter().render_table(_table([second, first, corner], 3, 3)) == expected
+
+    # A row covered entirely by merges from above is dropped and the row spans crossing it shrink
+    full = _table([("A", 0, 1, 0, 0), ("B", 0, 1, 1, 1), ("x", 2, 2, 0, 0), ("y", 2, 2, 1, 1)], 3, 2)
+    assert HTMLExporter().render_table(full) == (
+        "<table>\n<tr><th>A</th><th>B</th></tr>\n<tr><td>x</td><td>y</td></tr>\n</table>"
+    )
+    tall = _table([("L", 0, 2, 0, 0), ("R", 0, 1, 1, 1), ("r2", 2, 2, 1, 1)], 3, 2)
+    assert HTMLExporter().render_table(tall) == (
+        '<table>\n<tr><th rowspan="2">L</th><th>R</th></tr>\n<tr><td>r2</td></tr>\n</table>'
+    )
+
+    # Merges sharing their top-left: the one ending first wins, whatever the order of the cells
+    down, across = ("", 0, 1, 0, 0), ("", 0, 0, 0, 1)
+    expected = '<table>\n<tr><th colspan="2"></th></tr>\n<tr><td></td><td></td></tr>\n</table>'
+    assert HTMLExporter().render_table(_table([down, across], 2, 2)) == expected
+    assert HTMLExporter().render_table(_table([across, down], 2, 2)) == expected
+
+
 # --- XML / JSON ------------------------------------------------------------------------------------------------------
 
 
