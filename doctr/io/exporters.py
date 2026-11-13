@@ -1013,8 +1013,9 @@ class HTMLExporter(_PageTextExporter):
         # Top-left position -> (row span, column span) of the merged cells, and the positions they cover
         spans: dict[tuple[int, int], tuple[int, int]] = {}
         covered: set[tuple[int, int]] = set()
-        # The merge whose top-left comes first (row-major) wins, whatever the order of `table.cells`
-        for cell in sorted(table.cells, key=lambda cell: (cell.row_start, cell.col_start)):
+        # The merge whose top-left comes first (row-major) wins, whatever the order of `table.cells`; with the same
+        # top-left, the one ending first
+        for cell in sorted(table.cells, key=lambda cell: (cell.row_start, cell.col_start, cell.row_end, cell.col_end)):
             r0, c0 = cell.row_start, cell.col_start
             r1, c1 = min(cell.row_end, num_rows - 1), min(cell.col_end, num_cols - 1)
             if r0 < 0 or c0 < 0 or r1 < r0 or c1 < c0 or (r1 == r0 and c1 == c0):

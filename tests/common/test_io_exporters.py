@@ -686,6 +686,12 @@ def test_table_html_export_spans():
         '<table>\n<tr><th rowspan="2">L</th><th>R</th></tr>\n<tr><td>r2</td></tr>\n</table>'
     )
 
+    # Merges sharing their top-left: the one ending first wins, whatever the order of the cells
+    down, across = ("", 0, 1, 0, 0), ("", 0, 0, 0, 1)
+    expected = '<table>\n<tr><th colspan="2"></th></tr>\n<tr><td></td><td></td></tr>\n</table>'
+    assert HTMLExporter().render_table(_table([down, across], 2, 2)) == expected
+    assert HTMLExporter().render_table(_table([across, down], 2, 2)) == expected
+
 
 # --- XML / JSON ------------------------------------------------------------------------------------------------------
 
