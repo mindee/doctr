@@ -639,7 +639,8 @@ headers and footers can be left out:</p>
 <li><p><strong>Without layout analysis</strong>, blocks become paragraphs.</p></li>
 <li><p><strong>With layout analysis</strong> (<code class="docutils literal notranslate"><span class="pre">detect_layout=True</span></code>), the layout regions are used to render titles and section
 headers as headings, list items as lists, and to place the page furniture (headers, footers, footnotes).</p></li>
-<li><p><strong>With table recognition</strong> (<code class="docutils literal notranslate"><span class="pre">detect_tables=True</span></code>), tables are rendered as real tables.</p></li>
+<li><p><strong>With table recognition</strong> (<code class="docutils literal notranslate"><span class="pre">detect_tables=True</span></code>), tables are rendered as real tables. The HTML export keeps
+merged cells (<code class="docutils literal notranslate"><span class="pre">rowspan</span></code> / <code class="docutils literal notranslate"><span class="pre">colspan</span></code>); the other formats place the text of a merged cell at its top-left position.</p></li>
 </ul>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
