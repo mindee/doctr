@@ -2,6 +2,7 @@ import math
 
 import numpy as np
 import pytest
+from PIL import Image
 from test_io_elements import _mock_kie_pages, _mock_pages
 
 from doctr.utils import reconstitution
@@ -533,7 +534,7 @@ def test_points_rejects_unusable_geometries():
     assert reconstitution._points([(0, 0), (1, 1)]) == [(0.0, 0.0), (1.0, 1.0)]
 
 
-def test_draw_word_falls_back_to_ascii():
+def test_draw_word_falls_back_to_ascii(monkeypatch):
     drawn = []
 
     class _AsciiOnlyDraw:
@@ -542,9 +543,73 @@ def test_draw_word_falls_back_to_ascii():
                 raise UnicodeEncodeError("ascii", text, 0, 1, "not encodable")
             drawn.append(text)
 
+    monkeypatch.setattr(reconstitution.ImageDraw, "Draw", lambda image: _AsciiOnlyDraw())
     font = reconstitution._cached_font(None, 12)
-    reconstitution._draw_word(_AsciiOnlyDraw(), (0, 0), "Ünïcôde", font, (0, 0, 0))
+    reconstitution._draw_word(Image.new("RGB", (64, 16)), (0, 0), "Ünïcôde", font, (0, 0, 0))
     assert drawn == ["Unicode"]
+
+
+def _right_to_left_page(h_px: int = 200, w_px: int = 600) -> dict:
+    """A page holding one line of Arabic and one of Hebrew, each word in its own box from right to left."""
+    lines = []
+    for y, tokens in ((60, ("مرحبا", "بالعالم")), (130, ("שלום", "עולם"))):
+        words, x = [], 560.0
+        for token in tokens:
+            box_w = 16 * len(token)
+            x -= box_w
+            words.append({
+                "value": token,
+                "confidence": 1.0,
+                "geometry": ((x / w_px, y / h_px), ((x + box_w) / w_px, (y + 30) / h_px)),
+            })
+            x -= 14
+        lines.append({"geometry": ((0, 0), (1, 1)), "words": words})
+    return {"dimensions": (h_px, w_px), "blocks": [{"geometry": ((0, 0), (1, 1)), "lines": lines}]}
+
+
+@pytest.mark.skipif(reconstitution.khatt is None, reason="needs the rtl extra (khatt)")
+def test_synthesize_page_shapes_right_to_left_words(monkeypatch):
+    shaped = []
+    draw_text = reconstitution.khatt.draw_text
+
+    def spy(image, xy, text, **kwargs):
+        shaped.append(text)
+        return draw_text(image, xy, text, **kwargs)
+
+    monkeypatch.setattr(reconstitution.khatt, "draw_text", spy)
+    page = _right_to_left_page()
+    render = reconstitution.synthesize_page(page)
+    _assert_valid_render(render, page["dimensions"])
+    assert sorted(shaped) == sorted(["مرحبا", "بالعالم", "שלום", "עולם"])
+
+    # Left-to-right words are still drawn by Pillow
+    shaped.clear()
+    reconstitution.synthesize_page(_mock_pages()[0].export())
+    assert shaped == []
+
+
+@pytest.mark.skipif(reconstitution.khatt is None, reason="needs the rtl extra (khatt)")
+def test_right_to_left_words_are_measured_as_drawn():
+    font = reconstitution._cached_font(None, 32)
+    image = Image.new("RGB", (300, 80), (255, 255, 255))
+    reconstitution._draw_word(image, (10, 10), "بالعالم", font, (0, 0, 0), anchor="la")
+    left, top, right, bottom = Image.eval(image.convert("L"), lambda value: 255 - value).getbbox()
+    # The ink starts at the anchor and is as wide and as tall as measured
+    assert left == 10
+    assert right - left == reconstitution._text_width(font, "بالعالم")
+    assert bottom - top == reconstitution._text_height(font, "بالعالم")
+
+
+def test_only_right_to_left_text_in_a_font_file_is_shaped(monkeypatch):
+    monkeypatch.setattr(reconstitution, "khatt", object())
+    font = reconstitution._cached_font(None, 12)
+    assert reconstitution._shaping_font(font, "Hello") is None
+    assert reconstitution._shaping_font(font, "مرحبا") == (font.path, 12)
+    assert reconstitution._shaping_font(font, "Hello שלום") == (font.path, 12)
+    # Pillow's built-in font is not read from a file khatt could open
+    assert reconstitution._shaping_font(reconstitution.ImageFont.load_default(size=12), "مرحبا") is None
+    monkeypatch.setattr(reconstitution, "khatt", None)
+    assert reconstitution._shaping_font(font, "مرحبا") is None
 
 
 def test_tilt_needs_words_that_agree():

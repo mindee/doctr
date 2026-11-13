@@ -153,7 +153,9 @@ fig.savefig("predictions.png", bbox_inches="tight")
 ## Rebuild the page from its predictions
 
 {meth}`~doctr.io.Page.synthesize` draws the recognized words at their position on a blank page. It is a quick
-way to eyeball what was read, and where:
+way to eyeball what was read, and where. Arabic and Hebrew words need the `rtl` extra
+(`pip install "python-doctr[rtl]"`) to be drawn with their letters joined and in reading order, unless Pillow was
+built with Raqm:
 
 ```python
 import matplotlib.pyplot as plt
