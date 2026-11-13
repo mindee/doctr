@@ -50,7 +50,8 @@ The structure of these exports depends on what the predictor detected:
 - **Without layout analysis**, blocks become paragraphs.
 - **With layout analysis** (`detect_layout=True`), the layout regions are used to render titles and section
   headers as headings, list items as lists, and to place the page furniture (headers, footers, footnotes).
-- **With table recognition** (`detect_tables=True`), tables are rendered as real tables.
+- **With table recognition** (`detect_tables=True`), tables are rendered as real tables. The HTML export keeps
+  merged cells (`rowspan` / `colspan`); the other formats place the text of a merged cell at its top-left position.
 
 ::::{tab-set}
 

@@ -1013,7 +1013,8 @@ class HTMLExporter(_PageTextExporter):
         # Top-left position -> (row span, column span) of the merged cells, and the positions they cover
         spans: dict[tuple[int, int], tuple[int, int]] = {}
         covered: set[tuple[int, int]] = set()
-        for cell in table.cells:
+        # The merge whose top-left comes first (row-major) wins, whatever the order of `table.cells`
+        for cell in sorted(table.cells, key=lambda cell: (cell.row_start, cell.col_start)):
             r0, c0 = cell.row_start, cell.col_start
             r1, c1 = min(cell.row_end, num_rows - 1), min(cell.col_end, num_cols - 1)
             if r0 < 0 or c0 < 0 or r1 < r0 or c1 < c0 or (r1 == r0 and c1 == c0):
@@ -1021,10 +1022,18 @@ class HTMLExporter(_PageTextExporter):
             area = {(r, c) for r in range(r0, r1 + 1) for c in range(c0, c1 + 1)}
             others = area - {(r0, c0)}
             # Keep the dense layout when the merge would hide text or cross another merged cell
-            if area & covered or any(pos in spans for pos in area) or any(grid[r][c] for r, c in others):
+            if area & covered or any(pos in spans for pos in area) or any(grid[r][c].strip() for r, c in others):
                 continue
             spans[(r0, c0)] = (r1 - r0 + 1, c1 - c0 + 1)
             covered |= others
+
+        # Drop the rows entirely covered by merges from above (no `<tr></tr>`), shrinking the row spans crossing them
+        dropped = {r for r in range(num_rows) if all((r, c) in covered for c in range(num_cols))}
+        if dropped:
+            spans = {
+                (r0, c0): (row_span - sum(r in dropped for r in range(r0, r0 + row_span)), col_span)
+                for (r0, c0), (row_span, col_span) in spans.items()
+            }
 
         def _cell(value: str, tag: str, position: tuple[int, int]) -> str:
             content = self.escape_text(value) if escape else value
@@ -1039,6 +1048,7 @@ class HTMLExporter(_PageTextExporter):
             + "".join(_cell(value, "td" if r else "th", (r, c)) for c, value in enumerate(row) if (r, c) not in covered)
             + "</tr>"
             for r, row in enumerate(grid)
+            if r not in dropped
         ]
         return "<table>\n" + "\n".join(rows) + "\n</table>"
 

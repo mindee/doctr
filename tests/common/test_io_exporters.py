@@ -667,6 +667,25 @@ def test_table_html_export_spans():
         '<table>\n<tr><th colspan="2">head</th></tr>\n<tr><td>a</td><td>b</td></tr>\n</table>'
     )
 
+    # Crossing merges: the first one in row-major order wins, whatever the order of the cells
+    first, second, corner = ("", 0, 1, 0, 1), ("", 1, 2, 1, 2), ("z", 0, 0, 2, 2)
+    expected = (
+        '<table>\n<tr><th rowspan="2" colspan="2"></th><th>z</th></tr>\n'
+        "<tr><td></td></tr>\n<tr><td></td><td></td><td></td></tr>\n</table>"
+    )
+    assert HTMLExporter().render_table(_table([first, second, corner], 3, 3)) == expected
+    assert HTMLExporter().render_table(_table([second, first, corner], 3, 3)) == expected
+
+    # A row covered entirely by merges from above is dropped and the row spans crossing it shrink
+    full = _table([("A", 0, 1, 0, 0), ("B", 0, 1, 1, 1), ("x", 2, 2, 0, 0), ("y", 2, 2, 1, 1)], 3, 2)
+    assert HTMLExporter().render_table(full) == (
+        "<table>\n<tr><th>A</th><th>B</th></tr>\n<tr><td>x</td><td>y</td></tr>\n</table>"
+    )
+    tall = _table([("L", 0, 2, 0, 0), ("R", 0, 1, 1, 1), ("r2", 2, 2, 1, 1)], 3, 2)
+    assert HTMLExporter().render_table(tall) == (
+        '<table>\n<tr><th rowspan="2">L</th><th>R</th></tr>\n<tr><td>r2</td></tr>\n</table>'
+    )
+
 
 # --- XML / JSON ------------------------------------------------------------------------------------------------------
 
