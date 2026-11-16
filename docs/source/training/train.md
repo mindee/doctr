@@ -130,7 +130,8 @@ inclusive: a cell spanning one row and one column has equal start and end indice
 }
 ```
 
-The labels are split into [LaTeX tokens](../models/formula.md#latex-tokens), raw or already separated by spaces.
+The labels are split into LaTeX tokens with {func}`~doctr.datasets.tokenize_latex`, raw or already separated by
+spaces.
 :::
 
 :::{tab-item} Orientation
