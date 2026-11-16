@@ -30,6 +30,7 @@ from doctr.models import ocr_predictor
 ocr_predictor(pretrained=True)  # detection + recognition
 ocr_predictor(pretrained=True, assume_straight_pages=False)  # + orientation classifiers
 ocr_predictor(pretrained=True, detect_tables=True)  # + layout and table models
+ocr_predictor(pretrained=True, detect_formulas=True)  # + layout and formula models
 ```
 
 Copy the cache directory (`~/.cache/doctr` or `$DOCTR_CACHE_DIR`) to the same location on the offline machine.

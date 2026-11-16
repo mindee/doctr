@@ -73,6 +73,8 @@ def main(det_archs, reco_archs, layout_archs):
     layout_arch = st.sidebar.selectbox("Layout detection model", layout_archs, disabled=not detect_layout)
     # Table detection (relies on the layout model to locate tables)
     detect_tables = st.sidebar.checkbox("Detect tables", value=False)
+    # Formula recognition (relies on the layout model to locate formulas)
+    detect_formulas = st.sidebar.checkbox("Detect formulas", value=False)
     st.sidebar.write("\n")
     # Binarization threshold
     bin_thresh = st.sidebar.slider("Binarization threshold", min_value=0.1, max_value=0.9, value=0.3, step=0.1)
@@ -101,6 +103,7 @@ def main(det_archs, reco_archs, layout_archs):
                     detect_layout=detect_layout,
                     layout_arch=layout_arch,
                     detect_tables=detect_tables,
+                    detect_formulas=detect_formulas,
                 )
 
             with st.spinner("Analyzing..."):
@@ -132,6 +135,14 @@ def main(det_archs, reco_archs, layout_archs):
                     for idx, table in enumerate(out.pages[0].tables):
                         st.markdown(f"**Table {idx + 1}** ({table.num_rows} x {table.num_cols})")
                         st.dataframe(pd.DataFrame(table.to_grid()))
+
+                # Display recognized formulas (if any): rendered, and their LaTeX source
+                if out.pages[0].formulas:
+                    st.markdown("\nRecognized formulas:")
+                    for idx, formula in enumerate(out.pages[0].formulas):
+                        st.markdown(f"**Formula {idx + 1}** (confidence {formula.confidence:.2f})")
+                        st.latex(formula.value)
+                        st.code(formula.value, language="latex")
 
                 # Display JSON
                 st.markdown("\nHere are your analysis results in JSON format:")

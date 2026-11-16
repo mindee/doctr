@@ -32,6 +32,7 @@ class OCRIn(KIEIn, BaseModel):
     resolve_blocks: bool = Field(default=False, examples=[False])
     paragraph_break: float = Field(default=0.0035, examples=[0.0035])
     detect_tables: bool = Field(default=False, examples=[False])
+    detect_formulas: bool = Field(default=False, examples=[False])
 
 
 class RecognitionIn(BaseModel):
@@ -173,6 +174,13 @@ class TableOut(BaseModel):
     )
 
 
+class FormulaOut(BaseModel):
+    value: str = Field(..., examples=["\\frac { a } { b }"])
+    geometry: list[float] = Field(..., examples=[[0.0, 0.0, 0.0, 0.0]])
+    confidence: float = Field(..., examples=[0.99])
+    objectness_score: float | None = Field(..., examples=[0.99])
+
+
 class OCROut(BaseModel):
     name: str = Field(..., examples=["example.jpg"])
     orientation: dict[str, float | None] = Field(..., examples=[{"value": 0.0, "confidence": 0.99}])
@@ -203,6 +211,19 @@ class OCROut(BaseModel):
                             "objectness_score": 0.99,
                         }
                     ],
+                }
+            ]
+        ],
+    )
+    formulas: list[FormulaOut] = Field(
+        default=[],
+        examples=[
+            [
+                {
+                    "value": "\\frac { a } { b }",
+                    "geometry": [0.0, 0.0, 0.0, 0.0],
+                    "confidence": 0.99,
+                    "objectness_score": 0.99,
                 }
             ]
         ],

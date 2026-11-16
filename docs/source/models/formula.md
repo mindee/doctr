@@ -31,11 +31,11 @@ The input is wide rather than square, so long equations are not shrunk: each for
 keeping its aspect ratio, and padded. The model is trained with random margins around the formulas, so the crops of
 layout regions are read as they are, margins included.
 
-:::{note}
-No pretrained weights are released for `formulanet` yet: train it on your data with the
-[reference scripts](https://github.com/mindee/doctr/tree/main/references/formula#readme), e.g. on
-[UniMER-1M](https://huggingface.co/datasets/wanderkid/UniMER_Dataset).
-:::
+The pretrained weights are trained on the 1.06 M printed and handwritten formulas of
+[UniMER-1M](https://huggingface.co/datasets/wanderkid/UniMER_Dataset) (with the train split of
+[HME100K](https://huggingface.co/datasets/ConstantHao/HME100K), which UniMER-1M lists without images), starting from the
+pretrained `hgnetv2_b4` backbone. Fine-tune them on your data with the
+[reference scripts](https://github.com/mindee/doctr/tree/main/references/formula#readme).
 
 ## LaTeX tokens
 
@@ -59,11 +59,32 @@ normalize_latex(r"\sum_{i=1}^{n} x_i")  # '\\sum _ { i = 1 } ^ { n } x _ i'
 A custom list of tokens (e.g. with more CJK characters, for the formulas of Chinese documents) is passed with
 `formulanet(vocab=...)`.
 
+:::{note}
+About 1.3% of the UniMER-1M labels use TeX commands that KaTeX does not render (e.g. `\ensuremath`, `\Tilde`,
+`\boldmath`, or `\eqno` for an equation number), and the model can predict them. Such a formula renders in LaTeX, but
+not in a KaTeX-based Markdown or HTML viewer.
+:::
+
 ## Benchmark
 
 The metrics are produced by `references/formula/evaluate.py` with {class}`~doctr.utils.metrics.FormulaMetric`, on the
 LaTeX tokens: the **exact match** rate, the **edit similarity** (one minus the relative token edit distance) and the
-corpus-level **BLEU-4** score. The benchmark on the UniMER-Test subsets will be added with the pretrained weights.
+corpus-level **BLEU-4** score.
+
+Results of the pretrained `formulanet` on [UniMER-Test](https://huggingface.co/datasets/wanderkid/UniMER_Dataset)
+(23,757 formulas), with greedy decoding:
+
+| Subset | Formulas | Median tokens | Exact match | Edit similarity | BLEU |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| SPE (simple printed) | 6,762 | 48 | 45.92 | 93.86 | 0.833 |
+| CPE (complex printed) | 5,921 | 192 | 21.53 | 92.39 | 0.804 |
+| SCE (screen-captured) | 4,742 | 9 | 36.80 | 80.10 | 0.431 |
+| HWE (handwritten) | 6,332 | 16 | 61.96 | 93.61 | 0.887 |
+| **All** | 23,757 | 32 | 44.27 | 91.26 | 0.838 |
+
+Exact match requires every token to be right, so it drops for long formulas (CPE) while the edit similarity stays
+high. BLEU-4 is harsh on very short formulas (SCE): a single wrong token removes most of their 4-grams. It also counts different spellings of the same formula (e.g. `\left(` vs `(`, extra braces or spacing) as
+errors: compare models on the edit similarity and BLEU, per subset.
 
 ## Usage
 

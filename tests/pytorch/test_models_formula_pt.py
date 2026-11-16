@@ -78,7 +78,8 @@ def test_formulanet_kv_cache_matches_full_decoding():
         # Re-decoding the generated sequences in parallel gives the same logits
         tokens = torch.cat([torch.full((2, 1), model.sos), greedy.argmax(-1)[:, :-1]], dim=1)
         full = model.decode(tokens, memory)
-    assert greedy.shape == full.shape == (2, 11, len(LATEX_TOKENS) + 1)
+    # At most 10 tokens + EOS: the decoding stops earlier once both sequences have ended
+    assert greedy.shape == full.shape and greedy.shape[1] <= 11 and greedy.shape[2] == len(LATEX_TOKENS) + 1
     assert torch.allclose(greedy, full, atol=1e-4)
 
 

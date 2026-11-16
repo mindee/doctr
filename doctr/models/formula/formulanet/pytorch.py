@@ -29,7 +29,7 @@ default_cfgs: dict[str, dict[str, Any]] = {
         "std": (0.1738, 0.1738, 0.1738),
         "input_shape": (3, 256, 768),
         "vocab": LATEX_TOKENS,
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v1.1.0/formulanet-f7fcd308.pt",
     },
 }
 

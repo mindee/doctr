@@ -151,10 +151,12 @@ from doctr.io import DocumentFile
 from doctr.models import ocr_predictor
 
 predictor = ocr_predictor(pretrained=True, detect_formulas=True)
-result = predictor(DocumentFile.from_pdf("paper.pdf"))
+result = predictor(DocumentFile.from_pdf("attention_is_all_you_need.pdf"))  # arXiv:1706.03762
 
-formula = result.pages[0].formulas[0]
-print(formula.value, formula.confidence)  # \frac { a } { b ^ { 2 } } 0.97
+formula = result.pages[4].formulas[0]
+print(formula.value)
+# \mathrm { F F N } ( x ) = \operatorname* { m a x } ( 0 , x W _ { 1 } + b _ { 1 } ) W _ { 2 } + b _ { 2 } \eqno ( 2 )
+print(formula.confidence)  # 0.98
 ```
 
 The formulas are read in place with the text, and exported as display math:
@@ -230,7 +232,8 @@ from doctr.models import formula_predictor
 predictor = formula_predictor("formulanet", pretrained=True)
 out = predictor([formula_image])
 
-out[0]  # ('\\frac { a } { b ^ { 2 } }', 0.97): the LaTeX tokens separated by spaces, and the confidence
+# The LaTeX tokens separated by spaces, and the confidence
+out[0]  # ('J ( u , y ) = \\int _ { 0 } ^ { 1 } \\frac { | u | ^ { 2 } } { 2 } \\, d x + \\Psi ( y )', 0.98)
 ```
 
 With the layout regions of whole pages, the formula regions are cropped and read:
