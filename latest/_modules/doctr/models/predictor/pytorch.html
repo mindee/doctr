@@ -700,7 +700,7 @@
             <span class="n">det_pages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask_regions</span><span class="p">(</span><span class="n">pages</span><span class="p">,</span> <span class="n">regions</span><span class="p">)</span>
 
             <span class="c1"># Forward again to get predictions on straight pages</span>
-            <span class="n">loc_preds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">det_predictor</span><span class="p">(</span><span class="n">det_pages</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">loc_preds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detect_straightened</span><span class="p">(</span><span class="n">loc_preds</span><span class="p">,</span> <span class="n">_orig_pages</span><span class="p">,</span> <span class="n">pages</span><span class="p">,</span> <span class="n">det_pages</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">loc_pred</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">loc_pred</span> <span class="ow">in</span> <span class="n">loc_preds</span><span class="p">),</span> <span class="p">(</span>
             <span class="s2">"Detection Model in ocr_predictor should output only one class"</span>
