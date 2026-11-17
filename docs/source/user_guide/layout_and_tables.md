@@ -155,7 +155,7 @@ result = predictor(DocumentFile.from_pdf("attention_is_all_you_need.pdf"))  # ar
 
 formula = result.pages[4].formulas[0]
 print(formula.value)
-# \mathrm { F F N } ( x ) = \operatorname* { m a x } ( 0 , x W _ { 1 } + b _ { 1 } ) W _ { 2 } + b _ { 2 } \eqno ( 2 )
+# \mathrm { F F N } ( x ) = \operatorname* { m a x } ( 0 , x W _ { 1 } + b _ { 1 } ) W _ { 2 } + b _ { 2 } \tag { $ 2 $ }
 print(formula.confidence)  # 0.98
 ```
 

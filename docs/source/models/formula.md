@@ -19,15 +19,15 @@ pretrained model is trained on the printed and handwritten formulas of
 
 | Architecture | Input shape | # params | Exact match | Edit similarity | BLEU |
 | --- | --- | ---: | ---: | ---: | ---: |
-| `formulanet` | (256, 768, 3) | 26.4 M | 44.27 | 91.26 | 0.838 |
+| `formulanet` | (256, 768, 3) | 26.4 M | 44.40 | 91.30 | 0.840 |
 
 The metrics are produced by `references/formula/evaluate.py` with {class}`~doctr.utils.metrics.FormulaMetric` on
 [UniMER-Test](https://huggingface.co/datasets/wanderkid/UniMER_Dataset) (23,757 formulas), on the LaTeX tokens:
 **exact match** rate, **edit similarity** (one minus the relative token edit distance) and corpus-level **BLEU-4**.
 
 :::{note}
-A few formulas may use TeX commands that KaTeX does not render (e.g. `\eqno` for an equation number): they render in
-LaTeX, but not in a KaTeX-based Markdown or HTML viewer.
+Equation numbers are predicted with `\tag{...}` or as text after the formula. A few formulas may still use TeX commands that KaTeX does not render
+(e.g. `\boldmath`): they render in LaTeX, but not in a KaTeX-based Markdown or HTML viewer.
 :::
 
 ## Usage

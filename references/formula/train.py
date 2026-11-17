@@ -630,15 +630,13 @@ def main(args):
 
         if rank == 0:
             pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6} | LR: {actual_lr:.6}")
+            params = model.module if hasattr(model, "module") else model
             if val_loss < min_loss:
-                # All processes should see same parameters as they all start from same
-                # random parameters and gradients are synchronized in backward passes.
-                # Therefore, saving it in one process is sufficient.
                 pbar.write(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
-                params = model.module if hasattr(model, "module") else model
-
                 save_checkpoint(params, args.output_dir, exp_name)
                 min_loss = val_loss
+            if args.save_interval_epoch:
+                save_checkpoint(params, args.output_dir, f"{exp_name}_epoch{epoch + 1}")
             pbar.write(
                 f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
                 f"(Exact match: {result['exact_match']:.2%} | Edit similarity: {result['edit_similarity']:.2%} | "
@@ -703,6 +701,9 @@ def parse_args():
     parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
     parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
     parser.add_argument("-b", "--batch_size", type=int, default=32, help="batch size for training")
+    parser.add_argument(
+        "--save-interval-epoch", dest="save_interval_epoch", action="store_true", help="Save model every epoch"
+    )
     parser.add_argument(
         "--input_size",
         type=int,
