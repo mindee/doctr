@@ -155,7 +155,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             det_pages = self._mask_regions(pages, regions)
 
             # Forward again to get predictions on straight pages
-            loc_preds = self.det_predictor(det_pages, **kwargs)
+            loc_preds = self._detect_straightened(loc_preds, _orig_pages, pages, det_pages, **kwargs)
 
         dict_loc_preds: dict[str, list[np.ndarray]] = invert_data_structure(loc_preds)  # type: ignore[assignment]
 

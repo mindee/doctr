@@ -177,7 +177,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             det_pages = self._mask_regions(pages, regions)
 
             # Forward again to get predictions on straight pages
-            loc_preds = self.det_predictor(det_pages, **kwargs)
+            loc_preds = self._detect_straightened(loc_preds, _orig_pages, pages, det_pages, **kwargs)
 
         assert all(len(loc_pred) == 1 for loc_pred in loc_preds), (
             "Detection Model in ocr_predictor should output only one class"
