@@ -31,180 +31,111 @@ from doctr.transforms.functional.base import create_shadow_mask
 from doctr.utils import Sample
 
 
-def test_resize():
-    output_size = (32, 32)
-    transfo = Resize(output_size)
-    input_t = Sample(image=torch.ones((3, 64, 64), dtype=torch.float32))
-    out = transfo(input_t).image
+def _ones(h, w, dtype=torch.float32):
+    return torch.ones((3, h, w), dtype=dtype)
 
+
+_BOXES = np.array([[0.1, 0.1, 0.3, 0.4], [0.2, 0.2, 0.8, 0.8]])
+_POLYGONS = np.array([
+    [[0.1, 0.1], [0.9, 0.1], [0.9, 0.9], [0.1, 0.9]],
+    [[0.2, 0.2], [0.8, 0.2], [0.8, 0.8], [0.2, 0.8]],
+])
+
+
+def test_resize():
+    transfo = Resize((32, 32))
+    out = transfo(Sample(image=_ones(64, 64))).image
     assert torch.all(out == 1)
-    assert out.shape[-2:] == output_size
+    assert out.shape[-2:] == (32, 32)
     assert repr(transfo) == "Resize(output_size=(32, 32), interpolation='bilinear')"
 
-    # Test return_padding_mask without aspect ratio
-    transfo = Resize(output_size, return_padding_mask=True)
-    data = transfo(input_t)
+    # A plain (stretching) resize adds no padding: every pixel is valid image content
+    data = Resize((32, 32), return_padding_mask=True)(Sample(image=_ones(64, 64)))
+    assert isinstance(data, Sample)
+    assert data.image.shape[-2:] == (32, 32)
+    assert data.mask.shape == (32, 32) and data.mask.dtype == torch.bool
+    assert torch.all(data.mask)
+
+
+@pytest.mark.parametrize(
+    "symmetric_pad, content_rows",
+    [
+        # The (32, 64) image is scaled to (16, 32), then padded at the bottom...
+        [False, slice(0, 16)],
+        # ... or on both sides (8 rows each)
+        [True, slice(8, 24)],
+    ],
+)
+def test_resize_preserve_aspect_ratio(symmetric_pad, content_rows):
+    transfo = Resize((32, 32), preserve_aspect_ratio=True, symmetric_pad=symmetric_pad, return_padding_mask=True)
+    data = transfo(Sample(image=_ones(32, 64)))
     out, mask = data.image, data.mask
-    assert out.shape[-2:] == output_size
-    assert mask.shape == output_size
-    assert mask.dtype == torch.bool
-    # No padding was added: every pixel is valid image content
-    assert torch.all(mask)
 
-    # Test with preserve_aspect_ratio
-    output_size = (32, 32)
-    input_t = Sample(image=torch.ones((3, 32, 64), dtype=torch.float32))
+    assert out.shape[-2:] == (32, 32)
+    assert torch.all(out[:, content_rows] == 1)
+    assert torch.all(out[:, -1] == 0)
+    assert torch.all(out[:, 0] == (0 if symmetric_pad else 1))
+    # Image content is marked as valid (True), padding is masked out (False)
+    assert mask.shape == (32, 32) and mask.dtype == torch.bool
+    expected_mask = torch.zeros((32, 32), dtype=torch.bool)
+    expected_mask[content_rows] = True
+    assert torch.equal(mask, expected_mask)
 
-    # Asymmetric padding
-    transfo = Resize(output_size, preserve_aspect_ratio=True)
-    out = transfo(input_t).image
-    assert out.shape[-2:] == output_size
-    assert not torch.all(out == 1)
-    assert torch.all(out[:, -1] == 0) and torch.all(out[:, 0] == 1)
 
-    # Asymmetric padding mask: the (32, 64) image is scaled to (16, 32) and padded at the bottom
-    transfo = Resize(output_size, preserve_aspect_ratio=True, return_padding_mask=True)
-    data = transfo(input_t)
-    out, mask = data.image, data.mask
-    assert mask.shape == output_size
-    assert mask.dtype == torch.bool
-    assert torch.all(mask[:16])  # image content is marked as valid (True)
-    assert not mask[16:].any()  # bottom padding is masked out (False)
-
-    # Symmetric padding
+def test_resize_repr_and_shapes():
     transfo = Resize(32, preserve_aspect_ratio=True, symmetric_pad=True)
-    out = transfo(input_t).image
-    assert out.shape[-2:] == output_size
-    assert torch.all(out[:, 0] == 0) and torch.all(out[:, -1] == 0)
-
-    # Symmetric padding mask: the (32, 64) image is scaled to (16, 32) and padded top & bottom (8 rows each)
-    transfo = Resize(32, preserve_aspect_ratio=True, symmetric_pad=True, return_padding_mask=True)
-    data = transfo(input_t)
-    out, mask = data.image, data.mask
-    assert mask.shape == output_size
-    assert mask.dtype == torch.bool
-    assert torch.all(mask[8:24])  # centered image content is marked as valid (True)
-    assert not mask[:8].any() and not mask[24:].any()  # symmetric padding is masked out (False)
-
     expected = "Resize(output_size=(32, 32), interpolation='bilinear', preserve_aspect_ratio=True, symmetric_pad=True)"
     assert repr(transfo) == expected
-
-    # Test with inverse resize
-    input_t = Sample(image=torch.ones((3, 64, 32), dtype=torch.float32))
-    transfo = Resize(32, preserve_aspect_ratio=True, symmetric_pad=True)
-    out = transfo(input_t).image
-    assert out.shape[-2:] == (32, 32)
-
-    # Test resize with same ratio
+    # Portrait input
+    assert transfo(Sample(image=_ones(64, 32))).image.shape[-2:] == (32, 32)
+    # Input with the same aspect ratio as the output
     transfo = Resize((32, 128), preserve_aspect_ratio=True)
-    out = transfo(Sample(image=torch.ones((3, 16, 64), dtype=torch.float32))).image
-    assert out.shape[-2:] == (32, 128)
+    assert transfo(Sample(image=_ones(16, 64))).image.shape[-2:] == (32, 128)
+    # The data type is kept
+    assert transfo(Sample(image=_ones(64, 64, dtype=torch.float16))).image.dtype == torch.float16
 
-    # Test with fp16 input
-    transfo = Resize((32, 128), preserve_aspect_ratio=True)
-    input_t = Sample(image=torch.ones((3, 64, 64), dtype=torch.float16))
-    out = transfo(input_t).image
-    assert out.dtype == torch.float16
 
-    padding = [True, False]
-    for symmetric_pad in padding:
-        # Test with target boxes
-        target_boxes = np.array([[0.1, 0.1, 0.3, 0.4], [0.2, 0.2, 0.8, 0.8]])
-        transfo = Resize((64, 64), preserve_aspect_ratio=True, symmetric_pad=symmetric_pad, return_padding_mask=True)
-        input_t = Sample(image=torch.ones((3, 32, 64), dtype=torch.float32), target=target_boxes)
-        data = transfo(input_t)
-        out, mask, new_target = data.image, data.mask, data.target
+@pytest.mark.parametrize("symmetric_pad", [True, False])
+@pytest.mark.parametrize("target", [_BOXES, _POLYGONS], ids=["boxes", "polygons"])
+@pytest.mark.parametrize("input_mask", [None, torch.zeros((32, 64), dtype=torch.bool)], ids=["no_mask", "mask"])
+def test_resize_targets(symmetric_pad, target, input_mask):
+    transfo = Resize((64, 64), preserve_aspect_ratio=True, symmetric_pad=symmetric_pad, return_padding_mask=True)
+    data = transfo(Sample(image=_ones(32, 64), mask=input_mask, target=target))
 
-        assert out.shape[-2:] == (64, 64)
-        assert new_target.shape == target_boxes.shape
-        assert np.all((0 <= new_target) & (new_target <= 1))
-        assert mask.shape == (64, 64)
-        assert mask.dtype == torch.bool
+    assert data.image.shape[-2:] == (64, 64)
+    assert data.target.shape == target.shape
+    assert np.all((0 <= data.target) & (data.target <= 1))
+    assert data.mask.shape == (64, 64) and data.mask.dtype == torch.bool
 
-        # Test with target polygons
-        target_boxes = np.array([
-            [[0.1, 0.1], [0.9, 0.1], [0.9, 0.9], [0.1, 0.9]],
-            [[0.2, 0.2], [0.8, 0.2], [0.8, 0.8], [0.2, 0.8]],
-        ])
-        transfo = Resize((64, 64), preserve_aspect_ratio=True, symmetric_pad=symmetric_pad, return_padding_mask=True)
-        input_t = Sample(image=torch.ones((3, 32, 64), dtype=torch.float32), target=target_boxes)
-        data = transfo(input_t)
-        out, mask, new_target = data.image, data.mask, data.target
 
-        assert out.shape[-2:] == (64, 64)
-        assert new_target.shape == target_boxes.shape
-        assert np.all((0 <= new_target) & (new_target <= 1))
-        assert mask.shape == (64, 64)
-        assert mask.dtype == torch.bool
-
-        # Test with included mask in input sample
-        input_t = Sample(
-            image=torch.ones((3, 32, 64), dtype=torch.float32),
-            mask=torch.zeros((32, 64), dtype=torch.bool),
-            target=target_boxes,
-        )
-        data = transfo(input_t)
-        out, mask, new_target = data.image, data.mask, data.target
-
-        assert out.shape[-2:] == (64, 64)
-        assert new_target.shape == target_boxes.shape
-        assert np.all((0 <= new_target) & (new_target <= 1))
-        assert mask.shape == (64, 64)
-        assert mask.dtype == torch.bool
-
-    # Test with invalid target shape
-    input_t = torch.ones((3, 32, 64), dtype=torch.float32)
-    target = np.ones((2, 5))  # Invalid shape
-
-    transfo = Resize((64, 64), preserve_aspect_ratio=True)
-    with pytest.raises(AssertionError):
-        transfo(Sample(image=input_t, target=target))
-
-    # Test dict targets
-    target_dict = {
+def test_resize_dict_targets():
+    target = {
         "boxes": np.array([[0.1, 0.1, 0.9, 0.9]], dtype=np.float32),
         "polygons": np.array([[[0.2, 0.2], [0.8, 0.2], [0.8, 0.8], [0.2, 0.8]]], dtype=np.float32),
     }
-    transfo = Resize(
-        (64, 64),
-        preserve_aspect_ratio=True,
-        symmetric_pad=True,
-    )
-    new_target = transfo(Sample(image=input_t, target=target_dict)).target
+    new_target = Resize((64, 64), preserve_aspect_ratio=True, symmetric_pad=True)(
+        Sample(image=_ones(32, 64), target=target)
+    ).target
     assert isinstance(new_target, dict)
     assert set(new_target.keys()) == {"boxes", "polygons"}
     assert new_target["boxes"].shape == (1, 4)
     assert new_target["polygons"].shape == (1, 4, 2)
 
-    # Test return type combinations
-    transfo = Resize((32, 32))
-    out = transfo(Sample(image=input_t)).image
-    assert isinstance(out, torch.Tensor)
 
-    transfo = Resize((32, 32), return_padding_mask=True)
-    out = transfo(Sample(image=input_t))
+def test_resize_invalid_target():
+    with pytest.raises(AssertionError):
+        Resize((64, 64), preserve_aspect_ratio=True)(Sample(image=_ones(32, 64), target=np.ones((2, 5))))
+
+
+@pytest.mark.parametrize("return_padding_mask", [True, False])
+def test_resize_returns_sample(return_padding_mask):
+    transfo = Resize((32, 32), preserve_aspect_ratio=True, return_padding_mask=return_padding_mask)
+    out = transfo(Sample(image=_ones(32, 64), target=_POLYGONS))
     assert isinstance(out, Sample)
-    assert hasattr(out, "image") and hasattr(out, "mask")
     assert out.image.shape[-2:] == (32, 32)
-    assert out.mask.shape[-2:] == (32, 32)
-
-    transfo = Resize((32, 32), preserve_aspect_ratio=True)
-    out = transfo(Sample(image=input_t, target=target_boxes))
-    assert isinstance(out, Sample)
-    assert hasattr(out, "image") and hasattr(out, "target")
-    assert out.image.shape[-2:] == (32, 32)
-
-    transfo = Resize(
-        (32, 32),
-        preserve_aspect_ratio=True,
-        return_padding_mask=True,
-    )
-
-    out = transfo(Sample(image=input_t, target=target_boxes))
-    assert isinstance(out, Sample)
-    assert hasattr(out, "image") and hasattr(out, "mask") and hasattr(out, "target")
-    assert out.image.shape[-2:] == (32, 32)
-    assert out.mask.shape[-2:] == (32, 32)
+    assert out.target is not None
+    if return_padding_mask:
+        assert out.mask.shape[-2:] == (32, 32)
 
 
 @pytest.mark.parametrize(

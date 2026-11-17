@@ -10,6 +10,7 @@ from collections.abc import Callable
 from typing import Any
 
 import torch
+import torch.nn.functional as F
 from torch import nn
 
 __all__ = ["Decoder", "PositionalEncoding", "EncoderBlock", "MultiHeadAttention", "PositionwiseFeedForward"]
@@ -45,14 +46,21 @@ class PositionalEncoding(nn.Module):
 
 def scaled_dot_product_attention(
     query: torch.Tensor, key: torch.Tensor, value: torch.Tensor, mask: torch.Tensor | None = None
-) -> tuple[torch.Tensor, torch.Tensor]:
-    """Scaled Dot-Product Attention"""
-    scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(query.size(-1))
-    if mask is not None:
-        # NOTE: to ensure the ONNX compatibility, masked_fill works only with int equal condition
-        scores = scores.masked_fill(mask == 0, float("-inf"))
-    p_attn = torch.softmax(scores, dim=-1)
-    return torch.matmul(p_attn, value), p_attn
+) -> tuple[torch.Tensor, None]:
+    """Scaled Dot-Product Attention, with the fused kernels of PyTorch (the attention weights are not materialized)
+
+    Args:
+        query: queries of shape (*, L, E)
+        key: keys of shape (*, S, E)
+        value: values of shape (*, S, E)
+        mask: optional mask broadcastable to (*, L, S), where 0 marks the keys a query must not attend to
+
+    Returns:
+        the attention output of shape (*, L, E), and None in place of the attention weights
+    """
+    # NOTE: the boolean mask is derived with an int comparison, to ensure the ONNX compatibility
+    attn_mask = None if mask is None else mask != 0
+    return F.scaled_dot_product_attention(query, key, value, attn_mask=attn_mask), None
 
 
 class PositionwiseFeedForward(nn.Sequential):
@@ -93,7 +101,7 @@ class MultiHeadAttention(nn.Module):
         ]
 
         # apply attention on all the projected vectors in batch
-        x, attn = scaled_dot_product_attention(query, key, value, mask=mask)
+        x, _ = scaled_dot_product_attention(query, key, value, mask=mask)
 
         # Concat attention heads
         x = x.transpose(1, 2).contiguous().view(batch_size, -1, self.num_heads * self.d_k)

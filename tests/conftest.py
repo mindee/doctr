@@ -1,4 +1,5 @@
 import json
+import os
 import shutil
 import tempfile
 from io import BytesIO
@@ -8,11 +9,22 @@ import numpy as np
 import pytest
 import requests
 import scipy.io as sio
+import torch
 from PIL import Image
 
 from doctr.datasets.generator.base import synthesize_text_img
 from doctr.io import read_img_as_numpy
 from doctr.utils import geometry
+
+
+def pytest_configure(config):
+    # With pytest-xdist (`-n`), every worker would start one PyTorch / OpenCV thread per core: the workers then compete
+    # for the cores, and CPU-bound tests (e.g. autoregressive decoding) run 100x slower. Share the cores between them.
+    num_workers = int(os.environ.get("PYTEST_XDIST_WORKER_COUNT", 0))
+    if num_workers > 1:
+        num_threads = max(1, (os.cpu_count() or 1) // num_workers)
+        torch.set_num_threads(num_threads)
+        cv2.setNumThreads(num_threads)
 
 
 @pytest.fixture(scope="session")

@@ -7,7 +7,6 @@
 import cv2
 import numpy as np
 
-from doctr.utils.multithreading import multithread_exec
 from doctr.utils.repr import NestedObject
 
 __all__ = ["DetectionPostProcessor"]
@@ -107,4 +106,7 @@ class DetectionPostProcessor(NestedObject):
         """
         if proba_map.ndim != 4:
             raise AssertionError(f"arg `proba_map` is expected to be 4-dimensional, got {proba_map.ndim}.")
-        return list(multithread_exec(self._process_sample, proba_map))
+        # Not in a thread pool: the processing of a page is mostly bound by the Python overhead of its many boxes, and
+        # OpenCV already parallelizes its own operations, so that threads only compete for the GIL and the cores
+        # (2 to 5x slower on dense pages)
+        return [self._process_sample(sample) for sample in proba_map]

@@ -531,6 +531,9 @@ def test_documentbuilder_tables():
     assert page.tables == [] and page.export()["tables"] == []
     assert sorted(_words(page)) == sorted(_TABLE_WORDS)
 
+
+def test_documentbuilder_tables_straight_cells():
+    doc_builder = builder.DocumentBuilder()
     # Straight-mode table predictions store cells as flat (xmin, ymin, xmax, ymax) boxes
     # Regression test: this format used to crash the word-to-cell assignment with an IndexError
     straight = {
@@ -544,6 +547,9 @@ def test_documentbuilder_tables():
     assert len(page.tables) == 1 and page.tables[0].to_grid() == [["Name", "Age"]]
     assert _words(page) == ["caption"]
 
+
+def test_documentbuilder_tables_cell_scores():
+    doc_builder = builder.DocumentBuilder()
     # Each cell keeps the score of the table structure model, next to the recognition confidence of its words
     table = {
         "cells": [
@@ -563,6 +569,9 @@ def test_documentbuilder_tables():
     assert page.tables[0].confidence == pytest.approx(0.575)
     assert [cell["objectness_score"] for cell in page.export()["tables"][0]["cells"]] == [0.8, 0.6, 0.4, 0.5]
 
+
+def test_documentbuilder_tables_multi_word_cells():
+    doc_builder = builder.DocumentBuilder()
     # Multi-word cells are read line by line, left to right
     words = ["world", "hello", "second", "line", "solo"]
     boxes = [
@@ -586,6 +595,9 @@ def test_documentbuilder_tables():
     boxes = [[0.15, 0.15, 0.15, 0.15], [0.16, 0.15, 0.16, 0.15]]
     assert doc_builder(*_word_args(["a", "b"], boxes), tables=[[table]]).pages[0].tables[0].to_grid() == [["a b"]]
 
+
+def test_documentbuilder_tables_word_assignment():
+    doc_builder = builder.DocumentBuilder()
     # A word in the gutter goes to its nearest cell, a word far away from the table stays in the regular blocks
     words = ["left", "right", "outside", "faraway"]
     boxes = [
@@ -604,6 +616,9 @@ def test_documentbuilder_tables():
     assert grid[0][0] == "left" and "outside" in grid[0][1]
     assert _words(page) == ["faraway"]
 
+
+def test_documentbuilder_tables_rotated():
+    doc_builder = builder.DocumentBuilder()
     # Rotated pages keep 4-point polygons for the table and its cells
     cell_boxes = [
         (0.10, 0.10, 0.28, 0.20),
