@@ -247,19 +247,24 @@ class MASTER(_MASTER, nn.Module):
         ys = torch.full((b, self.max_length), self.vocab_size + 2, dtype=torch.long, device=encoded.device)  # pad
         ys[:, 0] = self.vocab_size + 1  # sos
 
-        # Final dimension include EOS/SOS/PAD
-        for i in range(self.max_length - 1):
-            source_mask, target_mask = self.make_source_and_target_mask(encoded, ys)
-            output = self.decoder(ys, encoded, source_mask, target_mask)
-            # update ys with the next token and ignore the first token (SOS)
-            ys[:, i + 1] = self.linear(output[:, i]).argmax(-1)
-            # Stop decoding if all sequences have reached the EOS token
-            # NOTE: `break` isn't correctly translated to Onnx so we don't break here if we want to export
-            if not self.exportable and (ys == self.vocab_size).any(dim=-1).all():
-                break
+        # Incremental decoding: each step only decodes the last token, the previous ones are cached
+        cache: list[dict[str, tuple[torch.Tensor, torch.Tensor]]] = []
+        logits = []
+        for i in range(self.max_length):
+            step_logits = self.linear(self.decoder(ys[:, i : i + 1], encoded, cache=cache))
+            logits.append(step_logits)
+            if i + 1 < self.max_length:
+                # update ys with the next token
+                ys[:, i + 1] = step_logits[:, 0].argmax(-1)
+                # Stop decoding if all sequences have reached the EOS token
+                # NOTE: `break` isn't correctly translated to Onnx so we don't break here if we want to export
+                if not self.exportable and (ys == self.vocab_size).any(dim=-1).all():
+                    break
 
-        # Shape (N, max_length, vocab_size + 1)
-        return self.linear(output)
+        out = torch.cat(logits, dim=1)
+        # Shape (N, max_length, vocab_size + 1): the positions after an early stop come after the EOS of every
+        # sequence, and are not decoded
+        return F.pad(out, (0, 0, 0, self.max_length - out.size(1)))
 
 
 class MASTERPostProcessor(_MASTERPostProcessor):

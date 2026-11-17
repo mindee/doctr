@@ -65,6 +65,16 @@ def test_tensor_from_numpy(mock_image_stream):
     assert torch.equal(tensor_from_pil(Image.fromarray(gray), dtype=torch.uint8)[0], torch.from_numpy(gray))
 
 
+@pytest.mark.parametrize("dtype", [torch.float32, torch.float16, torch.uint8])
+def test_tensor_from_numpy_views(dtype):
+    # Flipped / rotated views have negative strides, which torch.from_numpy rejects, and read-only arrays warn
+    img = np.random.default_rng(0).integers(0, 256, (16, 24, 3), dtype=np.uint8)
+    read_only = img.copy()
+    read_only.flags.writeable = False
+    for view in (img[::-1], img[:, ::-1], np.rot90(img), np.rot90(img[:1], 3), read_only):
+        assert torch.equal(tensor_from_numpy(view, dtype), tensor_from_numpy(view.copy(), dtype))
+
+
 def test_read_img_as_tensor_exif_orientation(tmpdir_factory):
     folder = tmpdir_factory.mktemp("images")
     path = str(folder.join("exif_o6.jpg"))

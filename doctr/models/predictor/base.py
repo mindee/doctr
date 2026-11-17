@@ -24,6 +24,7 @@ from doctr.utils.multithreading import prefetch_chunks
 from .._utils import estimate_orientation, mask_boxes, rectify_crops, rectify_loc_preds
 from ..classification import crop_orientation_predictor, page_orientation_predictor
 from ..classification.predictor import OrientationPredictor
+from ..detection.predictor import DetectionPredictor
 
 __all__ = ["_OCRPredictor"]
 
@@ -64,6 +65,8 @@ class _OCRPredictor:
     """
 
     crop_orientation_predictor: OrientationPredictor | None
+    # Set by the framework-specific predictors
+    det_predictor: DetectionPredictor
     page_orientation_predictor: OrientationPredictor | None
 
     def __init__(
@@ -305,6 +308,38 @@ class _OCRPredictor:
             m_invs.append(m_inv)
             out.append(straightened)
         return out, m_invs
+
+    def _detect_straightened(
+        self,
+        loc_preds: list[Any],
+        orig_pages: list[np.ndarray],
+        pages: list[np.ndarray],
+        det_pages: list[np.ndarray],
+        **kwargs: Any,
+    ) -> list[Any]:
+        """Detect the text again on the straightened pages, except on the ones left unchanged by the straightening
+        and the masking (e.g. straight pages): the detection made to estimate their orientation is reused
+
+        Args:
+            loc_preds: the detections on the original pages
+            orig_pages: the original pages
+            pages: the straightened pages
+            det_pages: the straightened pages passed to the detection model (masked layout regions)
+            **kwargs: keyword arguments of the detection predictor
+
+        Returns:
+            the detections on the straightened pages
+        """
+        out = list(loc_preds)
+        changed = [
+            idx
+            for idx, (orig, page, det_page) in enumerate(zip(orig_pages, pages, det_pages))
+            if det_page is not page or orig.shape != page.shape or not np.array_equal(orig, page)
+        ]
+        if changed:
+            for idx, pred in zip(changed, self.det_predictor([det_pages[idx] for idx in changed], **kwargs)):
+                out[idx] = pred
+        return out
 
     @staticmethod
     def _generate_crops(

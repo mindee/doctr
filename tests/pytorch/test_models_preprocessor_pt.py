@@ -59,3 +59,17 @@ def test_preprocessor(batch_size, output_size, input_tensor, expected_batches, e
     # mask sanity: should contain both 0 and 1 somewhere (padding depends on Resize logic)
     assert all(torch.is_tensor(m) for m in masks)
     assert len(repr(processor).split("\n")) == 4
+
+
+def test_preprocessor_views():
+    # Rectified crops are rotated views: np.rot90 of a crop of 1 pixel in height has a negative stride on an axis of
+    # size 1, which numpy considers contiguous, but torch.from_numpy rejects
+    crop = np.random.default_rng(0).integers(0, 256, (1, 40, 3), dtype=np.uint8)
+    views = [np.rot90(crop, k) for k in range(4)] + [crop[:, ::-1], crop[..., ::-1]]
+    processor = PreProcessor((32, 128), batch_size=8, preserve_aspect_ratio=True)
+    expected = processor([view.copy() for view in views])
+    out = processor(views)
+    assert len(out) == 1 and torch.equal(out[0], expected[0])
+    # Same for a batch of pages passed as a single array
+    pages = np.rot90(np.repeat(crop[None], 2, axis=0), 3, axes=(1, 2))
+    assert torch.equal(processor(pages)[0], processor(pages.copy())[0])

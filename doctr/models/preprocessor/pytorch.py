@@ -14,9 +14,17 @@ from torchvision.transforms import transforms as T
 
 from doctr.transforms import Resize
 from doctr.utils import Sample
-from doctr.utils.multithreading import multithread_exec
 
 __all__ = ["PreProcessor"]
+
+
+def _torch_compatible(x: np.ndarray) -> np.ndarray:
+    """Make an array readable by `torch.from_numpy`, which requires a writable buffer without negative strides.
+    `np.ascontiguousarray` is not enough: it keeps a negative stride on an axis of size 1 (e.g. `np.rot90` of a crop
+    of 1 pixel in height, as rectified crops can be), which numpy still considers contiguous."""
+    if not x.flags.writeable or any(stride < 0 for stride in x.strides):
+        return x.copy()
+    return np.ascontiguousarray(x)
 
 
 class PreProcessor(nn.Module):
@@ -98,9 +106,7 @@ class PreProcessor(nn.Module):
             raise AssertionError("expected list of 3D Tensors")
         if x.dtype not in (np.uint8, np.float32, np.float16):
             raise TypeError("unsupported data type for numpy.ndarray")
-        if not x.flags.writeable:  # torch.from_numpy requires a writable buffer
-            x = x.copy()
-        tensor = torch.from_numpy(np.ascontiguousarray(x)).permute(2, 0, 1)
+        tensor = torch.from_numpy(_torch_compatible(x)).permute(2, 0, 1)
         # Resizing
         if self.resize.return_padding_mask:
             sample = self.resize(Sample(image=tensor))
@@ -132,9 +138,7 @@ class PreProcessor(nn.Module):
                 raise AssertionError("expected 4D Tensor")
             if x.dtype not in (np.uint8, np.float32, np.float16):
                 raise TypeError("unsupported data type for numpy.ndarray")
-            if not x.flags.writeable:  # torch.from_numpy requires a writable buffer
-                x = x.copy()
-            tensor = torch.from_numpy(np.ascontiguousarray(x)).permute(0, 3, 1, 2)
+            tensor = torch.from_numpy(_torch_compatible(x)).permute(0, 3, 1, 2)
 
             # Resizing
             if tensor.shape[-2] != self.resize.size[0] or tensor.shape[-1] != self.resize.size[1]:
@@ -156,7 +160,7 @@ class PreProcessor(nn.Module):
 
         elif isinstance(x, list) and all(isinstance(sample, np.ndarray) for sample in x):
             # Sample transform (to tensor, resize)
-            samples = list(multithread_exec(self.sample_transforms, x))
+            samples: Any = [self.sample_transforms(sample) for sample in x]
             # Batching
             if self.resize.return_padding_mask:
                 img_batches, mask_batches = self.batch_inputs(samples)
@@ -166,9 +170,7 @@ class PreProcessor(nn.Module):
             raise TypeError(f"invalid input type: {type(x)}")
 
         # Batch transforms (normalize)
+        img_batches = [self.normalize(batch) for batch in img_batches]
         if self.resize.return_padding_mask:
-            img_batches = list(multithread_exec(self.normalize, img_batches))
             return img_batches, mask_batches
-
-        img_batches = list(multithread_exec(self.normalize, img_batches))
         return img_batches

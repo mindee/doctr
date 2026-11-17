@@ -7,7 +7,6 @@
 import cv2
 import numpy as np
 
-from doctr.utils.multithreading import multithread_exec
 from doctr.utils.repr import NestedObject
 
 __all__ = ["DetectionPostProcessor"]
@@ -107,4 +106,4 @@ class DetectionPostProcessor(NestedObject):
         """
         if proba_map.ndim != 4:
             raise AssertionError(f"arg `proba_map` is expected to be 4-dimensional, got {proba_map.ndim}.")
-        return list(multithread_exec(self._process_sample, proba_map))
+        return [self._process_sample(sample) for sample in proba_map]

@@ -199,6 +199,28 @@ def test_aggregate_confidence_edge_cases():
             aggregate_confidence([0.5], invalid)
 
 
+def test_detect_straightened():
+    # Only the pages changed by the straightening or the masking are detected again
+    calls = []
+
+    def det_predictor(pages, **kwargs):
+        calls.append(len(pages))
+        return [f"redetected_{idx}" for idx in range(len(pages))]
+
+    predictor = _OCRPredictor.__new__(_OCRPredictor)
+    predictor.det_predictor = det_predictor
+    orig = [np.zeros((4, 4, 3), dtype=np.uint8) for _ in range(4)]
+    straight = [orig[0].copy(), np.ones((4, 4, 3), dtype=np.uint8), np.zeros((4, 5, 3), dtype=np.uint8), orig[3].copy()]
+    masked = [straight[0], straight[1], straight[2], straight[3].copy()]  # the last page is masked (a copy)
+    out = predictor._detect_straightened(["first_0", "first_1", "first_2", "first_3"], orig, straight, masked)
+    assert out == ["first_0", "redetected_0", "redetected_1", "redetected_2"]
+    assert calls == [3]
+    # Nothing changed: no detection at all
+    calls.clear()
+    assert predictor._detect_straightened(["a"], orig[:1], straight[:1], straight[:1]) == ["a"]
+    assert calls == []
+
+
 def test_align_hook_output():
     boxes = [
         np.array([[0.1, 0.1, 0.2, 0.2], [0.5, 0.5, 0.6, 0.6], [0.8, 0.1, 0.9, 0.2]], dtype=np.float32),

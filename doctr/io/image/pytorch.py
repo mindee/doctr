@@ -83,6 +83,10 @@ def tensor_from_numpy(npy_img: np.ndarray, dtype: torch.dtype = torch.float32) -
     if dtype not in (torch.uint8, torch.float16, torch.float32):
         raise ValueError("insupported value for dtype")
 
+    # torch.from_numpy requires a writable buffer without negative strides (e.g. a flipped or rotated view)
+    if not npy_img.flags.writeable or any(stride < 0 for stride in npy_img.strides):
+        npy_img = npy_img.copy()
+
     if dtype == torch.float32:
         img = to_tensor(npy_img)
     else:

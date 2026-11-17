@@ -1,5 +1,6 @@
 import json
 import os
+from contextlib import contextmanager
 from shutil import move
 
 import numpy as np
@@ -12,6 +13,16 @@ from doctr import datasets
 from doctr.datasets.generator import base
 from doctr.file_utils import CLASS_NAME
 from doctr.transforms import Resize, SampleCompose
+
+
+@contextmanager
+def _moved_away(path):
+    # Remove a file of a session-wide fixture folder for the duration of a check, and restore it even if the check fails
+    move(path, f"{path}.tmp")
+    try:
+        yield
+    finally:
+        move(f"{path}.tmp", path)
 
 
 def _validate_dataset(ds, input_size, batch_size=2, class_indices=False, is_polygons=False):
@@ -179,10 +190,8 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
 
     # File existence check
     img_name, _ = ds.data[0]
-    move(os.path.join(ds.root, img_name), os.path.join(ds.root, "tmp_file"))
-    with pytest.raises(FileNotFoundError):
+    with _moved_away(os.path.join(ds.root, img_name)), pytest.raises(FileNotFoundError):
         datasets.DetectionDataset(mock_image_folder, mock_detection_label)
-    move(os.path.join(ds.root, "tmp_file"), os.path.join(ds.root, img_name))
 
 
 @pytest.mark.parametrize(
@@ -236,74 +245,53 @@ def test_layout_dataset(mock_image_folder, mock_layout_label, use_polygons):
         assert set(target.keys()) == expected_classes
         assert all(isinstance(v, np.ndarray) for v in target.values())
 
-    # File existence check
-    img_name, _ = ds.data[0]
-    move(os.path.join(ds.root, img_name), os.path.join(ds.root, "tmp_file"))
-    with pytest.raises(FileNotFoundError):
-        datasets.LayoutDataset(
-            img_folder=mock_image_folder,
-            label_path=mock_layout_label,
-        )
-    move(os.path.join(ds.root, "tmp_file"), os.path.join(ds.root, img_name))
 
-    with pytest.raises(FileNotFoundError):
-        datasets.LayoutDataset(
-            img_folder=mock_image_folder,
-            label_path="/tmp/does_not_exist.json",
-        )
+def _broken_layout_labels(label_path, tmp_path, first_label):
+    # Copy of the labels with the first entry replaced: the session-wide fixtures are never modified
+    with open(label_path) as f:
+        labels = json.load(f)
+    labels[next(iter(labels))] = first_label
+    path = tmp_path / "labels.json"
+    path.write_text(json.dumps(labels))
+    return str(path)
 
-    with open(mock_layout_label) as f:
-        original_labels = json.load(f)
-    first_key = next(iter(original_labels))
 
-    test_cases = [
-        (
-            {"classes": ["Text"]},
-            KeyError,
-            "missing 'polygons'",
-        ),
-        (
-            {"polygons": [[[0, 0], [1, 0], [1, 1], [0, 1]]]},
-            KeyError,
-            "missing 'classes'",
-        ),
-        (
-            {
-                "polygons": [
-                    [[0, 0], [1, 0], [1, 1], [0, 1]],
-                    [[0, 0], [1, 0], [1, 1], [0, 1]],
-                ],
-                "classes": ["Text"],
-            },
+@pytest.mark.parametrize(
+    "first_label, exc_type, match",
+    [
+        [{"classes": ["Text"]}, KeyError, "missing 'polygons'"],
+        [{"polygons": [[[0, 0], [1, 0], [1, 1], [0, 1]]]}, KeyError, "missing 'classes'"],
+        [
+            {"polygons": [[[0, 0], [1, 0], [1, 1], [0, 1]], [[0, 0], [1, 0], [1, 1], [0, 1]]], "classes": ["Text"]},
             ValueError,
             "number of polygons",
-        ),
-        (
-            {
-                "polygons": [[[0, 0], [1, 0], [1, 1]]],  # only 3 points
-                "classes": ["Text"],
-            },
+        ],
+        # Only 3 points
+        [
+            {"polygons": [[[0, 0], [1, 0], [1, 1]]], "classes": ["Text"]},
             ValueError,
             "polygons are expected to have shape",
-        ),
-    ]
+        ],
+    ],
+)
+def test_layout_dataset_invalid_labels(mock_image_folder, mock_layout_label, tmp_path, first_label, exc_type, match):
+    label_path = _broken_layout_labels(mock_layout_label, tmp_path, first_label)
+    with pytest.raises(exc_type, match=match):
+        datasets.LayoutDataset(img_folder=mock_image_folder, label_path=label_path)
 
-    for sample, exc_type, match in test_cases:
-        broken_labels = dict(original_labels)
-        broken_labels[first_key] = sample
 
-        with open(mock_layout_label, "w") as f:
-            json.dump(broken_labels, f)
-
-        with pytest.raises(exc_type, match=match):
-            datasets.LayoutDataset(
-                img_folder=mock_image_folder,
-                label_path=mock_layout_label,
-            )
-
-    # Restore original labels
-    with open(mock_layout_label, "w") as f:
-        json.dump(original_labels, f)
+def test_layout_dataset_missing_files(mock_image_folder, mock_layout_label, tmp_path):
+    # A labeled image that is not in the folder
+    with open(mock_layout_label) as f:
+        labels = json.load(f)
+    labels["missing_image.jpeg"] = next(iter(labels.values()))
+    label_path = tmp_path / "labels.json"
+    label_path.write_text(json.dumps(labels))
+    with pytest.raises(FileNotFoundError):
+        datasets.LayoutDataset(img_folder=mock_image_folder, label_path=str(label_path))
+    # A missing label file
+    with pytest.raises(FileNotFoundError):
+        datasets.LayoutDataset(img_folder=mock_image_folder, label_path=str(tmp_path / "does_not_exist.json"))
 
 
 @pytest.mark.parametrize("use_polygons", [False, True])
@@ -344,10 +332,8 @@ def test_table_dataset(mock_image_folder, mock_table_label, use_polygons):
 
     # File existence check
     img_name, _ = ds.data[0]
-    move(os.path.join(mock_image_folder, img_name), os.path.join(mock_image_folder, "tmp_file"))
-    with pytest.raises(FileNotFoundError):
+    with _moved_away(os.path.join(mock_image_folder, img_name)), pytest.raises(FileNotFoundError):
         datasets.TableStructureDataset(mock_image_folder, mock_table_label)
-    move(os.path.join(mock_image_folder, "tmp_file"), os.path.join(mock_image_folder, img_name))
 
 
 def test_recognition_dataset(mock_image_folder, mock_recognition_label, monkeypatch):
@@ -372,10 +358,8 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label, monkeypa
 
     # File existence check
     img_name, _ = ds.data[0]
-    move(os.path.join(ds.root, img_name), os.path.join(ds.root, "tmp_file"))
-    with pytest.raises(FileNotFoundError):
+    with _moved_away(os.path.join(ds.root, img_name)), pytest.raises(FileNotFoundError):
         datasets.RecognitionDataset(mock_image_folder, mock_recognition_label)
-    move(os.path.join(ds.root, "tmp_file"), os.path.join(ds.root, img_name))
 
     # Merge datasets with a relative image folder
     monkeypatch.chdir(os.path.dirname(mock_image_folder))
@@ -416,10 +400,8 @@ def test_ocrdataset(mock_ocrdataset, use_polygons):
 
     # File existence check
     img_name, _ = ds.data[0]
-    move(os.path.join(ds.root, img_name), os.path.join(ds.root, "tmp_file"))
-    with pytest.raises(FileNotFoundError):
+    with _moved_away(os.path.join(ds.root, img_name)), pytest.raises(FileNotFoundError):
         datasets.OCRDataset(*mock_ocrdataset)
-    move(os.path.join(ds.root, "tmp_file"), os.path.join(ds.root, img_name))
 
 
 def test_charactergenerator():

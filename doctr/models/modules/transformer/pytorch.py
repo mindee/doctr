@@ -7,9 +7,10 @@
 
 import math
 from collections.abc import Callable
-from typing import Any
+from typing import Any, cast
 
 import torch
+import torch.nn.functional as F
 from torch import nn
 
 __all__ = ["Decoder", "PositionalEncoding", "EncoderBlock", "MultiHeadAttention", "PositionwiseFeedForward"]
@@ -30,29 +31,37 @@ class PositionalEncoding(nn.Module):
         pe[:, 1::2] = torch.cos(position * div_term)
         self.register_buffer("pe", pe.unsqueeze(0))
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, start: int = 0) -> torch.Tensor:
         """Forward pass
 
         Args:
             x: embeddings (batch, max_len, d_model)
+            start: position of the first embedding in the sequence (e.g. for incremental decoding)
 
         Returns:
             positional embeddings (batch, max_len, d_model)
         """
-        x = x + self.pe[:, : x.size(1)]  # type: ignore[index]
+        x = x + self.pe[:, start : start + x.size(1)]  # type: ignore[index]
         return self.dropout(x)
 
 
 def scaled_dot_product_attention(
     query: torch.Tensor, key: torch.Tensor, value: torch.Tensor, mask: torch.Tensor | None = None
-) -> tuple[torch.Tensor, torch.Tensor]:
-    """Scaled Dot-Product Attention"""
-    scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(query.size(-1))
-    if mask is not None:
-        # NOTE: to ensure the ONNX compatibility, masked_fill works only with int equal condition
-        scores = scores.masked_fill(mask == 0, float("-inf"))
-    p_attn = torch.softmax(scores, dim=-1)
-    return torch.matmul(p_attn, value), p_attn
+) -> tuple[torch.Tensor, None]:
+    """Scaled Dot-Product Attention, with the fused kernels of PyTorch (the attention weights are not materialized)
+
+    Args:
+        query: queries of shape (*, L, E)
+        key: keys of shape (*, S, E)
+        value: values of shape (*, S, E)
+        mask: optional mask broadcastable to (*, L, S), where 0 marks the keys a query must not attend to
+
+    Returns:
+        the attention output of shape (*, L, E), and None in place of the attention weights
+    """
+    # NOTE: the boolean mask is derived with an int comparison, to ensure the ONNX compatibility
+    attn_mask = None if mask is None else mask != 0
+    return F.scaled_dot_product_attention(query, key, value, attn_mask=attn_mask), None
 
 
 class PositionwiseFeedForward(nn.Sequential):
@@ -83,22 +92,43 @@ class MultiHeadAttention(nn.Module):
         self.linear_layers = nn.ModuleList([nn.Linear(d_model, d_model) for _ in range(3)])
         self.output_linear = nn.Linear(d_model, d_model)
 
-    def forward(self, query: torch.Tensor, key: torch.Tensor, value: torch.Tensor, mask=None) -> torch.Tensor:
-        batch_size = query.size(0)
+    def _split_heads(self, x: torch.Tensor) -> torch.Tensor:
+        # (N, L, d_model) --> (N, num_heads, L, d_k)
+        return x.view(x.size(0), -1, self.num_heads, self.d_k).transpose(1, 2)
 
-        # linear projections of Q, K, V
-        query, key, value = [
-            linear(x).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
-            for linear, x in zip(self.linear_layers, (query, key, value))
-        ]
+    def project_kv(self, key: torch.Tensor, value: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """Project the keys and values, e.g. once for the steps of an incremental decoding
 
-        # apply attention on all the projected vectors in batch
-        x, attn = scaled_dot_product_attention(query, key, value, mask=mask)
+        Args:
+            key: keys of shape (N, S, d_model)
+            value: values of shape (N, S, d_model)
 
+        Returns:
+            the projected keys and values, of shape (N, num_heads, S, d_k)
+        """
+        return self._split_heads(self.linear_layers[1](key)), self._split_heads(self.linear_layers[2](value))
+
+    def attend(
+        self, query: torch.Tensor, key: torch.Tensor, value: torch.Tensor, mask: torch.Tensor | None = None
+    ) -> torch.Tensor:
+        """Attention of the queries over keys and values projected with `project_kv`
+
+        Args:
+            query: queries of shape (N, L, d_model)
+            key: projected keys of shape (N, num_heads, S, d_k)
+            value: projected values of shape (N, num_heads, S, d_k)
+            mask: optional mask broadcastable to (N, num_heads, L, S), where 0 marks the masked keys
+
+        Returns:
+            the attention output of shape (N, L, d_model)
+        """
+        x, _ = scaled_dot_product_attention(self._split_heads(self.linear_layers[0](query)), key, value, mask=mask)
         # Concat attention heads
-        x = x.transpose(1, 2).contiguous().view(batch_size, -1, self.num_heads * self.d_k)
-
+        x = x.transpose(1, 2).contiguous().view(query.size(0), -1, self.num_heads * self.d_k)
         return self.output_linear(x)
+
+    def forward(self, query: torch.Tensor, key: torch.Tensor, value: torch.Tensor, mask=None) -> torch.Tensor:
+        return self.attend(query, *self.project_kv(key, value), mask=mask)
 
 
 class EncoderBlock(nn.Module):
@@ -184,16 +214,49 @@ class Decoder(nn.Module):
         memory: torch.Tensor,
         source_mask: torch.Tensor | None = None,
         target_mask: torch.Tensor | None = None,
+        cache: list[dict[str, tuple[torch.Tensor, torch.Tensor]]] | None = None,
     ) -> torch.Tensor:
+        """Decode the target tokens
+
+        Args:
+            tgt: target tokens of shape (N, L)
+            memory: encoded source of shape (N, S, d_model)
+            source_mask: optional mask of the source
+            target_mask: optional mask of the target
+            cache: for incremental decoding, an initially empty list that keeps the keys and values of every layer
+                between the calls: `tgt` then only holds the new tokens, which follow the ones of the previous calls
+                and attend to all of them (the source is projected once, at the first call)
+
+        Returns:
+            the decoded features of shape (N, L, d_model)
+        """
+        start = 0 if not cache else cache[0]["self"][0].size(2)
         tgt = self.embed(tgt) * math.sqrt(self.d_model)
-        pos_enc_tgt = self.positional_encoding(tgt)
-        output = pos_enc_tgt
+        output = self.positional_encoding(tgt, start)
 
         for i in range(self.num_layers):
+            self_attention = cast(MultiHeadAttention, self.attention[i])
+            source_attention = cast(MultiHeadAttention, self.source_attention[i])
             normed_output = self.layer_norm_input(output)
-            output = output + self.dropout(self.attention[i](normed_output, normed_output, normed_output, target_mask))
+            if cache is None:
+                attended = self_attention(normed_output, normed_output, normed_output, target_mask)
+            else:
+                if len(cache) <= i:
+                    cache.append({"source": source_attention.project_kv(memory, memory)})
+                key, value = self_attention.project_kv(normed_output, normed_output)
+                if "self" in cache[i]:
+                    key = torch.cat([cache[i]["self"][0], key], dim=2)
+                    value = torch.cat([cache[i]["self"][1], value], dim=2)
+                cache[i]["self"] = (key, value)
+                attended = self_attention.attend(normed_output, key, value, target_mask)
+            output = output + self.dropout(attended)
+
             normed_output = self.layer_norm_masked_attention(output)
-            output = output + self.dropout(self.source_attention[i](normed_output, memory, memory, source_mask))
+            if cache is None:
+                attended = source_attention(normed_output, memory, memory, source_mask)
+            else:
+                attended = source_attention.attend(normed_output, *cache[i]["source"], source_mask)
+            output = output + self.dropout(attended)
             normed_output = self.layer_norm_attention(output)
             output = output + self.dropout(self.position_feed_forward[i](normed_output))
 
