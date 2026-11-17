@@ -296,3 +296,64 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: Benchmark latency
         run: python references/table/latency.py tablecenternet --it 5 --size 512
+
+  train-formula-recognition:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.11"]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
+        with:
+          python-version: ${{ matrix.python }}
+          extra-requirements: references/requirements.txt
+      - name: Download and extract toy set
+        run: |
+          wget https://github.com/mindee/doctr/releases/download/v1.1.0/toy_formula_set-8f54029b.zip
+          unzip toy_formula_set-8f54029b.zip -d formula_set
+      - name: Train for a short epoch
+        run: python references/formula/train.py formulanet --train_path ./formula_set --val_path ./formula_set -b 2 --epochs 1 --max_decode_length 64
+
+  evaluate-formula-recognition:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.11"]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
+        with:
+          python-version: ${{ matrix.python }}
+          extra-requirements: references/requirements.txt
+      - name: Download and extract toy set
+        run: |
+          wget https://github.com/mindee/doctr/releases/download/v1.1.0/toy_formula_set-8f54029b.zip
+          unzip toy_formula_set-8f54029b.zip -d formula_set
+      - name: Evaluate formula recognition
+        run: python references/formula/evaluate.py formulanet ./formula_set -b 2 --max_decode_length 64
+
+  latency-formula-recognition:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.11"]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Benchmark latency
+        run: python references/formula/latency.py formulanet --it 5 --tokens 32

@@ -17,7 +17,7 @@ from doctr.io.figures import FigureEncoder, is_picture_label, picture_regions
 from doctr.utils.common_types import BoundingBox
 
 if TYPE_CHECKING:  # pragma: no cover
-    from doctr.io.elements import Block, KIEPage, LayoutElement, Line, Page, Table
+    from doctr.io.elements import Block, Formula, KIEPage, LayoutElement, Line, Page, Table
 
 __all__ = [
     "AsciiDocExporter",
@@ -99,6 +99,13 @@ def _merge_overlapping_regions(elt_regions: list[int], region_geoms: list[Any], 
     return [groups[reg] if reg >= 0 else reg for reg in elt_regions]
 
 
+def _is_atomic(element: Any) -> bool:
+    """Whether a reading-order element is an item of its own (a table, a formula or a figure), not a text line"""
+    from doctr.io.elements import Formula, LayoutElement, Table
+
+    return isinstance(element, (Table, Formula, LayoutElement))
+
+
 def _xyxy(geometry: Any) -> tuple[float, float, float, float]:
     """Return the enclosing box (xmin, ymin, xmax, ymax) of a box or a polygon"""
     pts = np.asarray(geometry, dtype=np.float64).reshape(-1, 2)
@@ -122,13 +129,15 @@ def _join_caption_lines(lines: list[str]) -> str:
 def _reading_order_signature(page: "Page", direction: str) -> tuple[Any, ...]:
     """Return a cheap fingerprint of a page, used to invalidate the reading-order cache
 
-    It covers the direction and the identity of the blocks (with their line count), tables and layout regions.
+    It covers the direction and the identity of the blocks (with their line count), tables, formulas and layout
+    regions.
     In-place edits of the words of a line are not detected: drop `_reading_order_cache` after such edits.
     """
     return (
         direction,
         tuple((id(block), len(block.lines)) for block in page.blocks),
         tuple(id(table) for table in getattr(page, "tables", ()) or ()),
+        tuple(id(formula) for formula in getattr(page, "formulas", ()) or ()),
         tuple(id(region) for region in getattr(page, "layout", ()) or ()),
     )
 
@@ -144,7 +153,7 @@ def _store_reading_order(page: "Page", signature: tuple[Any, ...], result: tuple
 def page_reading_order(
     page: "Page", direction: str = "auto", include_figures: bool = False
 ) -> tuple[list[Any], list[str | None], str]:
-    """Linearize the content of a page (blocks, tables and optionally figures) in reading order
+    """Linearize the content of a page (blocks, tables, formulas and optionally figures) in reading order
 
     The result is cached on the page, so a page exported to several formats is ordered once. The figures always take
     part in the ordering, `include_figures` only controls whether they are returned.
@@ -171,8 +180,8 @@ def page_reading_order(
     direction = ReadingOrderPredictor(direction=direction).resolve_direction(
         [word.value for word in words], language=language
     )
-    # Lines, tables and figures (as floats) are ordered together
-    elements: list[Any] = [*lines, *page.tables, *picture_regions(page)]
+    # Lines, tables and figures (as floats) and formulas (in the text flow) are ordered together
+    elements: list[Any] = [*lines, *page.tables, *getattr(page, "formulas", []), *picture_regions(page)]
     items: list[Any] = []
     labels: list[str | None] = []
     if len(elements) > 0:
@@ -203,12 +212,13 @@ def page_reading_order(
 def _element_labels(
     page: "Page", elements: list[Any], elt_geoms: list[Any], elt_regions: list[int], region_geoms: list[Any]
 ) -> list[str | None]:
-    """Return the layout label of each element: the label of its layout region (None for none), 'Table' for a table
+    """Return the layout label of each element: the label of its layout region (None for none), 'Table' for a table,
+    'Formula' for a formula
 
     A figure takes its own type, unless it lies in page furniture (e.g. a logo in the page header): it is then read with
     the furniture, along with its text.
     """
-    from doctr.io.elements import LayoutElement, Table
+    from doctr.io.elements import Formula, LayoutElement, Table
     from doctr.models.reading_order import layout_label_role
     from doctr.models.reading_order.base import _FURNITURE_ROLES
 
@@ -228,6 +238,8 @@ def _element_labels(
     for idx, elt in enumerate(elements):
         if isinstance(elt, Table):
             labels[idx] = "Table"
+        elif isinstance(elt, Formula):
+            labels[idx] = "Formula"
         elif not isinstance(elt, LayoutElement) and elt_regions[idx] in furniture_of_figure:
             labels[idx] = furniture_of_figure[elt_regions[idx]]
     return labels
@@ -275,11 +287,11 @@ def _segments_to_items(
     page: "Page", elements: list[Any], segments: list[list[int]], elt_labels: list[str | None], elt_regions: list[int]
 ) -> tuple[list[Any], list[str | None]]:
     """Turn reading-ordered segments of elements into page items: one block per paragraph, one block per list item
-    (a list item wrapped over several lines is one block), tables and figures as they are
+    (a list item wrapped over several lines is one block), tables, formulas and figures as they are
 
     The artefacts of a block follow its first line; those of blocks without lines go to the last block.
     """
-    from doctr.io.elements import LayoutElement, Table
+    from doctr.io.elements import Formula, Table
     from doctr.models.reading_order import normalize_layout_label
 
     artefacts = _ArtefactClaims(page.blocks)
@@ -288,9 +300,9 @@ def _segments_to_items(
     list_region: int | None = None  # region of the list item being built
     for run in (run for segment in segments for run in _float_runs(elements, segment)):
         first, label = elements[run[0]], elt_labels[run[0]]
-        if isinstance(first, (Table, LayoutElement)):
+        if _is_atomic(first):
             items.append(first)
-            labels.append("Table" if isinstance(first, Table) else label)
+            labels.append("Table" if isinstance(first, Table) else "Formula" if isinstance(first, Formula) else label)
             list_region = None
         elif normalize_layout_label(label) in _LIST_LABELS:
             # One bullet per list-item region: consecutive lines of the same region are a single bullet
@@ -343,13 +355,11 @@ class _ArtefactClaims:
 
 
 def _float_runs(elements: list[Any], segment: list[int]) -> list[list[int]]:
-    """Split the tables and figures out of a segment (a figure in page furniture can share one)"""
-    from doctr.io.elements import LayoutElement, Table
-
+    """Split the tables, formulas and figures out of a segment (a figure in page furniture can share one)"""
     runs: list[list[int]] = []
     for idx in segment:
-        is_float = isinstance(elements[idx], (Table, LayoutElement))
-        if runs and not is_float and not isinstance(elements[runs[-1][-1]], (Table, LayoutElement)):
+        is_atomic = _is_atomic(elements[idx])
+        if runs and not is_atomic and not _is_atomic(elements[runs[-1][-1]]):
             runs[-1].append(idx)
         else:
             runs.append([idx])
@@ -601,6 +611,10 @@ class _PageTextExporter:
         """Render a recognized table in the target format"""
         raise NotImplementedError
 
+    def render_formula(self, formula: "Formula", escape: bool = True) -> str:
+        """Render a recognized formula in the target format (its LaTeX source is never escaped as text)"""
+        return formula.value
+
     def render_figure(self, source: str | None, caption: str | None = None, escape: bool = True) -> str:
         """Render a figure in the target format
 
@@ -728,7 +742,7 @@ class _PageTextExporter:
         Returns:
             the exported page as a string
         """
-        from doctr.io.elements import LayoutElement, Table
+        from doctr.io.elements import Formula, LayoutElement, Table
         from doctr.models.reading_order import layout_label_role, normalize_layout_label
         from doctr.models.reading_order.base import _FURNITURE_ROLES
 
@@ -756,9 +770,13 @@ class _PageTextExporter:
                 continue
             if index in absorbed_captions or index in figure_text:
                 continue
-            if isinstance(item, Table):
+            if isinstance(item, (Table, Formula)):
                 _flush_list()
-                rendered = self.render_table(item, escape=escape)
+                rendered = (
+                    self.render_table(item, escape=escape)
+                    if isinstance(item, Table)
+                    else self.render_formula(item, escape=escape)
+                )
                 if rendered:
                     parts.append(rendered)
                 continue
@@ -881,6 +899,10 @@ class MarkdownExporter(_PageTextExporter):
         separator = "| " + " | ".join("---" for _ in grid[0]) + " |"
         return "\n".join([rows[0], separator, *rows[1:]])
 
+    def render_formula(self, formula: "Formula", escape: bool = True) -> str:
+        """Render a formula as display math: `$$`, the LaTeX source and `$$` on their own lines"""
+        return f"$$\n{formula.value}\n$$" if formula.value else ""
+
     def render_figure(self, source: str | None, caption: str | None = None, escape: bool = True) -> str:
         """Render a figure as an image, with its caption as alt text and as a visible italic line below"""
         if source is None:
@@ -936,6 +958,10 @@ class AsciiDocExporter(_PageTextExporter):
 
         return "\n".join(["|===", _row(grid[0]), "", *[_row(row) for row in grid[1:]], "|==="])
 
+    def render_formula(self, formula: "Formula", escape: bool = True) -> str:
+        """Render a formula as a `latexmath` passthrough block"""
+        return f"[latexmath]\n++++\n{formula.value}\n++++" if formula.value else ""
+
     def render_figure(self, source: str | None, caption: str | None = None, escape: bool = True) -> str:
         """Render a figure as a block image macro, titled with its caption"""
         if source is None:
@@ -959,7 +985,8 @@ class AsciiDocExporter(_PageTextExporter):
 class HTMLExporter(_PageTextExporter):
     """Export OCR results to semantic HTML, with the content sorted in reading order.
 
-    Headings map to `<h1>`/`<h2>`, list items to `<ul><li>`, recognized tables to `<table>` and
+    Headings map to `<h1>`/`<h2>`, list items to `<ul><li>`, recognized tables to `<table>`, recognized formulas to
+    `<div class="formula">` holding `$$...$$` display math (rendered by MathJax or KaTeX auto-render) and
     paragraphs to `<p>` (with `<br>` between the visual lines of a paragraph). The output is a
     fragment, not a full document: it carries no doctype, `<html>` or charset declaration.
 
@@ -1001,6 +1028,12 @@ class HTMLExporter(_PageTextExporter):
         alt = _html_escape(caption or "", quote=True)
         figcaption = f"\n<figcaption>{self.escape_text(caption) if escape else caption}</figcaption>" if caption else ""
         return f'<figure><img src="{_html_escape(source, quote=True)}" alt="{alt}">{figcaption}</figure>'
+
+    def render_formula(self, formula: "Formula", escape: bool = True) -> str:
+        """Render a formula as `$$...$$` display math in a `<div class="formula">`"""
+        if not formula.value:
+            return ""
+        return f'<div class="formula">$${self.escape_text(formula.value) if escape else formula.value}$$</div>'
 
     def render_table(self, table: "Table", escape: bool = True) -> str:
         """Render a table as an HTML table (first row used as header). A cell spanning several rows / columns is
@@ -1122,7 +1155,7 @@ class XMLExporter:
     >>> xml_bytes, xml_tree = XMLExporter().export_page(page)
     """
 
-    ocr_capabilities: ClassVar[str] = "ocr_page ocr_carea ocr_par ocr_line ocrx_word ocr_photo"
+    ocr_capabilities: ClassVar[str] = "ocr_page ocr_carea ocr_par ocr_line ocrx_word ocr_photo ocr_math"
 
     def _new_document(self, file_title: str, language: str) -> tuple[ETElement, ETElement]:
         """Create the hOCR root element with its <head>, returning the root and its <body> element."""
@@ -1200,6 +1233,39 @@ class XMLExporter:
                 cell_span.text = cell.value
         return table_count + 1
 
+    def _add_formula(self, page_div: ETElement, formula: "Formula", width: int, height: int, formula_count: int) -> int:
+        """Add a formula as an hOCR text area holding an `ocr_math` element, with its LaTeX source as text
+
+        Args:
+            page_div: the `ocr_page` element
+            formula: the formula
+            width: page width in pixels
+            height: page height in pixels
+            formula_count: 1-based index of the formula on the page
+
+        Returns:
+            the index of the next formula
+        """
+        xmin, ymin, xmax, ymax = _xyxy(formula.geometry)
+        bbox = _hocr_bbox(((xmin, ymin), (xmax, ymax)), width, height)
+        area = SubElement(
+            page_div, "div", attrib={"class": "ocr_carea", "id": f"formula_area_{formula_count}", "title": bbox}
+        )
+        paragraph = SubElement(
+            area, "p", attrib={"class": "ocr_par", "id": f"formula_par_{formula_count}", "title": bbox}
+        )
+        math = SubElement(
+            paragraph,
+            "span",
+            attrib={
+                "class": "ocr_math",
+                "id": f"formula_{formula_count}",
+                "title": f"{bbox}; x_wconf {int(round(formula.confidence * 100))}",
+            },
+        )
+        math.text = formula.value
+        return formula_count + 1
+
     def _add_figure(
         self, page_div: ETElement, region: "LayoutElement", width: int, height: int, figure_count: int
     ) -> int:
@@ -1237,26 +1303,27 @@ class XMLExporter:
     ) -> tuple[bytes, ET.ElementTree]:
         """Export a page as hOCR XML, with its content sorted in reading order.
 
-        Figures are exported as `ocr_photo` areas.
+        Figures are exported as `ocr_photo` areas, formulas as `ocr_math` elements holding their LaTeX source.
 
         Args:
             page: the page to export
             file_title: the title of the XML file
             direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'
             reading_order: whether the content should be linearized in reading order. Pass False to serialize
-                `page.blocks` then `page.tables` in their raw order.
+                `page.blocks`, `page.tables` then `page.formulas` in their raw order.
             dpi: the page resolution in dots per inch, used to estimate font sizes (`x_size`, `x_fsize`)
 
         Returns:
             a tuple of the XML byte string, and its ElementTree
         """
-        from doctr.io.elements import LayoutElement, Table
+        from doctr.io.elements import Formula, LayoutElement, Table
 
         block_count: int = 1
         line_count: int = 1
         word_count: int = 1
         table_count: int = 1
         figure_count: int = 1
+        formula_count: int = 1
         height, width = page.dimensions
         page_hocr, body = self._new_document(file_title, _resolve_hocr_language(page.language))
         page_div = SubElement(
@@ -1272,7 +1339,7 @@ class XMLExporter:
         if reading_order:
             items, _, direction = page_reading_order(page, direction, include_figures=True)
         else:
-            items = [*page.blocks, *page.tables, *picture_regions(page)]
+            items = [*page.blocks, *page.tables, *page.formulas, *picture_regions(page)]
         # iterate over the blocks / lines / words and create the XML elements line by line with the attributes
         for item in items:
             if isinstance(item, Table):
@@ -1280,6 +1347,9 @@ class XMLExporter:
                 continue
             if isinstance(item, LayoutElement):
                 figure_count = self._add_figure(page_div, item, width, height, figure_count)
+                continue
+            if isinstance(item, Formula):
+                formula_count = self._add_formula(page_div, item, width, height, formula_count)
                 continue
             block = item
             if len(block.geometry) != 2:
@@ -1445,6 +1515,7 @@ class PageExportsMixin:
         language: dict[str, Any]
         layout: list[Any]
         tables: list["Table"]
+        formulas: list["Formula"]
 
     def render(self, block_break: str = "\n\n", direction: str = "auto", include_furniture: bool = True) -> str:
         """Renders the full text of the page, with its content sorted in reading order.
@@ -1475,7 +1546,7 @@ class PageExportsMixin:
 
         export_dict = Element.export(cast("Element", self))
         if reading_order:
-            # Tables and layout regions have their own export keys
+            # Tables, formulas and layout regions have their own export keys
             blocks = [item for item in page_reading_order(cast("Page", self))[0] if isinstance(item, Block)]
             if blocks:  # an empty linearization (no line on the page) leaves the stored blocks untouched
                 export_dict["blocks"] = [block.export() for block in blocks]
@@ -1506,15 +1577,15 @@ class PageExportsMixin:
 
     def items_in_reading_order(
         self, direction: str = "auto", include_figures: bool = False
-    ) -> list["Block | Table | LayoutElement"]:
-        """Return the content of the page (blocks, tables and optionally figures) sorted in reading order.
+    ) -> list["Block | Table | Formula | LayoutElement"]:
+        """Return the content of the page (blocks, tables, formulas and optionally figures) sorted in reading order.
 
         Args:
             direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'
             include_figures: whether to return the figure regions too
 
         Returns:
-            list of blocks, tables and, if requested, figures in reading order
+            list of blocks, tables, formulas and, if requested, figures in reading order
         """
         return page_reading_order(cast("Page", self), direction, include_figures=include_figures)[0]
 

@@ -72,12 +72,23 @@ for a guide.
    :type: dict[str, str]
 
    The supported vocabularies, by name. See :doc:`../models/vocabs` for the complete list.
+
+.. data:: LATEX_TOKENS
+   :type: list[str]
+
+   The 1,324 LaTeX tokens of formula recognition: the printable ASCII characters, the control symbols, the commands and
+   environments supported by KaTeX, and the other commands and characters found in public formula datasets (UniMER-1M,
+   HME100K, UniMER-Test). See :doc:`../models/formula`.
 ```
 
 ## Utilities
 
 ```{eval-rst}
 .. autofunction:: translate
+
+.. autofunction:: tokenize_latex
+
+.. autofunction:: normalize_latex
 
 .. autofunction:: encode_string
 

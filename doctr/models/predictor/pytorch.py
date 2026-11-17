@@ -13,6 +13,7 @@ from torch import nn
 from doctr.io.elements import Document
 from doctr.models._utils import get_language
 from doctr.models.detection.predictor import DetectionPredictor
+from doctr.models.formula.predictor import FormulaPredictor
 from doctr.models.layout.predictor import LayoutPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.models.table_structure.predictor import TablePredictor
@@ -44,6 +45,8 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         table_predictor: optional table structure recognition module. Requires `layout_predictor`: table
             regions are located by the layout model, cropped, and passed to this module. Words falling inside a
             detected table are regrouped into a structured table and removed from the regular text output.
+        formula_predictor: optional formula recognition module. Requires `layout_predictor`: formula regions are
+            located by the layout model, masked out of the text detection, cropped, and read as LaTeX by this module.
         page_chunk_size: the maximum number of pages processed at once (32 by default) for lazy page sources
             (cf. `DocumentFile.from_pdf(..., lazy=True)`), iterators and :meth:`stream`, with a memory footprint that
             does not grow with the number of pages. Lists and tuples of pages are processed in a single pass.
@@ -63,6 +66,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         preserve_original_coords: bool = False,
         layout_predictor: LayoutPredictor | None = None,
         table_predictor: TablePredictor | None = None,
+        formula_predictor: FormulaPredictor | None = None,
         **kwargs: Any,
     ) -> None:
         nn.Module.__init__(self)
@@ -88,6 +92,14 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             raise ValueError(
                 "`table_predictor` requires a `layout_predictor`: tables are located with the layout model, "
                 "cropped, and then passed to the table model."
+            )
+        self.formula_predictor = formula_predictor.eval() if formula_predictor is not None else None
+        # Layout class label whose regions are read by the formula model (and masked out of the text detection)
+        self.formula_class_name = "Formula"
+        if self.formula_predictor is not None and self.layout_predictor is None:
+            raise ValueError(
+                "`formula_predictor` requires a `layout_predictor`: formulas are located with the layout model, "
+                "cropped, and then passed to the formula model."
             )
 
     @torch.inference_mode()
@@ -214,6 +226,12 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             if self.table_predictor is not None and regions is not None
             else None
         )
+        # Recognize formulas: read the formula regions of the layout model as LaTeX
+        formulas = (
+            self.formula_predictor.predict_regions(pages, regions, self.formula_class_name, **kwargs)
+            if self.formula_predictor is not None and regions is not None
+            else None
+        )
 
         out = self.doc_builder(
             pages,
@@ -226,6 +244,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             languages_dict,
             regions,
             tables,
+            formulas,
         )
 
         if self.straighten_pages and self.preserve_original_coords:

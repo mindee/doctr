@@ -24,6 +24,7 @@ __all__ = [
     "RandomHorizontalFlip",
     "RandomShadow",
     "RandomResize",
+    "RandomPad",
     "GaussianBlur",
     "RandomGlare",
     "RandomLighting",
@@ -453,6 +454,77 @@ class RandomResize(torch.nn.Module):
 
     def extra_repr(self) -> str:
         return f"scale_range={self.scale_range}, preserve_aspect_ratio={self.preserve_aspect_ratio}, symmetric_pad={self.symmetric_pad}, p={self.p}"  # noqa: E501
+
+
+class RandomPad(torch.nn.Module):
+    """Randomly pad the input image with its background color and align the corresponding targets
+
+    Each side gets an independent padding, filled with the background color of the image (the median color of its
+    border pixels: white for a rendered document, the paper color for a photo). Used for instance to teach a model to
+    read the crops of layout regions with their margins.
+
+    >>> import torch
+    >>> from doctr.transforms import RandomPad
+    >>> from doctr.utils import Sample
+    >>> transfo = RandomPad(max_ratio=0.5, p=0.5)
+    >>> out = transfo(Sample(image=torch.rand((3, 64, 256))))
+
+    Args:
+        max_ratio: maximum padding of each side, relative to the image height
+        p: probability to apply the transformation
+    """
+
+    def __init__(self, max_ratio: float = 0.5, p: float = 0.5) -> None:
+        super().__init__()
+        if max_ratio < 0:
+            raise ValueError("`max_ratio` must be non-negative")
+        self.max_ratio = max_ratio
+        self.p = p
+
+    @staticmethod
+    def _pad_target(target: np.ndarray, offset: tuple[int, int], size: tuple[int, int], new_size: tuple[int, int]):
+        """Map relative boxes (N, 4) or polygons (N, 4, 2) of the image to the padded image"""
+        if not ((target.ndim == 2 and target.shape[1] == 4) or (target.ndim == 3 and target.shape[1:] == (4, 2))):
+            raise ValueError(f"expected relative boxes (N, 4) or polygons (N, 4, 2), got shape {target.shape}")
+        (left, top), (h, w), (new_h, new_w) = offset, size, new_size
+        out = target.astype(np.float32, copy=True)
+        xs, ys = (out[..., [0, 2]], out[..., [1, 3]]) if out.ndim == 2 else (out[..., 0], out[..., 1])
+        new_xs, new_ys = (left + xs * w) / new_w, (top + ys * h) / new_h
+        if out.ndim == 2:
+            out[..., [0, 2]], out[..., [1, 3]] = new_xs, new_ys
+        else:
+            out[..., 0], out[..., 1] = new_xs, new_ys
+        return out
+
+    def forward(self, sample: Sample) -> Sample:
+        if torch.rand(1) >= self.p:
+            return sample
+        img = sample.image  # (C, H, W)
+        _, h, w = img.shape
+        top, bottom, left, right = (torch.rand(4) * self.max_ratio * h).long().tolist()
+        new_h, new_w = top + h + bottom, left + w + right
+        # Background color: the median color of the border pixels
+        border = torch.cat([img[:, 0], img[:, -1], img[:, :, 0], img[:, :, -1]], dim=1)
+        background = border.median(dim=1).values
+        out = background[:, None, None].repeat(1, new_h, new_w)
+        out[:, top : top + h, left : left + w] = img
+
+        target = sample.target
+        if isinstance(target, np.ndarray):
+            target = self._pad_target(target, (left, top), (h, w), (new_h, new_w))
+        elif isinstance(target, dict):
+            target = {
+                key: self._pad_target(value, (left, top), (h, w), (new_h, new_w))
+                if isinstance(value, np.ndarray)
+                else value
+                for key, value in target.items()
+            }
+        # The padded areas are not valid image content
+        mask = None if sample.mask is None else pad(sample.mask, (left, right, top, bottom), value=False)
+        return sample.replace(image=out, target=target, mask=mask)
+
+    def extra_repr(self) -> str:
+        return f"max_ratio={self.max_ratio}, p={self.p}"
 
 
 def _apply_float_photometric(sample: Sample, fn) -> Sample:

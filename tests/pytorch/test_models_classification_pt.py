@@ -52,6 +52,7 @@ def _test_classification(model, input_shape, output_size, batch_size=2):
         ["vit_det_s", (3, 32, 32), (126,)],
         ["vit_det_m", (3, 32, 32), (126,)],
         ["starnet_s3", (3, 32, 32), (126,)],
+        ["hgnetv2_b4", (3, 32, 32), (126,)],
     ],
 )
 def test_classification_architectures(arch_name, input_shape, output_size):
@@ -245,6 +246,7 @@ def test_page_orientation_model(mock_payslip):
         ["vit_det_s", (3, 32, 32), (126,)],
         ["vit_det_m", (3, 32, 32), (126,)],
         ["starnet_s3", (3, 32, 32), (126,)],
+        ["hgnetv2_b4", (3, 32, 32), (126,)],
     ],
 )
 def test_models_onnx_export(arch_name, input_shape, output_size):

@@ -244,13 +244,22 @@ class _OCRPredictor:
         ]
         return general_pages_orientations, origin_page_orientations
 
+    def _masked_classes(self) -> set[str]:
+        """The layout classes masked out before text detection: the ignored regions, and the formula regions when
+        they are read by a formula model"""
+        classes = set(self.ignore_regions or ())
+        if getattr(self, "formula_predictor", None) is not None:
+            classes.add(getattr(self, "formula_class_name", "Formula"))
+        return classes
+
     def _mask_regions(
         self,
         pages: list[np.ndarray],
         regions: list[dict[str, Any]] | None,
         fill_value: int = 0,
     ) -> list[np.ndarray]:
-        if regions is None or not self.ignore_regions:
+        masked_classes = self._masked_classes()
+        if regions is None or not masked_classes:
             return pages
 
         out_pages: list[np.ndarray] = []
@@ -259,7 +268,7 @@ class _OCRPredictor:
                 out_pages.append(page)
                 continue
             boxes = np.asarray(region["boxes"], dtype=np.float32)
-            keep = np.array([name in self.ignore_regions for name in region["class_names"]], dtype=bool)
+            keep = np.array([name in masked_classes for name in region["class_names"]], dtype=bool)
             out_pages.append(mask_boxes(page, boxes[keep], fill_value=fill_value) if keep.any() else page)
 
         return out_pages
@@ -440,6 +449,8 @@ class _OCRPredictor:
                     self._remap_geometry(table, m_inv, sw, sh, oh, ow)
                     for cell in table.cells:
                         self._remap_geometry(cell, m_inv, sw, sh, oh, ow)
+                for formula in page.formulas:
+                    self._remap_geometry(formula, m_inv, sw, sh, oh, ow)
 
             if orig_pages is not None:
                 out.pages[pidx].page = orig_pages[pidx]

@@ -33,6 +33,7 @@ AVAILABLE_ARCHS = {
     "recognition": models.recognition.zoo.ARCHS,
     "layout": models.layout.zoo.ARCHS,
     "table_structure": models.table_structure.zoo.ARCHS,
+    "formula": models.formula.zoo.ARCHS,
 }
 
 
@@ -99,8 +100,8 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:  #
 
     if run_config is None and arch is None:
         raise ValueError("run_config or arch must be specified")
-    if task not in ["classification", "detection", "recognition", "layout", "table_structure"]:
-        raise ValueError("task must be one of classification, detection, recognition, layout, table_structure")
+    if task not in ["classification", "detection", "recognition", "layout", "table_structure", "formula"]:
+        raise ValueError("task must be one of classification, detection, recognition, layout, table_structure, formula")
 
     # default readme
     readme = f"""---
@@ -223,6 +224,8 @@ def from_hub(repo_id: str, **kwargs: Any):
         model = models.layout.__dict__[arch](pretrained=False, class_names=cfg["class_names"])
     elif task == "table_structure":
         model = models.table_structure.__dict__[arch](pretrained=False)
+    elif task == "formula":
+        model = models.formula.__dict__[arch](pretrained=False, input_shape=cfg["input_shape"], vocab=cfg["vocab"])
 
     # update model cfg
     model.cfg = cfg

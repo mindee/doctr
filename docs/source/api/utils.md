@@ -50,4 +50,7 @@ Metrics to evaluate models on each task, used by the evaluation scripts of the r
 
 .. autoclass:: TableCellMetric
    :members: update, summary
+
+.. autoclass:: FormulaMetric
+   :members: update, summary
 ```

@@ -35,6 +35,7 @@ __all__ = [
     "LayoutElement",
     "TableCell",
     "Table",
+    "Formula",
 ]
 
 
@@ -365,6 +366,50 @@ class Table(Element):
         return cls(**kwargs)
 
 
+class Formula(Element):
+    r"""Implements a mathematical formula recognized on a page as LaTeX
+
+    The formula regions are located by the layout model and kept out of the regular text recognition, so the
+    formula is not duplicated in the `blocks` of the page.
+
+    Args:
+        value: the LaTeX source of the formula (tokens separated by spaces, e.g. `\frac { a } { b }`), without
+            math delimiters
+        confidence: the confidence of the formula recognition
+        geometry: bounding box of the formula in format ((xmin, ymin), (xmax, ymax)) or a (4, 2) polygon, with
+            coordinates relative to the page's size
+        objectness_score: the score of the formula region predicted by the layout model, None if unknown
+    """
+
+    _exported_keys: list[str] = ["geometry", "value", "confidence", "objectness_score"]
+    _children_names: list[str] = []
+
+    def __init__(
+        self,
+        value: str,
+        confidence: float,
+        geometry: BoundingBox | np.ndarray,
+        objectness_score: float | None = None,
+    ) -> None:
+        super().__init__()
+        self.value = value
+        self.confidence = confidence
+        self.geometry = geometry
+        self.objectness_score = objectness_score
+
+    def render(self) -> str:
+        """Renders the LaTeX source of the formula"""
+        return self.value
+
+    def extra_repr(self) -> str:
+        return f"value='{self.value}', confidence={self.confidence:.2}"
+
+    @classmethod
+    def from_dict(cls, save_dict: dict[str, Any], **kwargs):
+        kwargs = {k: save_dict[k] for k in cls._exported_keys if k != "objectness_score"}
+        return cls(**kwargs, objectness_score=save_dict.get("objectness_score"))
+
+
 class Line(Element):
     """Implements a line element as a collection of words
 
@@ -497,13 +542,15 @@ class Page(PageExportsMixin, Element):
         language: a dictionary with the language value and confidence of the prediction
         layout: optional list of layout regions detected on the page
         tables: optional list of tables recognized on the page. Words assigned to a table are removed from `blocks`.
+        formulas: optional list of formulas recognized on the page. Formula regions are not part of `blocks`.
     """
 
     _exported_keys: list[str] = ["page_idx", "dimensions", "orientation", "language"]
-    _children_names: list[str] = ["blocks", "layout", "tables"]
+    _children_names: list[str] = ["blocks", "layout", "tables", "formulas"]
     blocks: list[Block] = []
     layout: list[LayoutElement] = []
     tables: list[Table] = []
+    formulas: list[Formula] = []
 
     page = _page_image_property
 
@@ -517,11 +564,13 @@ class Page(PageExportsMixin, Element):
         language: dict[str, Any] | None = None,
         layout: list[LayoutElement] | None = None,
         tables: list[Table] | None = None,
+        formulas: list[Formula] | None = None,
     ) -> None:
         super().__init__(
             blocks=blocks,
             layout=layout if layout is not None else [],
             tables=tables if tables is not None else [],
+            formulas=formulas if formulas is not None else [],
         )
         self.page = page
         self.page_idx = page_idx
@@ -573,6 +622,7 @@ class Page(PageExportsMixin, Element):
             "blocks": [Block.from_dict(block_dict) for block_dict in save_dict["blocks"]],
             "layout": [LayoutElement.from_dict(region_dict) for region_dict in save_dict.get("layout", [])],
             "tables": [Table.from_dict(table_dict) for table_dict in save_dict.get("tables", [])],
+            "formulas": [Formula.from_dict(formula_dict) for formula_dict in save_dict.get("formulas", [])],
         })
         # The page image is not part of the export: pass it back explicitly to restore a fully usable page
         return cls(page=_empty_page_image(page), **_kwargs)

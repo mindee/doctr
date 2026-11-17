@@ -170,3 +170,43 @@ def test_pre_transform_multiclass():
     # a class outside class_names is an error, not a silently dropped box
     with pytest.raises(ValueError, match="unknown class"):
         utils.pre_transform_multiclass(img, (boxes, classes), class_names=["a"])
+
+
+@pytest.mark.parametrize(
+    "latex, tokens",
+    [
+        [r"\frac{a}{b^2}", ["\\frac", "{", "a", "}", "{", "b", "^", "2", "}"]],
+        [
+            r"\begin {array}{cc} a & b \\ c \end{array}",
+            ["\\begin{array}", "{", "c", "c", "}", "a", "&", "b", "\\\\", "c", "\\end{array}"],
+        ],
+        [
+            r"\operatorname*{max}_x \, \{x\}",
+            ["\\operatorname*", "{", "m", "a", "x", "}", "_", "x", "\\,", "\\{", "x", "\\}"],
+        ],
+        [r"a\ b", ["a", "\\space", "b"]],
+        ["  ", []],
+    ],
+)
+def test_tokenize_latex(latex, tokens):
+    assert utils.tokenize_latex(latex) == tokens
+    normalized = utils.normalize_latex(latex)
+    assert normalized == " ".join(tokens)
+    # Normalization is idempotent
+    assert utils.normalize_latex(normalized) == normalized
+
+
+def test_token_vocab_encoding():
+    vocab = ["a", "b", "\\frac", "{", "}"]
+    assert utils.encode_string("\\frac { a }  b", vocab) == [2, 3, 0, 4, 1]
+    assert utils.decode_sequence([2, 3, 0, 4, 1], vocab) == "\\frac { a } b"
+    with pytest.raises(ValueError):
+        utils.encode_string("\\alpha", vocab)
+    with pytest.raises(AssertionError):
+        utils.decode_sequence([5], vocab)
+
+    # The sequence lengths are counted in tokens
+    encoded = utils.encode_sequences(["\\frac { a } { b }", "a"], vocab, eos=5, sos=6, pad=7)
+    assert encoded.tolist() == [[6, 2, 3, 0, 4, 3, 1, 4, 5, 7], [6, 0, 5, 7, 7, 7, 7, 7, 7, 7]]
+    encoded = utils.encode_sequences(["a b", "a"], vocab, target_size=10, eos=5, dynamic_seq_length=True)
+    assert encoded.tolist() == [[0, 1, 5], [0, 5, 5]]

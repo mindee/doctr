@@ -669,3 +669,31 @@ def test_table_cell_metric(use_polygons):
 
     metric.reset()
     assert metric.num_gts == metric.num_preds == metric.matches == metric.struct_matches == 0
+
+
+def test_formula_metric():
+    metric = metrics.FormulaMetric()
+    with pytest.raises(AssertionError):
+        metric.summary()
+    with pytest.raises(AssertionError):
+        metric.update(["a"], ["a", "b"])
+
+    # Whitespaces do not matter, 1 of the 11 tokens of the second formula is wrong
+    metric.update([r"\frac{a}{b}", "x ^ 2 + y ^ 2 = z ^ 2"], [r"\frac { a } { b }", "x ^ 2 + y ^ 3 = z ^ 2"])
+    summary = metric.summary()
+    assert summary["exact_match"] == 0.5
+    assert summary["edit_similarity"] == pytest.approx((1 + 10 / 11) / 2)
+    # n-gram precisions: 17/18, 14/16, 11/14, 8/12, same lengths (no brevity penalty)
+    expected_bleu = np.exp(np.mean(np.log([17 / 18, 14 / 16, 11 / 14, 8 / 12])))
+    assert summary["bleu"] == pytest.approx(expected_bleu)
+
+    # Brevity penalty
+    metric.reset()
+    metric.update(["a b c d e f g h"], ["a b c d"])
+    assert metric.summary()["bleu"] == pytest.approx(np.exp(1 - 8 / 4))
+
+    # Empty predictions
+    metric.reset()
+    metric.update(["a", ""], ["", ""])
+    assert metric.summary() == {"exact_match": 0.5, "edit_similarity": 0.5, "bleu": 0.0}
+    assert all(hasattr(metric, name) for name in metric.counters)

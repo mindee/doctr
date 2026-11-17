@@ -18,6 +18,7 @@ from doctr.transforms import (
     RandomGlare,
     RandomHorizontalFlip,
     RandomLighting,
+    RandomPad,
     RandomPerspective,
     RandomResize,
     RandomRotate,
@@ -797,6 +798,57 @@ def test_random_resize_small_image(input_shape, preserve_aspect_ratio):
     assert data.image.shape[0] == input_shape[0]
     assert all(size >= 1 for size in data.image.shape[-2:])
     assert data.target.shape == target.shape
+
+
+def test_random_pad():
+    transfo = RandomPad(max_ratio=0.5, p=1.0)
+    assert repr(transfo) == "RandomPad(max_ratio=0.5, p=1.0)"
+    with pytest.raises(ValueError):
+        RandomPad(max_ratio=-0.1)
+
+    # A white image with a dark rectangle: the padding is white, the content is untouched
+    img = torch.ones((3, 40, 100))
+    img[:, 10:30, 20:80] = 0.0
+    boxes = np.array([[0.2, 0.25, 0.8, 0.75]], dtype=np.float32)
+    polys = np.array([[[0.2, 0.25], [0.8, 0.25], [0.8, 0.75], [0.2, 0.75]]], dtype=np.float32)
+    mask = torch.ones((40, 100), dtype=torch.bool)
+    torch.manual_seed(0)
+    for target in (boxes, polys, {"words": boxes, "label": "abc"}):
+        out = transfo(Sample(image=img, target=target, mask=mask))
+        _, new_h, new_w = out.image.shape
+        assert new_h >= 40 and new_w >= 100 and new_h <= 40 + 2 * 20 and new_w <= 100 + 2 * 20
+        assert out.image.dtype == img.dtype
+        # The content is the dark rectangle on white, wherever it was moved
+        rows, cols = torch.nonzero(out.image[0] < 0.5, as_tuple=True)
+        top, left = int(rows.min()), int(cols.min())
+        assert (int(rows.max()) - top + 1, int(cols.max()) - left + 1) == (20, 60)
+        assert torch.equal(out.image[:, top - 10 : top + 30, left - 20 : left + 80], img)
+        assert torch.all(out.image[:, :, : left - 20] == 1) and torch.all(out.image[:, : top - 10] == 1)
+        # The targets follow the content
+        box = (out.target["words"] if isinstance(out.target, dict) else out.target).reshape(-1, 2)
+        np.testing.assert_allclose(box.min(axis=0) * [new_w, new_h], [left, top], atol=1e-3)
+        np.testing.assert_allclose(box.max(axis=0) * [new_w, new_h], [left + 60, top + 20], atol=1e-3)
+        if isinstance(target, dict):
+            assert out.target["label"] == "abc"
+        # The padded areas are not valid content
+        assert out.mask.shape == (new_h, new_w) and int(out.mask.sum()) == 40 * 100
+
+    # The padding takes the background color, for float and uint8 images
+    gray = torch.full((3, 20, 50), 0.6)
+    out = RandomPad(max_ratio=1.0, p=1.0)(Sample(image=gray))
+    assert torch.allclose(out.image, torch.tensor(0.6))
+    gray_uint8 = torch.full((3, 20, 50), 153, dtype=torch.uint8)
+    out = RandomPad(max_ratio=1.0, p=1.0)(Sample(image=gray_uint8))
+    assert out.image.dtype == torch.uint8 and torch.all(out.image == 153)
+
+    # Non-geometric targets (e.g. a LaTeX label) are kept, invalid geometries are rejected
+    assert RandomPad(p=1.0)(Sample(image=img, target="x ^ { 2 }")).target == "x ^ { 2 }"
+    with pytest.raises(ValueError):
+        RandomPad(p=1.0)(Sample(image=img, target=np.zeros((2, 2), dtype=np.float32)))
+
+    # p=0: unchanged
+    sample = Sample(image=img, target=boxes)
+    assert RandomPad(p=0.0)(sample) is sample
 
 
 # ----------------------------------------------------------------------------

@@ -807,3 +807,49 @@ def test_documentbuilder_rotated_pages():
     page = builder.DocumentBuilder()(*_word_args(["r0", "r1", "r2", "flat"], polys)).pages[0]
     assert sorted(_words(page)) == ["flat", "r0", "r1", "r2"]
     json.dumps(page.export())
+
+
+@pytest.mark.parametrize("assume_straight_pages", [True, False])
+def test_documentbuilder_formulas(assume_straight_pages):
+    doc_builder = builder.DocumentBuilder()
+    boxes = np.array([[0.1, 0.1, 0.4, 0.15], [0.1, 0.6, 0.4, 0.65]], dtype=np.float32)
+    if not assume_straight_pages:
+        boxes = np.stack([boxes[:, [0, 1]], boxes[:, [2, 1]], boxes[:, [2, 3]], boxes[:, [0, 3]]], axis=1)
+    formulas = [
+        [
+            {"geometry": np.array([0.2, 0.3, 0.8, 0.4]), "value": "x ^ 2", "confidence": 0.7, "score": 0.9},
+            {"geometry": np.array([0.2, 0.45, 0.8, 0.5]), "value": "", "confidence": 0.0, "score": 0.5},  # empty
+            {
+                "geometry": np.array([[0.2, 0.5], [0.8, 0.5], [0.8, 0.55], [0.2, 0.55]]),
+                "value": "y",
+                "confidence": 0.6,
+                "score": None,
+            },
+        ]
+    ]
+    out = doc_builder(
+        [np.zeros((100, 100, 3))],
+        [boxes],
+        [np.ones(2)],
+        [[("hello", 0.9), ("world", 0.9)]],
+        [(100, 100)],
+        [[{"value": 0, "confidence": None}] * 2],
+        formulas=formulas,
+    )
+    page = out.pages[0]
+    # The empty formula is left out, the words are kept in the blocks
+    assert [formula.value for formula in page.formulas] == ["x ^ 2", "y"]
+    assert len([word for block in page.blocks for line in block.lines for word in line.words]) == 2
+    first, second = page.formulas
+    assert first.confidence == 0.7 and first.objectness_score == 0.9 and second.objectness_score is None
+    # The geometries follow the format of the word boxes
+    if assume_straight_pages:
+        assert first.geometry == ((0.2, 0.3), (0.8, 0.4)) and len(second.geometry) == 2
+    else:
+        assert np.asarray(first.geometry).shape == (4, 2)
+        np.testing.assert_allclose(second.geometry, formulas[0][2]["geometry"])
+    # Without formulas
+    out = doc_builder(
+        [np.zeros((100, 100, 3))], [boxes], [np.ones(2)], [[("a", 0.9), ("b", 0.9)]], [(100, 100)], [[{}] * 2]
+    )
+    assert out.pages[0].formulas == []

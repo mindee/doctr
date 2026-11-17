@@ -4,8 +4,11 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 
+from collections import Counter
+
 import numpy as np
 from anyascii import anyascii
+from rapidfuzz.distance import Levenshtein
 from scipy.optimize import linear_sum_assignment
 from shapely import STRtree, area, convex_hull, intersection, is_valid, polygons
 
@@ -19,6 +22,7 @@ __all__ = [
     "DetectionMetric",
     "ObjectDetectionMetric",
     "TableCellMetric",
+    "FormulaMetric",
 ]
 
 
@@ -415,6 +419,102 @@ class TableCellMetric:
         self.num_preds = 0
         self.matches = 0
         self.struct_matches = 0
+
+
+class FormulaMetric:
+    r"""Implements formula recognition metrics, computed on LaTeX tokens (cf. :func:`doctr.datasets.tokenize_latex`),
+    so they do not depend on the whitespaces of the LaTeX sources.
+
+    It reports the **exact match** rate (the share of formulas whose token sequences are identical), the **edit
+    similarity** (the mean over formulas of :math:`1 - \frac{d(X, Y)}{\max(|X|, |Y|)}` with :math:`d` the
+    token-level Levenshtein distance) and the corpus-level **BLEU-4** score (geometric mean of the 1- to 4-gram
+    precisions with a brevity penalty, without smoothing).
+
+    >>> from doctr.utils import FormulaMetric
+    >>> metric = FormulaMetric()
+    >>> metric.update([r"\frac{a}{b}"], [r"\frac { a } { c }"])
+    >>> metric.summary()
+    """
+
+    max_order: int = 4
+    # Scalar accumulators, which can be summed over several processes
+    counters: tuple[str, ...] = (
+        "exact",
+        "edit_similarity",
+        "total",
+        "pred_len",
+        "gt_len",
+        *(f"ngram_matches_{n}" for n in range(1, max_order + 1)),
+        *(f"ngram_totals_{n}" for n in range(1, max_order + 1)),
+    )
+
+    def __init__(self) -> None:
+        self.reset()
+
+    def update(self, gt: list[str], pred: list[str]) -> None:
+        """Update the state of the metric with new predictions
+
+        Args:
+            gt: list of ground-truth LaTeX strings
+            pred: list of predicted LaTeX strings
+        """
+        from doctr.datasets import tokenize_latex
+
+        if len(gt) != len(pred):
+            raise AssertionError("prediction size does not match with ground-truth labels size")
+
+        for gt_latex, pred_latex in zip(gt, pred):
+            gt_tokens, pred_tokens = tokenize_latex(gt_latex), tokenize_latex(pred_latex)
+            self.exact += int(gt_tokens == pred_tokens)
+            length = max(len(gt_tokens), len(pred_tokens))
+            self.edit_similarity += 1 - Levenshtein.distance(gt_tokens, pred_tokens) / length if length > 0 else 1.0
+            self.pred_len += len(pred_tokens)
+            self.gt_len += len(gt_tokens)
+            for n in range(1, self.max_order + 1):
+                gt_ngrams = Counter(tuple(gt_tokens[i : i + n]) for i in range(len(gt_tokens) - n + 1))
+                pred_ngrams = Counter(tuple(pred_tokens[i : i + n]) for i in range(len(pred_tokens) - n + 1))
+                matches = sum((gt_ngrams & pred_ngrams).values())
+                setattr(self, f"ngram_matches_{n}", getattr(self, f"ngram_matches_{n}") + matches)
+                setattr(
+                    self, f"ngram_totals_{n}", getattr(self, f"ngram_totals_{n}") + max(len(pred_tokens) - n + 1, 0)
+                )
+        self.total += len(gt)
+
+    def summary(self) -> dict[str, float]:
+        """Computes the aggregated metrics
+
+        Returns:
+            a dictionary with the `exact_match` rate, the mean `edit_similarity` and the corpus `bleu` score
+        """
+        if self.total == 0:
+            raise AssertionError("you need to update the metric before getting the summary")
+
+        precisions = [
+            getattr(self, f"ngram_matches_{n}") / getattr(self, f"ngram_totals_{n}")
+            if getattr(self, f"ngram_totals_{n}") > 0
+            else 0.0
+            for n in range(1, self.max_order + 1)
+        ]
+        if min(precisions) > 0 and self.pred_len > 0:
+            brevity_penalty = 1.0 if self.pred_len > self.gt_len else float(np.exp(1 - self.gt_len / self.pred_len))
+            bleu = brevity_penalty * float(np.exp(np.mean(np.log(precisions))))
+        else:
+            bleu = 0.0
+        return dict(
+            exact_match=self.exact / self.total,
+            edit_similarity=self.edit_similarity / self.total,
+            bleu=bleu,
+        )
+
+    def reset(self) -> None:
+        self.exact = 0
+        self.edit_similarity = 0.0
+        self.total = 0
+        self.pred_len = 0
+        self.gt_len = 0
+        for n in range(1, self.max_order + 1):
+            setattr(self, f"ngram_matches_{n}", 0)
+            setattr(self, f"ngram_totals_{n}", 0)
 
 
 class OCRMetric:

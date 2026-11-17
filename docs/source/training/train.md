@@ -118,6 +118,22 @@ Cell polygons are ordered top-left, top-right, bottom-right, bottom-left. Logica
 inclusive: a cell spanning one row and one column has equal start and end indices.
 :::
 
+:::{tab-item} Formula
+`images/` contains images of **formulas** and `labels.json` their LaTeX source, without math delimiters:
+
+```{code-block} javascript
+:caption: labels.json
+
+{
+  "img_1.png": "\\frac{a}{b^{2}}",
+  "img_2.png": "\\sum_{i=1}^{n} x_{i}"
+}
+```
+
+The labels are split into LaTeX tokens with {func}`~doctr.datasets.tokenize_latex`, raw or already separated by
+spaces.
+:::
+
 :::{tab-item} Orientation
 No labels: a folder of **upright** images. The script rotates them to generate the training targets.
 
@@ -174,6 +190,17 @@ python references/table/train.py tablecenternet \
 
 [Full guide](https://github.com/mindee/doctr/tree/main/references/table#readme), including a toy dataset to try
 the pipeline end to end.
+
+### Formula recognition
+
+```bash
+python references/formula/train.py formulanet \
+  --train_path path/to/train_set --val_path path/to/val_set --epochs 5
+```
+
+The samples with a token out of the vocabulary are skipped: `build_vocab.py` extends the vocabulary with the tokens of
+your labels (`--vocab vocab.json`). [Full guide](https://github.com/mindee/doctr/tree/main/references/formula#readme),
+including a toy dataset to try the pipeline end to end.
 
 ### Orientation classifiers
 

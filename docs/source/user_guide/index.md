@@ -46,7 +46,7 @@ Text, JSON, Markdown, AsciiDoc, HTML and hOCR, in reading order.
 :link: layout_and_tables
 :link-type: doc
 
-Detect titles, figures and tables, and extract tables as row/column grids.
+Detect titles, figures and tables, extract tables as row/column grids and read formulas as LaTeX.
 :::
 
 :::{grid-item-card} {octicon}`sync;1.1em` Rotated documents

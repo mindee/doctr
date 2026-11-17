@@ -95,6 +95,7 @@ Run `doctr-cli --help` for the full list with default values.
 | `--detect_language`                              | off       | Estimate the language of each page                                     |
 | `--detect_layout`                                | off       | Attach the layout regions to each page                                 |
 | `--detect_tables`                                | off       | Recognize tables (enables the layout model)                            |
+| `--detect_formulas`                              | off       | Read formulas as LaTeX (enables the layout model)                      |
 | `--ignore_regions CLASS [CLASS ...]`             | none      | Layout classes to mask before OCR, e.g. `Picture Table`                |
 | `--export_as_straight_boxes`                     | off       | Export straight boxes with `--no-assume_straight_pages`                |
 | `--preserve_original_coords`                     | off       | With `--straighten_pages`, map the boxes back to the original pages    |
@@ -131,7 +132,7 @@ Run `doctr-cli --help` for the full list with default values.
 ## Output files
 
 - **JSON** contains the full structure: pages (dimensions, orientation, language, layout), blocks, lines and words
-  with their confidence and geometry, and the tables with `--detect_tables`.
+  with their confidence and geometry, the tables with `--detect_tables` and the formulas with `--detect_formulas`.
 - **Text-like formats** (`txt`, `md`, `adoc`, `html`) are written to a single file.
 - **hOCR** describes one page per file: `--output doc.xml` on a three-page document writes `doc_page_1.xml`,
   `doc_page_2.xml` and `doc_page_3.xml`.

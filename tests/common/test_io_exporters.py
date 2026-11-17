@@ -1375,3 +1375,44 @@ def test_page_export_as_xml_figures(picture):
     assert "ocr_photo" in xml.split('name="ocr-capabilities" content="')[1].split('"')[0]
     # The raw order also carries the figures
     assert 'class="ocr_photo"' in page.export_as_xml(reading_order=False)[0].decode()
+
+
+def test_formula_exports():
+    # A display formula between two paragraphs is read in the text flow, and rendered as display math
+    lines = [_line_at(f"intro line {i} of the body", 0.1, 0.05 + 0.04 * i, 0.9, 0.08 + 0.04 * i) for i in range(3)]
+    lines += [_line_at(f"outro line {i} of the body", 0.1, 0.40 + 0.04 * i, 0.9, 0.43 + 0.04 * i) for i in range(3)]
+    formula = elements.Formula(r"\frac { a } { b } < c", 0.8, ((0.3, 0.22), (0.7, 0.32)), 0.9)
+    layout = [
+        elements.LayoutElement("Text", 0.9, ((0.08, 0.04), (0.92, 0.17))),
+        elements.LayoutElement("Formula", 0.9, ((0.3, 0.22), (0.7, 0.32))),
+        elements.LayoutElement("Text", 0.9, ((0.08, 0.39), (0.92, 0.52))),
+    ]
+    page = _page(lines, layout=layout, formulas=[formula])
+    items, labels, _ = page_reading_order(page)
+    assert [type(item).__name__ for item in items] == ["Block", "Formula", "Block"]
+    assert labels[1] == "Formula"
+    assert page.items_in_reading_order()[1] is formula
+
+    # The LaTeX source is not escaped as Markdown / AsciiDoc text, but HTML-escaped in HTML
+    assert "\n\n$$\n\\frac { a } { b } < c\n$$\n\n" in page.export_as_markdown()
+    assert "\n\n[latexmath]\n++++\n\\frac { a } { b } < c\n++++\n\n" in page.export_as_asciidoc()
+    assert '\n<div class="formula">$$\\frac { a } { b } &lt; c$$</div>\n' in page.export_as_html()
+    assert "\n\n\\frac { a } { b } < c\n\n" in page.render()
+    xml = page.export_as_xml()[0].decode()
+    assert '<span class="ocr_math" id="formula_1" title="bbox 240 220 560 320; x_wconf 80">' in xml
+    assert "ocr_math" in ET.fromstring(page.export_as_xml()[0]).find(".//{*}meta[@name='ocr-capabilities']").get(
+        "content"
+    )
+    # Raw order: blocks, then tables, then formulas
+    assert '<span class="ocr_math"' in page.export_as_xml(reading_order=False)[0].decode()
+
+    # JSON round trip
+    exported = page.export()
+    assert exported["formulas"] == [formula.export()]
+    reloaded = elements.Page.from_dict(json.loads(json.dumps(exported)))
+    assert reloaded.formulas[0].value == formula.value and reloaded.formulas[0].objectness_score == 0.9
+    assert reloaded.export_as_markdown() == page.export_as_markdown()
+
+    # An empty formula is left out of the exports
+    page = _page(lines, layout=layout, formulas=[elements.Formula("", 0.0, ((0.3, 0.22), (0.7, 0.32)))])
+    assert "$$" not in page.export_as_markdown() and "formula" not in page.export_as_html()

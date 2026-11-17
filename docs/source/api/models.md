@@ -94,6 +94,17 @@ directly. See the [model zoo](../models/index.md) for benchmarks.
 .. autofunction:: doctr.models.table_structure.tablecenternet
 ```
 
+## Formula recognition
+
+```{eval-rst}
+.. autofunction:: doctr.models.formula.formula_predictor
+
+.. autoclass:: doctr.models.formula.predictor.FormulaPredictor
+   :members: predict_regions
+
+.. autofunction:: doctr.models.formula.formulanet
+```
+
 ## Classification
 
 Orientation classifiers, and the backbones used by the detection and recognition models.
@@ -146,6 +157,8 @@ Orientation classifiers, and the backbones used by the detection and recognition
 .. autofunction:: doctr.models.classification.vit_det_m
 
 .. autofunction:: doctr.models.classification.starnet_s3
+
+.. autofunction:: doctr.models.classification.hgnetv2_b4
 ```
 
 ## Hugging Face Hub

@@ -101,6 +101,7 @@ def test_parse_args_defaults():
     assert args.detect_language is False
     assert args.detect_layout is False
     assert args.detect_tables is False
+    assert args.detect_formulas is False
     assert args.ignore_regions is None
     assert args.export_as_straight_boxes is False
     assert args.preserve_original_coords is False
@@ -184,6 +185,7 @@ def test_parse_args_advanced_options():
         "3",
         "--detect_layout",
         "--detect_tables",
+        "--detect_formulas",
         "--ignore_regions",
         "Picture",
         "Table",
@@ -208,6 +210,7 @@ def test_parse_args_advanced_options():
     assert args.pdf_scale == 3
     assert args.detect_layout is True
     assert args.detect_tables is True
+    assert args.detect_formulas is True
     assert args.ignore_regions == ["Picture", "Table"]
     assert args.export_as_straight_boxes is True
     assert args.preserve_original_coords is True
@@ -433,6 +436,7 @@ def test_build_predictor_forwards_every_option(recorded_predictor):
         "--detect_language",
         "--detect_layout",
         "--detect_tables",
+        "--detect_formulas",
         "--export_as_straight_boxes",
         "--preserve_original_coords",
         "--disable_page_orientation",
@@ -461,6 +465,7 @@ def test_build_predictor_forwards_every_option(recorded_predictor):
         "layout_arch": "lw_detr_s",
         "ignore_regions": None,
         "detect_tables": True,
+        "detect_formulas": True,
         "det_bs": 4,
         "reco_bs": 64,
         "confidence_aggregation": "geometric_mean",

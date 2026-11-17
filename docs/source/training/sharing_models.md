@@ -32,7 +32,7 @@ model = recognition.crnn_mobilenet_v3_large(pretrained=True)
 push_to_hf_hub(
     model,
     model_name="doctr-crnn-mobilenet-v3-large-french-v1",
-    task="recognition",  # classification, detection, recognition, layout or table_structure
+    task="recognition",  # classification, detection, recognition, layout, table_structure or formula
     arch="crnn_mobilenet_v3_large",
 )
 ```
@@ -53,6 +53,7 @@ python references/recognition/train.py crnn_mobilenet_v3_large --name doctr-crnn
 | Recognition | `doctr-<architecture>-<vocab>` |
 | Layout | `doctr-<architecture>` |
 | Table structure | `doctr-<architecture>` |
+| Formula recognition | `doctr-<architecture>` |
 
 ## Community models
 

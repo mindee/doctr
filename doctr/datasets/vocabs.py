@@ -6,11 +6,9 @@
 import re
 import string
 
-__all__ = ["VOCABS"]
+__all__ = ["VOCABS", "LATEX_TOKENS"]
 
 _BASE_VOCABS = {
-    # LaTeX
-    "latex": "".join(sorted(set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\\{}^_=+-<>()[]/.,| "))),
     # Latin
     "digits": string.digits,
     "ascii_letters": string.ascii_letters,
@@ -1170,4 +1168,143 @@ VOCABS["multilingual"] = "".join(
         # greek
         + VOCABS["greek"]
     )
+)
+
+
+# LaTeX tokens of formula recognition: the printable ASCII characters, the control symbols, the environments and
+# commands supported by KaTeX (https://katex.org/docs/supported), which renders the predictions, and the other
+# TeX / LaTeX commands and characters found in the labels of public formula datasets (UniMER-1M, HME100K, UniMER-Test)
+# NOTE: a backslash followed by a whitespace is tokenized as \space (cf. `doctr.datasets.tokenize_latex`)
+_LATEX_CONTROL_SYMBOLS = (
+    "\\\\ \\{ \\} \\| \\, \\: \\; \\! \\# \\$ \\% \\& \\_ \\' \\` \\^ \\~ \\= \\. \\\" \\> \\< \\/"
+).split()
+_LATEX_ENVIRONMENTS = (
+    "array darray matrix matrix* pmatrix pmatrix* bmatrix bmatrix* Bmatrix Bmatrix* vmatrix vmatrix* Vmatrix "
+    "Vmatrix* smallmatrix subarray cases dcases rcases drcases aligned alignedat gathered split equation equation* "
+    "align align* alignat alignat* gather gather* CD"
+).split()
+_LATEX_COMMANDS = (
+    # Greek and Hebrew letters
+    "alpha beta gamma delta epsilon varepsilon zeta eta theta vartheta iota kappa varkappa lambda mu nu xi omicron pi "
+    "varpi rho varrho sigma varsigma tau upsilon phi varphi chi psi omega digamma "
+    "Alpha Beta Gamma Delta Epsilon Zeta Eta Theta Iota Kappa Lambda Mu Nu Xi Omicron Pi Rho Sigma Tau Upsilon Phi "
+    "Chi Psi Omega varGamma varDelta varTheta varLambda varXi varPi varSigma varUpsilon varPhi varPsi varOmega "
+    "aleph beth gimel daleth "
+    # Letter-like symbols
+    "ell hbar hslash imath jmath wp Re Im partial nabla infty eth Bbbk complement Finv Game mho "
+    # Fractions, binomials and roots
+    "frac dfrac tfrac cfrac genfrac over atop above choose binom dbinom tbinom brace brack sqrt "
+    # Big operators
+    "sum prod coprod int iint iiint oint oiint oiiint intop smallint bigcup bigcap bigvee bigwedge bigoplus "
+    "bigotimes bigodot biguplus bigsqcup "
+    # Named operators
+    "lim liminf limsup varliminf varlimsup injlim projlim varinjlim varprojlim max min sup inf det gcd deg dim exp "
+    "hom ker lg ln log Pr arg argmax argmin sin cos tan cot sec csc arcsin arccos arctan arctg arcctg sinh cosh tanh "
+    "coth sh ch th tg ctg cotg cosec cth mod bmod pmod pod "
+    # Binary operators
+    "pm mp times div cdot ast star circ bullet oplus ominus otimes oslash odot cap cup uplus sqcap sqcup vee wedge "
+    "lor land setminus smallsetminus wr amalg dagger ddagger dotplus divideontimes ltimes rtimes leftthreetimes "
+    "rightthreetimes curlywedge curlyvee barwedge doublebarwedge boxplus boxminus boxtimes boxdot circledast "
+    "circledcirc circleddash centerdot intercal gtrdot lessdot Cap Cup doublecap doublecup bigcirc diamond "
+    "triangleleft triangleright bigtriangleup bigtriangledown lhd rhd unlhd unrhd veebar And "
+    # Relations
+    "leq le geq ge neq ne equiv approx approxeq sim simeq cong propto varpropto prec succ preceq succeq ll gg lll "
+    "ggg subset supset subseteq supseteq subsetneq supsetneq subseteqq supseteqq subsetneqq supsetneqq varsubsetneq "
+    "varsupsetneq nsubseteq nsupseteq Subset Supset sqsubset sqsupset sqsubseteq sqsupseteq in ni notin owns mid "
+    "nmid parallel nparallel shortmid shortparallel nshortmid nshortparallel perp models vdash dashv vDash Vdash "
+    "Vvdash nvdash nvDash nVdash nVDash asymp bowtie Join smile frown doteq doteqdot Doteq fallingdotseq "
+    "risingdotseq coloneqq eqqcolon colonequals coloneq eqcolon Coloneqq leqq geqq leqslant geqslant lesssim gtrsim "
+    "lessapprox gtrapprox lessgtr gtrless lesseqgtr gtreqless lesseqqgtr gtreqqless lneq gneq lneqq gneqq lnsim "
+    "gnsim lnapprox gnapprox nless ngtr nleq ngeq nleqq ngeqq nleqslant ngeqslant nprec nsucc npreceq nsucceq "
+    "precsim succsim precapprox succapprox precneqq succneqq precnsim succnsim precnapprox succnapprox preccurlyeq "
+    "succcurlyeq curlyeqprec curlyeqsucc trianglelefteq trianglerighteq ntriangleleft ntriangleright "
+    "ntrianglelefteq ntrianglerighteq vartriangle vartriangleleft vartriangleright triangleq between pitchfork "
+    "backsim backsimeq eqsim thicksim thickapprox nsim ncong eqcirc circeq bumpeq Bumpeq multimap therefore because "
+    # Arrows
+    "leftarrow rightarrow to gets uparrow downarrow updownarrow leftrightarrow Leftarrow Rightarrow Uparrow "
+    "Downarrow Updownarrow Leftrightarrow longleftarrow longrightarrow longleftrightarrow Longleftarrow "
+    "Longrightarrow Longleftrightarrow iff implies impliedby mapsto longmapsto hookleftarrow hookrightarrow "
+    "leftharpoonup leftharpoondown rightharpoonup rightharpoondown rightleftharpoons leftrightharpoons nearrow "
+    "searrow swarrow nwarrow nleftarrow nrightarrow nLeftarrow nRightarrow nleftrightarrow nLeftrightarrow "
+    "leftleftarrows rightrightarrows leftrightarrows rightleftarrows Lleftarrow Rrightarrow twoheadleftarrow "
+    "twoheadrightarrow leftarrowtail rightarrowtail looparrowleft looparrowright curvearrowleft curvearrowright "
+    "circlearrowleft circlearrowright Lsh Rsh upuparrows downdownarrows upharpoonleft upharpoonright downharpoonleft "
+    "downharpoonright restriction leftrightsquigarrow rightsquigarrow dashleftarrow dashrightarrow "
+    "xrightarrow xleftarrow xleftrightarrow xRightarrow xLeftarrow xLeftrightarrow xmapsto xhookleftarrow "
+    "xhookrightarrow xtwoheadrightarrow xtwoheadleftarrow xrightharpoonup xrightharpoondown xleftharpoonup "
+    "xleftharpoondown xrightleftharpoons xleftrightharpoons xlongequal xtofrom "
+    # Delimiters and their sizing
+    "left right middle big Big bigg Bigg bigl bigr Bigl Bigr biggl biggr Biggl Biggr bigm Bigm biggm Biggm langle "
+    "rangle lceil rceil lfloor rfloor lvert rvert lVert rVert vert Vert lbrace rbrace lbrack rbrack lgroup rgroup "
+    "lmoustache rmoustache ulcorner urcorner llcorner lrcorner backslash "
+    # Accents and annotations
+    "hat widehat check widecheck tilde widetilde utilde bar overline underline underbar vec overrightarrow "
+    "overleftarrow overleftrightarrow underrightarrow underleftarrow underleftrightarrow overlinesegment "
+    "underlinesegment Overrightarrow dot ddot dddot ddddot acute grave breve mathring overbrace underbrace "
+    "overgroup undergroup overset underset stackrel boxed cancel bcancel xcancel sout not neg lnot "
+    # Fonts and classes
+    "mathrm mathbf mathit mathsf mathtt mathcal mathscr mathfrak mathbb mathnormal boldsymbol bm bold pmb Bbb text "
+    "textrm textbf textit textsf texttt textnormal textup textmd emph rm bf it sf tt cal frak operatorname "
+    "operatorname* operatornamewithlimits mathop mathbin mathrel mathopen mathclose mathpunct mathinner mathord "
+    # Styles and sizes
+    "tiny scriptsize footnotesize small normalsize large Large LARGE huge Huge displaystyle textstyle scriptstyle "
+    "scriptscriptstyle limits nolimits displaylimits "
+    # Spacing and layout
+    "quad qquad enspace thinspace medspace thickspace negthinspace negmedspace negthickspace hspace hskip mskip kern "
+    "mkern mathstrut phantom hphantom vphantom space nobreakspace llap rlap clap mathllap mathrlap mathclap smash "
+    "raisebox mbox hbox fbox rule substack sideset cr newline hline hdashline tag notag nonumber color textcolor "
+    "colorbox fcolorbox "
+    # Other symbols
+    "dots ldots cdots vdots ddots dotsc dotsb dotsm dotsi dotso cdotp ldotp hdots prime backprime forall exists "
+    "nexists emptyset varnothing angle measuredangle sphericalangle top bot triangle triangledown square "
+    "blacksquare lozenge blacklozenge blacktriangle blacktriangledown blacktriangleleft blacktriangleright bigstar "
+    "diagup diagdown clubsuit diamondsuit heartsuit spadesuit flat natural sharp checkmark maltese circledR "
+    "circledS surd degree yen pounds dag ddag S P copyright textdegree colon vcentcolon"
+).split()
+
+# Found in the formula datasets, beyond KaTeX: control symbols (a lone backslash ends some labels), TeX / LaTeX commands
+# (text-mode accents, grouping, spacing and font switches, `\up*` upright Greek letters...) and Unicode characters
+# (Greek, Cyrillic and accented letters, math symbols, CJK punctuation and the Chinese characters of HME100K)
+_DATASET_CONTROL_SYMBOLS = ["\\", "\\(", "\\)", "\\*", "\\-"]
+_DATASET_COMMANDS = (
+    "AA AE Bar Breve Check DOTSB Ddot Dot H Hat L Lt MakeUppercase O SS Tilde Vec a aa ae aftergroup aligned "
+    "allowbreak allowdisplaybreaks angles arraycolsep arraystretch astrosun atopwithdelims b backepsilon "
+    "baselineskip begingroup bfseries bgroup bigskip bigtimes boldmath boxbslash break c centering cite d def depth "
+    "detokenize diameter dj do downuparrows dprime edef egroup else em empty endaligned endgroup enskip ensuremath "
+    "eqno eqslantgtr eqslantless everymath expandafter fcmp fi fill fint fontfamily footnote footnotemark framebox "
+    "gdef global hexagon hfil hfill hss i idotsint if ifmmode iiiint ij indent index interleave isvec itGamma "
+    "itOmega itSigma j joinrel k l label lat leavevmode lefteqn leftmoon leftrightarrowtriangle less linespread "
+    "llangle lowercase makebox mathbfcal mathbfit mathbfscr mathchoice mathellipsis mathgroup mathpalette "
+    "mathparagraph mathrsf mathsection mathsfit medskip mit ng noindent nolinebreak normalbaselineskip normalcolor "
+    "normalfont nsimeq null nulldelimiterspace o of offinterlineskip ointctrclockwise ointop overbar overbracket "
+    "overrightharpoon overwithdelims pentagon protect pullback qopname r raggedleft raisetag ref relax rightmoon "
+    "romannumeral root rq rrangle s sb sc scshape selectfont shuffle skew sl slash smallskip smt sp special ss "
+    "string strut sumint sun textbackslash textbar textcent textcircled textcopyright textemdash texteuro "
+    "textgreater textlangle textless textmu textperiodcentered textperthousand textquoteright textrangle textrecipe "
+    "textregistered textsc textsl textsubscript textsuperscript texttimes textunderscore the theboldgroup "
+    "theequation thesubequation thinmuskip time tmspace today tplus u unboldmath underbracket upDelta upOmega "
+    "upSigma upalpha upbeta upchi updelta updownarrows upepsilon upeta upgamma upkappa uplambda upmu upnu upomega "
+    "uppercase upphi uppi uppsi uprho upshape upsigma uptau uptheta upvarepsilon upvarphi upxi upzeta v verb vline "
+    "vrule"
+).split()
+_DATASET_CHARACTERS = (
+    # Latin-1, accented Latin and Greek / Cyrillic letters
+    "¡£¥¨®¯°±²´µ·¸ÅÆ×àáäåéðöćčΓΔΩαβδεηθικλμνοπστυφχψωόДНагдежинч"
+    # Punctuation, math symbols and letter-like symbols (U+2061 is the invisible function application)
+    "ḊḌ‐–—’“†…⁄\u2061ℓ↦∈∑−∘√∞∫≅≤⊗⊘⋅◁⟨⟩𝓝𝕍𝕎"
+    # CJK punctuation and characters (HME100K, UniMER-Test), U+FFFD is the replacement character of broken labels
+    "、。万丙个为乙人代以倍元入公分即原可周和因大天妈将小岁年式得或所把数方时明是最本次求法满然甲的种积第答组能自行袋解该负足面页项，\ufffd"
+)
+
+# NOTE: the tokens found in the datasets come last, so that the indices of the other tokens do not depend on them
+LATEX_TOKENS: list[str] = list(
+    dict.fromkeys([
+        *(char for char in string.printable if not char.isspace() and char != "\\"),
+        *_LATEX_CONTROL_SYMBOLS,
+        *(f"\\{boundary}{{{env}}}" for env in _LATEX_ENVIRONMENTS for boundary in ("begin", "end")),
+        *(f"\\{command}" for command in _LATEX_COMMANDS),
+        *_DATASET_CONTROL_SYMBOLS,
+        *(f"\\{command}" for command in _DATASET_COMMANDS),
+        *_DATASET_CHARACTERS,
+    ])
 )

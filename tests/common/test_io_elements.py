@@ -529,6 +529,7 @@ def test_page():
         "language": language,
         "layout": [r.export() for r in layout],
         "tables": [],
+        "formulas": [],
     }
     assert json.dumps(page.export()) and json.dumps(page.export(reading_order=False))
 
@@ -809,3 +810,23 @@ def test_kie_page_and_kie_document_from_dict():
     restored_plain = elements.Document.from_dict(plain.export())
     assert all(isinstance(page, elements.Page) for page in restored_plain.pages)
     assert restored_plain.export() == plain.export()
+
+
+def test_formula():
+    geometry = ((0.2, 0.3), (0.6, 0.4))
+    formula = elements.Formula(r"x ^ { 2 }", 0.75, geometry, objectness_score=0.9)
+    assert formula.value == r"x ^ { 2 }" and formula.confidence == 0.75 and formula.geometry == geometry
+    assert formula.render() == r"x ^ { 2 }"
+    assert repr(formula) == "Formula(value='x ^ { 2 }', confidence=0.75)"
+    exported = formula.export()
+    assert exported == {"geometry": geometry, "value": "x ^ { 2 }", "confidence": 0.75, "objectness_score": 0.9}
+    assert elements.Formula.from_dict(exported).export() == exported
+    # Exports without objectness score
+    reloaded = elements.Formula.from_dict({k: v for k, v in exported.items() if k != "objectness_score"})
+    assert reloaded.objectness_score is None
+
+    page = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [], 0, (10, 10), formulas=[formula])
+    assert page.formulas == [formula]
+    assert elements.Page.from_dict(page.export()).formulas[0].export() == exported
+    # Exports of earlier versions have no formulas
+    assert elements.Page.from_dict({k: v for k, v in page.export().items() if k != "formulas"}).formulas == []

@@ -206,7 +206,7 @@ epub_exclude_files = ["search.html"]
 # Vocabularies listed on `models/vocabs.md`, grouped by script. Any vocabulary missing from these groups is listed
 # under "Other scripts", so that the page always reflects `doctr.datasets.VOCABS`.
 VOCAB_GROUPS = {
-    "General purpose": ["latin", "english", "multilingual", "latex"],
+    "General purpose": ["latin", "english", "multilingual"],
     "Latin script": [
         "albanian",
         "afrikaans",

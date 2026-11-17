@@ -93,7 +93,7 @@ The elements returned by the predictors, from the largest to the smallest. See
 .. autoclass:: Artefact
 ```
 
-### Layout and tables
+### Layout, tables and formulas
 
 ```{eval-rst}
 .. autoclass:: LayoutElement
@@ -105,6 +105,8 @@ The elements returned by the predictors, from the largest to the smallest. See
 
 .. autoclass:: TableCell
    :members: row_span, col_span
+
+.. autoclass:: Formula
 ```
 
 ### Key information extraction

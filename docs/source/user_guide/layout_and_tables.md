@@ -1,7 +1,7 @@
 # Layout analysis & tables
 
 Text alone loses the structure of a document. docTR can also tell *what* each region of a page is (a title, a
-paragraph, a table, a figure...) and rebuild tables as rows and columns.
+paragraph, a table, a figure...), rebuild tables as rows and columns and read formulas as LaTeX.
 
 ## Layout analysis
 
@@ -61,7 +61,8 @@ predictor = ocr_predictor(pretrained=True, detect_layout=True, ignore_regions=["
 ```
 
 :::{important}
-`ignore_regions` relies on the layout model: enable it with `detect_layout=True` (or `detect_tables=True`),
+`ignore_regions` relies on the layout model: enable it with `detect_layout=True` (or `detect_tables=True` /
+`detect_formulas=True`),
 otherwise the regions cannot be located and nothing is masked. The CLI enables it automatically.
 :::
 
@@ -139,9 +140,44 @@ for cell in table.cells:
 | `confidence`                 | Mean recognition confidence of the words of the cell                |
 | `objectness_score`           | Table model score of the cell (`None` for a cell made from words)   |
 
+## Formula recognition
+
+With `detect_formulas=True`, each region the layout model labels as a `Formula` (a display formula, on its own lines)
+is masked out of the text detection, cropped and read by a formula recognition model (`formulanet`), which predicts its
+LaTeX source. The formulas are attached to every page as {class}`~doctr.io.Formula` objects:
+
+```python
+from doctr.io import DocumentFile
+from doctr.models import ocr_predictor
+
+predictor = ocr_predictor(pretrained=True, detect_formulas=True)
+result = predictor(DocumentFile.from_pdf("attention_is_all_you_need.pdf"))  # arXiv:1706.03762
+
+formula = result.pages[4].formulas[0]
+print(formula.value)
+# \mathrm { F F N } ( x ) = \operatorname* { m a x } ( 0 , x W _ { 1 } + b _ { 1 } ) W _ { 2 } + b _ { 2 } \tag { $ 2 $ }
+print(formula.confidence)  # 0.98
+```
+
+The formulas are read in place with the text, and exported as display math:
+
+| Export | Rendering |
+| --- | --- |
+| `render()` | the LaTeX source |
+| Markdown | `$$`, the LaTeX source and `$$` on their own lines |
+| HTML | `<div class="formula">$$...$$</div>`, rendered by MathJax or KaTeX auto-render |
+| AsciiDoc | a `[latexmath]` passthrough block |
+| hOCR | an `ocr_math` element holding the LaTeX source |
+| JSON | the `formulas` key of each page: `value`, `confidence`, `geometry`, `objectness_score` |
+
+:::{important}
+The formula regions are **not** read by the text recognition model, so a formula is not returned twice. The LaTeX
+source is never escaped as Markdown or AsciiDoc text, and it is HTML-escaped in HTML exports.
+:::
+
 ## Standalone predictors
 
-Both models can also run on their own, without text recognition:
+The models can also run on their own, without text recognition:
 
 ::::{tab-set}
 
@@ -184,6 +220,31 @@ regions = layout_predictor("lw_detr_s", pretrained=True)(pages)
 tables = predictor.predict_regions(pages, regions, word_boxes)  # one (N, 4) array of relative boxes per page
 
 tables[0][0]["cells"][0]["words"]  # indices of the words of the cell in `word_boxes[0]`, in reading order
+```
+:::
+
+:::{tab-item} Formula recognition
+Pass images of formulas, e.g. crops of the `Formula` regions, margins included:
+
+```python
+from doctr.models import formula_predictor
+
+predictor = formula_predictor("formulanet", pretrained=True)
+out = predictor([formula_image])
+
+# The LaTeX tokens separated by spaces, and the confidence
+out[0]  # ('J ( u , y ) = \\int _ { 0 } ^ { 1 } \\frac { | u | ^ { 2 } } { 2 } \\, d x + \\Psi ( y )', 0.98)
+```
+
+With the layout regions of whole pages, the formula regions are cropped and read:
+
+```python
+from doctr.models import layout_predictor
+
+regions = layout_predictor("lw_detr_s", pretrained=True)(pages)
+formulas = predictor.predict_regions(pages, regions)
+
+formulas[0][0]  # {'geometry': ..., 'value': '\\frac { a } { b ^ { 2 } }', 'confidence': 0.97, 'score': 0.91}
 ```
 :::
 ::::

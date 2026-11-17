@@ -7,6 +7,7 @@ from typing import Any
 
 from ._utils import ConfidenceAggregation, _resolve_confidence_aggregation
 from .detection.zoo import detection_predictor
+from .formula.zoo import formula_predictor
 from .kie_predictor import KIEPredictor
 from .layout.zoo import layout_predictor
 from .predictor import OCRPredictor
@@ -33,6 +34,7 @@ def _predictor(
     layout_arch: Any = "lw_detr_s",
     ignore_regions: list[str] | None = None,
     detect_tables: bool = False,
+    detect_formulas: bool = False,
     confidence_aggregation: ConfidenceAggregation | None = None,
     **kwargs,
 ) -> OCRPredictor:
@@ -60,7 +62,7 @@ def _predictor(
         confidence_aggregation=confidence_aggregation,
     )
 
-    # Layout - required for table detection, so build it whenever layout or tables are requested
+    # Layout - required for table and formula recognition, so build it whenever one of them is requested
     layout_pred = (
         layout_predictor(
             layout_arch,
@@ -70,7 +72,7 @@ def _predictor(
             symmetric_pad=symmetric_pad,
             batch_size=det_bs,
         )
-        if (detect_layout or detect_tables)
+        if (detect_layout or detect_tables or detect_formulas)
         else None
     )
 
@@ -88,6 +90,17 @@ def _predictor(
         else None
     )
 
+    # Formula recognition - optional, applied on the cropped formula regions found by the layout model
+    formula_pred = (
+        formula_predictor(
+            "formulanet",
+            pretrained=pretrained,
+            pretrained_backbone=pretrained_backbone,
+        )
+        if detect_formulas
+        else None
+    )
+
     return OCRPredictor(
         det_predictor,
         reco_predictor,
@@ -99,6 +112,7 @@ def _predictor(
         detect_language=detect_language,
         layout_predictor=layout_pred,
         table_predictor=table_pred,
+        formula_predictor=formula_pred,
         ignore_regions=ignore_regions,
         **kwargs,
     )
@@ -120,6 +134,7 @@ def ocr_predictor(
     layout_arch: Any = "lw_detr_s",
     ignore_regions: list[str] | None = None,
     detect_tables: bool = False,
+    detect_formulas: bool = False,
     confidence_aggregation: ConfidenceAggregation | None = None,
     **kwargs: Any,
 ) -> OCRPredictor:
@@ -164,6 +179,10 @@ def ocr_predictor(
             structure model. Words falling inside a detected table are regrouped into a structured table
             (accessible via `page.tables`) and removed from the regular text output. This enables the layout
             model and slightly deteriorates the overall latency.
+        detect_formulas: if True, formula regions found by the layout model are masked out of the text detection,
+            cropped and read as LaTeX by a formula recognition model (accessible via `page.formulas`, and exported as
+            display math, e.g. `$$...$$` in Markdown). This enables the layout model and deteriorates the overall
+            latency.
         confidence_aggregation: aggregation method of the character probabilities of the recognition model into the
             word confidence: "mean", "min", "max", "median", "geometric_mean", "harmonic_mean" or a Python callable
             taking the 1D array of probabilities and returning a float. If None (default), the method of the
@@ -190,6 +209,7 @@ def ocr_predictor(
         detect_layout=detect_layout,
         layout_arch=layout_arch,
         detect_tables=detect_tables,
+        detect_formulas=detect_formulas,
         ignore_regions=ignore_regions,
         confidence_aggregation=confidence_aggregation,
         **kwargs,

@@ -3,11 +3,12 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+import re
 import string
 import unicodedata
 from collections.abc import Sequence
 from collections.abc import Sequence as SequenceType
-from functools import lru_cache, partial
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, TypeVar
 
@@ -21,6 +22,8 @@ from .vocabs import VOCABS
 
 __all__ = [
     "translate",
+    "tokenize_latex",
+    "normalize_latex",
     "encode_string",
     "decode_sequence",
     "encode_sequences",
@@ -66,45 +69,103 @@ def translate(
     return translated
 
 
+# A LaTeX token: an environment delimiter (e.g. \begin{array}), a command (e.g. \frac, \operatorname*), a control
+# symbol (e.g. \{, \, or \\) or any other non-whitespace character
+_LATEX_TOKEN = re.compile(r"\\(?:begin|end)\s*\{[a-zA-Z]+\*?\}|\\[a-zA-Z]+\*?|\\.|\S", re.DOTALL)
+
+
+def tokenize_latex(latex: str) -> list[str]:
+    r"""Split a LaTeX string into tokens: commands, environment delimiters, control symbols and single characters
+
+    >>> from doctr.datasets import tokenize_latex
+    >>> tokenize_latex(r"\frac{a}{b^2}")
+    ['\\frac', '{', 'a', '}', '{', 'b', '^', '2', '}']
+
+    The whitespaces are not part of the tokens (a control space `\ ` is tokenized as `\space`, which renders the same):
+    tokenizing a string and joining the tokens with spaces gives a normalized string which tokenizes into the same
+    tokens.
+
+    Args:
+        latex: the LaTeX string to tokenize
+
+    Returns:
+        the list of tokens
+    """
+    tokens = []
+    for tok in _LATEX_TOKEN.findall(latex):
+        if tok.startswith(("\\begin", "\\end")):
+            # Drop the whitespaces between an environment delimiter and its name (e.g. "\begin {array}")
+            tok = re.sub(r"\s+", "", tok)
+        elif len(tok) == 2 and tok[1].isspace():
+            tok = "\\space"
+        tokens.append(tok)
+    return tokens
+
+
+def normalize_latex(latex: str) -> str:
+    r"""Normalize a LaTeX string into space-separated tokens (cf. :func:`tokenize_latex`)
+
+    >>> from doctr.datasets import normalize_latex
+    >>> normalize_latex(r"\frac{a}{b^2}")
+    '\\frac { a } { b ^ 2 }'
+
+    Args:
+        latex: the LaTeX string to normalize
+
+    Returns:
+        the normalized string, rendering the same as the input
+    """
+    return " ".join(tokenize_latex(latex))
+
+
 @lru_cache(maxsize=32)
-def _vocab_lookup_table(vocab: str) -> dict[str, int]:
-    """Cached char -> index table for a vocab"""
-    return {char: idx for idx, char in reversed(list(enumerate(vocab)))}
+def _vocab_lookup_table(vocab: str | tuple[str, ...]) -> dict[str, int]:
+    """Cached token -> index table for a vocab (the first occurrence of a duplicated token wins)"""
+    return {token: idx for idx, token in reversed(list(enumerate(vocab)))}
+
+
+def _split_tokens(input_string: str, vocab: str | Sequence[str]) -> list[str]:
+    """Split a string into the units of a vocab: characters for a string vocab, whitespace-separated tokens for a
+    list of tokens"""
+    return list(input_string) if isinstance(vocab, str) else input_string.split()
 
 
 def encode_string(
     input_string: str,
-    vocab: str,
+    vocab: str | Sequence[str],
 ) -> list[int]:
     """Given a predefined mapping, encode the string to a sequence of numbers
 
     Args:
         input_string: string to encode
-        vocab: vocabulary (string), the encoding is given by the indexing of the character sequence
+        vocab: vocabulary, the encoding is given by the indexing of its units: a string of characters, or a list of
+            tokens (e.g. LaTeX commands), in which case the input string is split on whitespaces
 
     Returns:
         A list encoding the input_string
     """
-    table = _vocab_lookup_table(vocab)
+    table = _vocab_lookup_table(vocab if isinstance(vocab, str) else tuple(vocab))
+    tokens = _split_tokens(input_string, vocab)
     try:
-        return [table[char] for char in input_string]
+        return [table[token] for token in tokens]
     except KeyError as e:
-        missing_chars = [char for char in input_string if char not in table]
+        missing = [token for token in tokens if token not in table]
         raise ValueError(
-            f"Some characters cannot be found in 'vocab': {set(missing_chars)}.\n"
+            f"Some characters cannot be found in 'vocab': {set(missing)}.\n"
             f"Please check the input string `{input_string}` and the vocabulary `{vocab}`"
         ) from e
 
 
 def decode_sequence(
     input_seq: np.ndarray | SequenceType[int],
-    mapping: str,
+    mapping: str | Sequence[str],
 ) -> str:
     """Given a predefined mapping, decode the sequence of numbers to a string
 
     Args:
         input_seq: array to decode
-        mapping: vocabulary (string), the encoding is given by the indexing of the character sequence
+        mapping: vocabulary, the encoding is given by the indexing of its units: a string of characters, or a list of
+            tokens, in which case the decoded tokens are joined with spaces
 
     Returns:
         A string, decoded from input_seq
@@ -117,12 +178,12 @@ def decode_sequence(
     if len(input_seq) > 0 and (min(input_seq) < 0 or max(input_seq) >= len(mapping)):
         raise AssertionError("Input must be an array of int, with values between 0 and the mapping size")
 
-    return "".join(map(mapping.__getitem__, input_seq))
+    return ("" if isinstance(mapping, str) else " ").join(map(mapping.__getitem__, input_seq))
 
 
 def encode_sequences(
     sequences: list[str],
-    vocab: str,
+    vocab: str | Sequence[str],
     target_size: int | None = None,
     eos: int = -1,
     sos: int | None = None,
@@ -133,7 +194,8 @@ def encode_sequences(
 
     Args:
         sequences: the list of character sequences of size N
-        vocab: the ordered vocab to use for encoding
+        vocab: the ordered vocab to use for encoding: a string of characters, or a list of tokens (cf.
+            :func:`encode_string`)
         target_size: maximum length of the encoded data
         eos: encoding of End Of String
         sos: optional encoding of Start Of String
@@ -146,9 +208,10 @@ def encode_sequences(
     if 0 <= eos < len(vocab):
         raise ValueError("argument 'eos' needs to be outside of vocab possible indices")
 
+    encoded_seqs = [encode_string(seq, vocab) for seq in sequences]
     if not isinstance(target_size, int) or dynamic_seq_length:
-        # Maximum string length + EOS
-        max_length = max((len(w) for w in sequences), default=0) + 1
+        # Maximum sequence length (in vocab units) + EOS
+        max_length = max((len(seq) for seq in encoded_seqs), default=0) + 1
         if isinstance(sos, int):
             max_length += 1
         if isinstance(pad, int):
@@ -166,7 +229,7 @@ def encode_sequences(
     encoded_data: np.ndarray = np.full([len(sequences), target_size], default_symbol, dtype=np.int32)
 
     # Encode the strings
-    for idx, seq in enumerate(map(partial(encode_string, vocab=vocab), sequences)):
+    for idx, seq in enumerate(encoded_seqs):
         if isinstance(pad, int):  # add eos at the end of the sequence
             seq.append(eos)
         encoded_data[idx, : min(len(seq), target_size)] = seq[: min(len(seq), target_size)]

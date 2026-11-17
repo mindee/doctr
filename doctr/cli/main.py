@@ -285,7 +285,7 @@ def _build_predictor(args: argparse.Namespace) -> Any:
         "keep_reading_order": args.keep_reading_order,
     }
 
-    model = ocr_predictor(detect_tables=args.detect_tables, **kwargs)
+    model = ocr_predictor(detect_tables=args.detect_tables, detect_formulas=args.detect_formulas, **kwargs)
 
     _set_thresholds(model, args)
     return _to_device(model, args)
@@ -547,6 +547,11 @@ def _parse_args(argv=None):
         "--detect_tables",
         action="store_true",
         help="regroup the words of the detected tables into structured tables (enables the layout model)",
+    )
+    parser.add_argument(
+        "--detect_formulas",
+        action="store_true",
+        help="read the detected formulas as LaTeX, exported as display math (enables the layout model)",
     )
     parser.add_argument(
         "--ignore_regions",

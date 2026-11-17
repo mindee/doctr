@@ -76,7 +76,8 @@ Pass all the pages of a document (or several documents) in **one call** so that 
   the more expensive rotated-box post-processing.
 - With rotated documents, `disable_page_orientation=True` and `disable_crop_orientation=True` skip the orientation
   classifiers when you know the text is horizontal (see [](../user_guide/rotated_documents.md)).
-- Only enable `detect_layout`, `detect_tables`, `detect_orientation` and `detect_language` when you use them.
+- Only enable `detect_layout`, `detect_tables`, `detect_formulas`, `detect_orientation` and `detect_language` when you
+  use them. The formula model decodes its LaTeX token by token: its latency grows with the length of the formulas.
 - Use lighter architectures, see the [model zoo](../models/index.md).
 
 ## Compile the models

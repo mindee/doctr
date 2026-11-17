@@ -113,6 +113,28 @@ predictor = ocr_predictor(pretrained=True, detect_tables=True)
 predictor.table_predictor = table_predictor(table_model)  # replace the default table model
 ```
 
+## Formula recognition models
+
+A model trained with your own vocabulary must be built with the same one:
+
+```python
+import json
+
+from doctr.models import formula_predictor, formulanet, ocr_predictor
+
+vocab = json.load(open("path/to/vocab.json"))  # cf. references/formula/build_vocab.py
+formula_model = formulanet(pretrained=False, vocab=vocab)
+formula_model.from_pretrained("path/to/formula.pt")
+
+predictor = ocr_predictor(pretrained=True, detect_formulas=True)
+predictor.formula_predictor = formula_predictor(formula_model)  # replace the default formula model
+```
+
+:::{note}
+Formula recognition (`detect_formulas=True`) reads the regions labelled `Formula`: keep this class name if your layout
+model should feed the formula model.
+:::
+
 ## Orientation classifiers
 
 The orientation classifiers are used with `assume_straight_pages=False`, `straighten_pages=True` or

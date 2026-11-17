@@ -11,6 +11,7 @@ This section lists them with their benchmarks, so you can pick the right trade-o
 | [Text recognition](recognition.md) | CRNN, SAR, MASTER, ViTSTR, PARSeq, VIPTR | `crnn_vgg16_bn` | `ocr_predictor(reco_arch=...)` |
 | [Layout analysis](layout.md) | LW-DETR | `lw_detr_s` | `ocr_predictor(detect_layout=True, layout_arch=...)` |
 | [Table structure](table_structure.md) | TableCenterNet | `tablecenternet` | `ocr_predictor(detect_tables=True)` |
+| [Formula recognition](formula.md) | FormulaNet | `formulanet` | `ocr_predictor(detect_formulas=True)` |
 | [Orientation](#orientation-classifiers) | MobileNetV3 | `mobilenet_v3_small_*_orientation` | `ocr_predictor(assume_straight_pages=False)` |
 
 [End-to-end benchmarks](end_to_end.md) compare detection + recognition pairs, including commercial OCR services.
@@ -66,6 +67,7 @@ detection
 recognition
 layout
 table_structure
+formula
 end_to_end
 vocabs
 ```

@@ -98,6 +98,7 @@ Load annotated data stored in the [training format](train.md) of each task:
 | --- | --- | --- |
 | {class}`~doctr.datasets.DetectionDataset` | Text detection | `images/` + `labels.json` with polygons (optionally per class) |
 | {class}`~doctr.datasets.RecognitionDataset` | Text recognition | word images + `labels.json` mapping each image to its text |
+| {class}`~doctr.datasets.RecognitionDataset` | Formula recognition | formula images + `labels.json` mapping each image to its LaTeX source |
 | {class}`~doctr.datasets.OCRDataset` | End-to-end OCR | `images/` + `labels.json` with boxes and transcriptions |
 | {class}`~doctr.datasets.LayoutDataset` | Layout analysis | `images/` + `labels.json` with polygons and classes |
 | {class}`~doctr.datasets.TableStructureDataset` | Table structure | `images/` + `labels.json` with cells and their logical coordinates |

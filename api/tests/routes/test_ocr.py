@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from doctr.io.elements import Document, Page, Table, TableCell
+from doctr.io.elements import Document, Formula, Page, Table, TableCell
 
 
 def common_test(json_response, expected_response):
@@ -142,6 +142,39 @@ async def test_ocr_table_cells(test_app_asyncio, mock_detection_image, monkeypat
     assert response.status_code == 200
     out_cells = response.json()[0]["tables"][0]["cells"]
     assert [cell["objectness_score"] for cell in out_cells] == [0.81, None]
+
+
+@pytest.mark.asyncio
+async def test_ocr_formulas(test_app_asyncio, mock_detection_image, monkeypatch):
+    # The recognized formulas are returned with their LaTeX source, and `detect_formulas` reaches the predictor
+    formulas = [
+        Formula("\\frac { a } { b }", 0.9876, ((0.1, 0.1), (0.5, 0.2)), objectness_score=0.8123),
+        Formula("x ^ { 2 }", 0.5, ((0.1, 0.3), (0.5, 0.4))),
+    ]
+    doc = Document([Page(np.zeros((100, 100, 3), dtype=np.uint8), [], 0, (100, 100), formulas=formulas)])
+    requests = []
+
+    def fake_init_predictor(request):
+        requests.append(request)
+        return lambda pages: doc
+
+    monkeypatch.setattr("app.routes.ocr.init_predictor", fake_init_predictor)
+    files = [("files", ("test.jpg", mock_detection_image, "image/jpeg"))]
+    response = await test_app_asyncio.post(
+        "/ocr", params={"detect_formulas": True}, files=files, headers={"accept": "application/json"}
+    )
+    assert response.status_code == 200
+    assert requests[-1].detect_formulas is True
+    assert response.json()[0]["formulas"] == [
+        {"value": "\\frac { a } { b }", "geometry": [0.1, 0.1, 0.5, 0.2], "confidence": 0.99, "objectness_score": 0.81},
+        {"value": "x ^ { 2 }", "geometry": [0.1, 0.3, 0.5, 0.4], "confidence": 0.5, "objectness_score": None},
+    ]
+
+    # No formulas by default
+    doc = Document([Page(np.zeros((100, 100, 3), dtype=np.uint8), [], 0, (100, 100))])
+    response = await test_app_asyncio.post("/ocr", files=files, headers={"accept": "application/json"})
+    assert requests[-1].detect_formulas is False
+    assert response.json()[0]["formulas"] == []
 
 
 @pytest.mark.asyncio

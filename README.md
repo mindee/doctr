@@ -219,6 +219,10 @@ Credits where it's due: this repository is implementing, among others, architect
 
 - TableCenterNet: [A one-stage network for table structure recognition](https://arxiv.org/abs/2504.17522).
 
+### Formula Recognition
+
+- FormulaNet (HGNetV2 encoder + transformer decoder): [PP-FormulaNet: Bridging Accuracy and Efficiency in Advanced Formula Recognition](https://arxiv.org/abs/2503.18382).
+
 ## More goodies
 
 ### Documentation

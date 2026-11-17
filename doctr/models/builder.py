@@ -15,6 +15,7 @@ from scipy.cluster.hierarchy import fclusterdata
 from doctr.io.elements import (
     Block,
     Document,
+    Formula,
     KIEDocument,
     KIEPage,
     LayoutElement,
@@ -514,6 +515,35 @@ class DocumentBuilder(NestedObject):
             )
         return tables, consumed
 
+    def _build_formulas(self, page_formulas: list[dict[str, Any]] | None, straight: bool) -> list[Formula]:
+        """Build the formulas of a page from their recognition
+
+        Args:
+            page_formulas: the formulas recognized on the page `{"geometry", "value", "confidence", "score"}`
+                (cf. `FormulaPredictor.predict_regions`), with a straight box (4,) or a polygon (4, 2) in relative
+                coordinates, or None
+            straight: whether to export the geometries as straight boxes (else as polygons)
+
+        Returns:
+            the list of `Formula` objects of the page, the empty predictions left out
+        """
+        formulas: list[Formula] = []
+        for raw in page_formulas or []:
+            if not raw.get("value"):
+                continue
+            geom = np.asarray(raw["geometry"], dtype=np.float64)
+            if geom.ndim == 1:  # (xmin, ymin, xmax, ymax)
+                geom = np.array([[geom[0], geom[1]], [geom[2], geom[1]], [geom[2], geom[3]], [geom[0], geom[3]]])
+            formulas.append(
+                Formula(
+                    value=raw["value"],
+                    confidence=float(raw["confidence"]),
+                    geometry=self._export_geometry(geom, straight or self.export_as_straight_boxes),
+                    objectness_score=None if raw.get("score") is None else float(raw["score"]),
+                )
+            )
+        return formulas
+
     @staticmethod
     def _export_geometry(poly: np.ndarray, straight: bool) -> Any:
         """Export a (4, 2) polygon as a straight 2-point box or as a 4-point polygon, with Python floats"""
@@ -648,6 +678,7 @@ class DocumentBuilder(NestedObject):
         languages: list[dict[str, Any]] | None = None,
         regions: list[dict[str, Any] | None] | None = None,
         tables: Sequence[dict[str, Any] | list[dict[str, Any]] | None] | None = None,
+        formulas: Sequence[list[dict[str, Any]] | None] | None = None,
     ) -> Document:
         """Re-arrange detected words into structured blocks
 
@@ -670,6 +701,8 @@ class DocumentBuilder(NestedObject):
                 page: a single grid `{"cells": [...], "num_rows": int, "num_cols": int}` or a list of such grids
                 (one per table region detected by the layout model). Words assigned to any table are removed from
                 the `blocks` output of that page.
+            formulas: optional, list of N elements, where each element is the list of formulas recognized on a page
+                `{"geometry", "value", "confidence", "score"}` (cf. `FormulaPredictor.predict_regions`)
 
         Returns:
             document object
@@ -684,6 +717,7 @@ class DocumentBuilder(NestedObject):
         _languages = languages if isinstance(languages, list) else [None] * len(boxes)
         _regions = regions if isinstance(regions, list) else [None] * len(boxes)
         _tables = tables if isinstance(tables, list) else [None] * len(boxes)
+        _formulas = formulas if isinstance(formulas, list) else [None] * len(boxes)
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
             if boxes[0].ndim == 3:
@@ -703,6 +737,7 @@ class DocumentBuilder(NestedObject):
             language,
             page_regions,
             page_table,
+            page_formulas,
         ) in zip(  # noqa: E501
             pages,
             range(len(boxes)),
@@ -715,6 +750,7 @@ class DocumentBuilder(NestedObject):
             _languages,
             _regions,
             _tables,
+            _formulas,
         ):
             # Build the page tables and flag the words that belong to a table
             page_tables, consumed = self._build_tables(page_boxes, word_preds, page_table, shape)
@@ -744,6 +780,7 @@ class DocumentBuilder(NestedObject):
                 language,
                 page_layout,
                 page_tables,
+                self._build_formulas(page_formulas, straight=page_boxes.ndim != 3),
             )
             if self.keep_reading_order:
                 self._apply_reading_order(_page)
@@ -780,6 +817,7 @@ class KIEDocumentBuilder(DocumentBuilder):
         languages: list[dict[str, Any]] | None = None,
         regions: list[dict[str, Any] | None] | None = None,
         tables: Sequence[dict[str, Any] | list[dict[str, Any]] | None] | None = None,
+        formulas: Sequence[list[dict[str, Any]] | None] | None = None,
     ) -> KIEDocument:
         """Re-arrange detected words into structured predictions
 
@@ -802,6 +840,8 @@ class KIEDocumentBuilder(DocumentBuilder):
                 page: a single grid `{"cells": [...], "num_rows": int, "num_cols": int}` or a list of such grids
                 (one per table region detected by the layout model). Words assigned to any table are removed from
                 the `blocks` output of that page. Unused for KIE documents, as tables are not supported in KIE.
+            formulas: optional, list of N elements, where each element is the list of formulas recognized on a page.
+                Unused for KIE documents, as formulas are not supported in KIE.
 
         Returns:
             document object

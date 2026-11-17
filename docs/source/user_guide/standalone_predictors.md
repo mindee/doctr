@@ -10,6 +10,7 @@ reading pre-cropped words, classifying orientations...
 | {func}`~doctr.models.recognition.recognition_predictor`              | Word crops                | `(text, confidence)`                                   |
 | {func}`~doctr.models.layout.layout_predictor`                   | Pages                     | `{"class_names", "boxes", "scores"}`                   |
 | {func}`~doctr.models.table_structure.table_predictor`                    | Table images              | `{"cells", "num_rows", "num_cols"}`                    |
+| {func}`~doctr.models.formula.formula_predictor`                  | Formula images            | `(latex, confidence)`                                  |
 | {func}`~doctr.models.classification.page_orientation_predictor`         | Pages                     | Orientation class, angle and probability               |
 | {func}`~doctr.models.classification.crop_orientation_predictor`         | Word crops                | Orientation class, angle and probability               |
 
@@ -58,7 +59,7 @@ lines or pages, use the OCR predictor, which detects the words first.
 Very wide crops are split into overlapping parts that are read separately and merged. `batch_size` (default
 `128`) sets how many crops are processed at once.
 
-## Layout analysis & table structure
+## Layout analysis, table structure & formula recognition
 
 See [](layout_and_tables.md#standalone-predictors).
 
@@ -106,6 +107,7 @@ words = predictor(DocumentFile.from_images("path/to/word_crops/", lazy=True))
 | --------------------------------------------------------------- | -------------------- |
 | Detection, layout, table structure, page orientation            | `32` images          |
 | Recognition, crop orientation (much smaller crops)              | `1024` crops         |
+| Formula recognition                                             | `128` crops          |
 
 `chunk_size` is rounded up to a multiple of `batch_size`, so that the model processes the same batches as for a list,
 and the predictions do not change (the recognition predictor splits very wide crops within each chunk, which can only
