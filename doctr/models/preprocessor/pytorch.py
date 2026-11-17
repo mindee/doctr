@@ -159,9 +159,7 @@ class PreProcessor(nn.Module):
                 mask_batches = [mask]
 
         elif isinstance(x, list) and all(isinstance(sample, np.ndarray) for sample in x):
-            # Sample transform (to tensor, resize). Not in a thread pool: the resizing of a large image is already
-            # parallelized by PyTorch, and the transforms of small images (e.g. word crops) are bound by the Python
-            # overhead, so that threads only compete for the GIL (up to 2x slower on the crops of a dense page)
+            # Sample transform (to tensor, resize)
             samples: Any = [self.sample_transforms(sample) for sample in x]
             # Batching
             if self.resize.return_padding_mask:
