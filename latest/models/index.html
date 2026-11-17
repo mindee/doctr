@@ -486,6 +486,7 @@
 <li class="toctree-l1"><a class="reference internal" href="recognition.html">Text recognition</a></li>
 <li class="toctree-l1"><a class="reference internal" href="layout.html">Layout analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="table_structure.html">Table structure recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="formula.html">Formula recognition</a></li>
 <li class="toctree-l1"><a class="reference internal" href="end_to_end.html">End-to-end OCR</a></li>
 <li class="toctree-l1"><a class="reference internal" href="vocabs.html">Vocabularies</a></li>
 </ul>
@@ -580,7 +581,12 @@ This section lists them with their benchmarks, so you can pick the right trade-o
 <td><p><code class="docutils literal notranslate"><span class="pre">tablecenternet</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ocr_predictor(detect_tables=True)</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#orientation-classifiers">Orientation</a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="formula.html"><span class="std std-doc">Formula recognition</span></a></p></td>
+<td><p>FormulaNet</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">formulanet</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ocr_predictor(detect_formulas=True)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#orientation-classifiers">Orientation</a></p></td>
 <td><p>MobileNetV3</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">mobilenet_v3_small_*_orientation</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ocr_predictor(assume_straight_pages=False)</span></code></p></td>

@@ -525,8 +525,11 @@
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">anyascii</span><span class="w"> </span><span class="kn">import</span> <span class="n">anyascii</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">rapidfuzz.distance</span><span class="w"> </span><span class="kn">import</span> <span class="n">Levenshtein</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">linear_sum_assignment</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">shapely</span><span class="w"> </span><span class="kn">import</span> <span class="n">STRtree</span><span class="p">,</span> <span class="n">area</span><span class="p">,</span> <span class="n">convex_hull</span><span class="p">,</span> <span class="n">intersection</span><span class="p">,</span> <span class="n">is_valid</span><span class="p">,</span> <span class="n">polygons</span>
 
@@ -540,6 +543,7 @@
     <span class="s2">"DetectionMetric"</span><span class="p">,</span>
     <span class="s2">"ObjectDetectionMetric"</span><span class="p">,</span>
     <span class="s2">"TableCellMetric"</span><span class="p">,</span>
+    <span class="s2">"FormulaMetric"</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -962,6 +966,111 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">struct_matches</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+
+
+<div class="viewcode-block" id="FormulaMetric">
+<a class="viewcode-back" href="../../../api/utils.html#doctr.utils.metrics.FormulaMetric">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FormulaMetric</span><span class="p">:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""Implements formula recognition metrics, computed on LaTeX tokens (cf. :func:`doctr.datasets.tokenize_latex`),</span>
+<span class="sd">    so they do not depend on the whitespaces of the LaTeX sources.</span>
+
+<span class="sd">    It reports the **exact match** rate (the share of formulas whose token sequences are identical), the **edit</span>
+<span class="sd">    similarity** (the mean over formulas of :math:`1 - \frac{d(X, Y)}{\max(|X|, |Y|)}` with :math:`d` the</span>
+<span class="sd">    token-level Levenshtein distance) and the corpus-level **BLEU-4** score (geometric mean of the 1- to 4-gram</span>
+<span class="sd">    precisions with a brevity penalty, without smoothing).</span>
+
+<span class="sd">    &gt;&gt;&gt; from doctr.utils import FormulaMetric</span>
+<span class="sd">    &gt;&gt;&gt; metric = FormulaMetric()</span>
+<span class="sd">    &gt;&gt;&gt; metric.update([r"\frac{a}{b}"], [r"\frac { a } { c }"])</span>
+<span class="sd">    &gt;&gt;&gt; metric.summary()</span>
+<span class="sd">    """</span>
+
+    <span class="n">max_order</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="c1"># Scalar accumulators, which can be summed over several processes</span>
+    <span class="n">counters</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">"exact"</span><span class="p">,</span>
+        <span class="s2">"edit_similarity"</span><span class="p">,</span>
+        <span class="s2">"total"</span><span class="p">,</span>
+        <span class="s2">"pred_len"</span><span class="p">,</span>
+        <span class="s2">"gt_len"</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">(</span><span class="sa">f</span><span class="s2">"ngram_matches_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_order</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)),</span>
+        <span class="o">*</span><span class="p">(</span><span class="sa">f</span><span class="s2">"ngram_totals_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_order</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)),</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+<div class="viewcode-block" id="FormulaMetric.update">
+<a class="viewcode-back" href="../../../api/utils.html#doctr.utils.metrics.FormulaMetric.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gt</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">pred</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Update the state of the metric with new predictions</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            gt: list of ground-truth LaTeX strings</span>
+<span class="sd">            pred: list of predicted LaTeX strings</span>
+<span class="sd">        """</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">tokenize_latex</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">"prediction size does not match with ground-truth labels size"</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">gt_latex</span><span class="p">,</span> <span class="n">pred_latex</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gt</span><span class="p">,</span> <span class="n">pred</span><span class="p">):</span>
+            <span class="n">gt_tokens</span><span class="p">,</span> <span class="n">pred_tokens</span> <span class="o">=</span> <span class="n">tokenize_latex</span><span class="p">(</span><span class="n">gt_latex</span><span class="p">),</span> <span class="n">tokenize_latex</span><span class="p">(</span><span class="n">pred_latex</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">exact</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">gt_tokens</span> <span class="o">==</span> <span class="n">pred_tokens</span><span class="p">)</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gt_tokens</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_tokens</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">edit_similarity</span> <span class="o">+=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">Levenshtein</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">gt_tokens</span><span class="p">,</span> <span class="n">pred_tokens</span><span class="p">)</span> <span class="o">/</span> <span class="n">length</span> <span class="k">if</span> <span class="n">length</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">1.0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pred_len</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_tokens</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gt_len</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_tokens</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_order</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">gt_ngrams</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">gt_tokens</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">n</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gt_tokens</span><span class="p">)</span> <span class="o">-</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">pred_ngrams</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">pred_tokens</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">n</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_tokens</span><span class="p">)</span> <span class="o">-</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">matches</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">((</span><span class="n">gt_ngrams</span> <span class="o">&amp;</span> <span class="n">pred_ngrams</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"ngram_matches_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"ngram_matches_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="o">+</span> <span class="n">matches</span><span class="p">)</span>
+                <span class="nb">setattr</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"ngram_totals_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"ngram_totals_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_tokens</span><span class="p">)</span> <span class="o">-</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FormulaMetric.summary">
+<a class="viewcode-back" href="../../../api/utils.html#doctr.utils.metrics.FormulaMetric.summary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Computes the aggregated metrics</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            a dictionary with the `exact_match` rate, the mean `edit_similarity` and the corpus `bleu` score</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">"you need to update the metric before getting the summary"</span><span class="p">)</span>
+
+        <span class="n">precisions</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"ngram_matches_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="o">/</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"ngram_totals_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"ngram_totals_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="k">else</span> <span class="mf">0.0</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_order</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="nb">min</span><span class="p">(</span><span class="n">precisions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">pred_len</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">brevity_penalty</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pred_len</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">gt_len</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">gt_len</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">pred_len</span><span class="p">))</span>
+            <span class="n">bleu</span> <span class="o">=</span> <span class="n">brevity_penalty</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">precisions</span><span class="p">))))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bleu</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">exact_match</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">exact</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">,</span>
+            <span class="n">edit_similarity</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">edit_similarity</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">,</span>
+            <span class="n">bleu</span><span class="o">=</span><span class="n">bleu</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exact</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edit_similarity</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pred_len</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gt_len</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_order</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"ngram_matches_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"ngram_totals_</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
 
 
 

@@ -576,7 +576,7 @@ classes…). Plug it into any predictor:</p>
 <span class="n">push_to_hf_hub</span><span class="p">(</span>
     <span class="n">model</span><span class="p">,</span>
     <span class="n">model_name</span><span class="o">=</span><span class="s2">"doctr-crnn-mobilenet-v3-large-french-v1"</span><span class="p">,</span>
-    <span class="n">task</span><span class="o">=</span><span class="s2">"recognition"</span><span class="p">,</span>  <span class="c1"># classification, detection, recognition, layout or table_structure</span>
+    <span class="n">task</span><span class="o">=</span><span class="s2">"recognition"</span><span class="p">,</span>  <span class="c1"># classification, detection, recognition, layout, table_structure or formula</span>
     <span class="n">arch</span><span class="o">=</span><span class="s2">"crnn_mobilenet_v3_large"</span><span class="p">,</span>
 <span class="p">)</span>
 </pre></div>
@@ -608,6 +608,9 @@ of the training:</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">doctr-&lt;architecture&gt;</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Table structure</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">doctr-&lt;architecture&gt;</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Formula recognition</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">doctr-&lt;architecture&gt;</span></code></p></td>
 </tr>
 </tbody>

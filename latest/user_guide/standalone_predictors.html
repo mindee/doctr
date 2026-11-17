@@ -589,11 +589,15 @@ reading pre-cropped words, classifying orientations…</p>
 <td><p>Table images</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{&quot;cells&quot;,</span> <span class="pre">&quot;num_rows&quot;,</span> <span class="pre">&quot;num_cols&quot;}</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api/models.html#doctr.models.classification.page_orientation_predictor" title="doctr.models.classification.page_orientation_predictor"><code class="xref py py-func docutils literal notranslate"><span class="pre">page_orientation_predictor()</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/models.html#doctr.models.formula.formula_predictor" title="doctr.models.formula.formula_predictor"><code class="xref py py-func docutils literal notranslate"><span class="pre">formula_predictor()</span></code></a></p></td>
+<td><p>Formula images</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(latex,</span> <span class="pre">confidence)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/models.html#doctr.models.classification.page_orientation_predictor" title="doctr.models.classification.page_orientation_predictor"><code class="xref py py-func docutils literal notranslate"><span class="pre">page_orientation_predictor()</span></code></a></p></td>
 <td><p>Pages</p></td>
 <td><p>Orientation class, angle and probability</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api/models.html#doctr.models.classification.crop_orientation_predictor" title="doctr.models.classification.crop_orientation_predictor"><code class="xref py py-func docutils literal notranslate"><span class="pre">crop_orientation_predictor()</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/models.html#doctr.models.classification.crop_orientation_predictor" title="doctr.models.classification.crop_orientation_predictor"><code class="xref py py-func docutils literal notranslate"><span class="pre">crop_orientation_predictor()</span></code></a></p></td>
 <td><p>Word crops</p></td>
 <td><p>Orientation class, angle and probability</p></td>
 </tr>
@@ -640,8 +644,8 @@ lines or pages, use the OCR predictor, which detects the words first.</p>
 <p>Very wide crops are split into overlapping parts that are read separately and merged. <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> (default
 <code class="docutils literal notranslate"><span class="pre">128</span></code>) sets how many crops are processed at once.</p>
 </section>
-<section id="layout-analysis-table-structure">
-<span id="layout-analysis--table-structure"></span><h2>Layout analysis &amp; table structure<a class="headerlink" href="#layout-analysis-table-structure" title="Link to this heading">#</a></h2>
+<section id="layout-analysis-table-structure-formula-recognition">
+<span id="layout-analysis-table-structure--formula-recognition"></span><h2>Layout analysis, table structure &amp; formula recognition<a class="headerlink" href="#layout-analysis-table-structure-formula-recognition" title="Link to this heading">#</a></h2>
 <p>See <a class="reference internal" href="layout_and_tables.html#standalone-predictors"><span class="std std-ref">Standalone predictors</span></a>.</p>
 </section>
 <section id="orientation-classifiers">
@@ -691,6 +695,9 @@ number of images, and the output is the same as for a list:</p>
 </tr>
 <tr class="row-odd"><td><p>Recognition, crop orientation (much smaller crops)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">1024</span></code> crops</p></td>
+</tr>
+<tr class="row-even"><td><p>Formula recognition</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">128</span></code> crops</p></td>
 </tr>
 </tbody>
 </table>
@@ -769,7 +776,7 @@ notebook shows these predictors in action.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#text-detection">Text detection</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#text-recognition">Text recognition</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#layout-analysis-table-structure">Layout analysis &amp; table structure</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#layout-analysis-table-structure-formula-recognition">Layout analysis, table structure &amp; formula recognition</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#orientation-classifiers">Orientation classifiers</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#long-inputs">Long inputs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#accessing-the-models">Accessing the models</a></li>

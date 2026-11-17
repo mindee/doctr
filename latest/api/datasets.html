@@ -1321,6 +1321,14 @@ shape <cite>(N, 4)</cite> by default, or <cite>(N, 4, 2)</cite> when <cite>use_p
 <dd><p>The supported vocabularies, by name. See <a class="reference internal" href="../models/vocabs.html"><span class="doc">Vocabularies</span></a> for the complete list.</p>
 </dd></dl>
 
+<dl class="py data">
+<dt class="sig sig-object py" id="doctr.datasets.LATEX_TOKENS">
+<span class="sig-name descname"><span class="pre">LATEX_TOKENS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#doctr.datasets.LATEX_TOKENS" title="Link to this definition">#</a></dt>
+<dd><p>The 1,324 LaTeX tokens of formula recognition: the printable ASCII characters, the control symbols, the commands and
+environments supported by KaTeX, and the other commands and characters found in public formula datasets (UniMER-1M,
+HME100K, UniMER-Test). See <a class="reference internal" href="../models/formula.html"><span class="doc">Formula recognition</span></a>.</p>
+</dd></dl>
+
 </section>
 <section id="utilities">
 <h2>Utilities<a class="headerlink" href="#utilities" title="Link to this heading">#</a></h2>
@@ -1346,6 +1354,53 @@ shape <cite>(N, 4)</cite> by default, or <cite>(N, 4, 2)</cite> when <cite>use_p
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="doctr.datasets.tokenize_latex">
+<span class="sig-name descname"><span class="pre">tokenize_latex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">latex</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/utils.html#tokenize_latex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.tokenize_latex" title="Link to this definition">#</a></dt>
+<dd><p>Split a LaTeX string into tokens: commands, environment delimiters, control symbols and single characters</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">tokenize_latex</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tokenize_latex</span><span class="p">(</span><span class="sa">r</span><span class="s2">"\frac</span><span class="si">{a}</span><span class="s2">{b^2}"</span><span class="p">)</span>
+<span class="go">['\\frac', '{', 'a', '}', '{', 'b', '^', '2', '}']</span>
+</pre></div>
+</div>
+<p>The whitespaces are not part of the tokens (a control space <cite></cite> is tokenized as <cite>space</cite>, which renders the same):
+tokenizing a string and joining the tokens with spaces gives a normalized string which tokenizes into the same
+tokens.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>latex</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – the LaTeX string to tokenize</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the list of tokens</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)">list</a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.datasets.normalize_latex">
+<span class="sig-name descname"><span class="pre">normalize_latex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">latex</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/utils.html#normalize_latex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.normalize_latex" title="Link to this definition">#</a></dt>
+<dd><p>Normalize a LaTeX string into space-separated tokens (cf. <a class="reference internal" href="#doctr.datasets.tokenize_latex" title="doctr.datasets.tokenize_latex"><code class="xref py py-func docutils literal notranslate"><span class="pre">tokenize_latex()</span></code></a>)</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">normalize_latex</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">normalize_latex</span><span class="p">(</span><span class="sa">r</span><span class="s2">"\frac</span><span class="si">{a}</span><span class="s2">{b^2}"</span><span class="p">)</span>
+<span class="go">'\\frac { a } { b ^ 2 }'</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>latex</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – the LaTeX string to normalize</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the normalized string, rendering the same as the input</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="doctr.datasets.encode_string">
 <span class="sig-name descname"><span class="pre">encode_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_string</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vocab</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/utils.html#encode_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.encode_string" title="Link to this definition">#</a></dt>
 <dd><p>Given a predefined mapping, encode the string to a sequence of numbers</p>
@@ -1353,7 +1408,8 @@ shape <cite>(N, 4)</cite> by default, or <cite>(N, 4, 2)</cite> when <cite>use_p
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>input_string</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – string to encode</p></li>
-<li><p><strong>vocab</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – vocabulary (string), the encoding is given by the indexing of the character sequence</p></li>
+<li><p><strong>vocab</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.15)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>]</em>) – vocabulary, the encoding is given by the indexing of its units: a string of characters, or a list of
+tokens (e.g. LaTeX commands), in which case the input string is split on whitespaces</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1373,7 +1429,8 @@ shape <cite>(N, 4)</cite> by default, or <cite>(N, 4, 2)</cite> when <cite>use_p
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>input_seq</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.15)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>]</em>) – array to decode</p></li>
-<li><p><strong>mapping</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – vocabulary (string), the encoding is given by the indexing of the character sequence</p></li>
+<li><p><strong>mapping</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.15)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>]</em>) – vocabulary, the encoding is given by the indexing of its units: a string of characters, or a list of
+tokens, in which case the decoded tokens are joined with spaces</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1405,7 +1462,8 @@ shape <cite>(N, 4)</cite> by default, or <cite>(N, 4, 2)</cite> when <cite>use_p
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>sequences</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>]</em>) – the list of character sequences of size N</p></li>
-<li><p><strong>vocab</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – the ordered vocab to use for encoding</p></li>
+<li><p><strong>vocab</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.15)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>]</em>) – the ordered vocab to use for encoding: a string of characters, or a list of tokens (cf.
+<a class="reference internal" href="#doctr.datasets.encode_string" title="doctr.datasets.encode_string"><code class="xref py py-func docutils literal notranslate"><span class="pre">encode_string()</span></code></a>)</p></li>
 <li><p><strong>target_size</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em>) – maximum length of the encoded data</p></li>
 <li><p><strong>eos</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – encoding of End Of String</p></li>
 <li><p><strong>sos</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em>) – optional encoding of Start Of String</p></li>
@@ -1569,10 +1627,13 @@ mapping stable across samples, which the detection models rely on.</p></li>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vocabularies">Vocabularies</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.datasets.VOCABS"><code class="docutils literal notranslate"><span class="pre">VOCABS</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.datasets.LATEX_TOKENS"><code class="docutils literal notranslate"><span class="pre">LATEX_TOKENS</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#utilities">Utilities</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.datasets.translate"><code class="docutils literal notranslate"><span class="pre">translate()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.datasets.tokenize_latex"><code class="docutils literal notranslate"><span class="pre">tokenize_latex()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.datasets.normalize_latex"><code class="docutils literal notranslate"><span class="pre">normalize_latex()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.datasets.encode_string"><code class="docutils literal notranslate"><span class="pre">encode_string()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.datasets.decode_sequence"><code class="docutils literal notranslate"><span class="pre">decode_sequence()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.datasets.encode_sequences"><code class="docutils literal notranslate"><span class="pre">encode_sequences()</span></code></a></li>

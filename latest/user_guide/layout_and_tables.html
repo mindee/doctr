@@ -563,7 +563,7 @@
   <section id="layout-analysis-tables">
 <span id="layout-analysis--tables"></span><h1>Layout analysis &amp; tables<a class="headerlink" href="#layout-analysis-tables" title="Link to this heading">#</a></h1>
 <p>Text alone loses the structure of a document. docTR can also tell <em>what</em> each region of a page is (a title, a
-paragraph, a table, a figure…) and rebuild tables as rows and columns.</p>
+paragraph, a table, a figure…), rebuild tables as rows and columns and read formulas as LaTeX.</p>
 <section id="layout-analysis">
 <h2>Layout analysis<a class="headerlink" href="#layout-analysis" title="Link to this heading">#</a></h2>
 <p>A layout model detects and classifies the regions of a page. The pretrained <code class="docutils literal notranslate"><span class="pre">lw_detr_s</span></code> model recognizes
@@ -611,7 +611,8 @@ and the batch size of the detection model (<code class="docutils literal notrans
 </div>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
-<p><code class="docutils literal notranslate"><span class="pre">ignore_regions</span></code> relies on the layout model: enable it with <code class="docutils literal notranslate"><span class="pre">detect_layout=True</span></code> (or <code class="docutils literal notranslate"><span class="pre">detect_tables=True</span></code>),
+<p><code class="docutils literal notranslate"><span class="pre">ignore_regions</span></code> relies on the layout model: enable it with <code class="docutils literal notranslate"><span class="pre">detect_layout=True</span></code> (or <code class="docutils literal notranslate"><span class="pre">detect_tables=True</span></code> /
+<code class="docutils literal notranslate"><span class="pre">detect_formulas=True</span></code>),
 otherwise the regions cannot be located and nothing is masked. The CLI enables it automatically.</p>
 </div>
 </section>
@@ -706,9 +707,61 @@ rows or columns has its value at its top-left position:</p>
 </div>
 </section>
 </section>
+<section id="formula-recognition">
+<h2>Formula recognition<a class="headerlink" href="#formula-recognition" title="Link to this heading">#</a></h2>
+<p>With <code class="docutils literal notranslate"><span class="pre">detect_formulas=True</span></code>, each region the layout model labels as a <code class="docutils literal notranslate"><span class="pre">Formula</span></code> (a display formula, on its own lines)
+is masked out of the text detection, cropped and read by a formula recognition model (<code class="docutils literal notranslate"><span class="pre">formulanet</span></code>), which predicts its
+LaTeX source. The formulas are attached to every page as <a class="reference internal" href="../api/io.html#doctr.io.Formula" title="doctr.io.Formula"><code class="xref py py-class docutils literal notranslate"><span class="pre">Formula</span></code></a> objects:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
+
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">detect_formulas</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_pdf</span><span class="p">(</span><span class="s2">"attention_is_all_you_need.pdf"</span><span class="p">))</span>  <span class="c1"># arXiv:1706.03762</span>
+
+<span class="n">formula</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">pages</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">formulas</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">formula</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="c1"># \mathrm { F F N } ( x ) = \operatorname* { m a x } ( 0 , x W _ { 1 } + b _ { 1 } ) W _ { 2 } + b _ { 2 } \tag { $ 2 $ }</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">formula</span><span class="o">.</span><span class="n">confidence</span><span class="p">)</span>  <span class="c1"># 0.98</span>
+</pre></div>
+</div>
+<p>The formulas are read in place with the text, and exported as display math:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Export</p></th>
+<th class="head"><p>Rendering</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">render()</span></code></p></td>
+<td><p>the LaTeX source</p></td>
+</tr>
+<tr class="row-odd"><td><p>Markdown</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">$$</span></code>, the LaTeX source and <code class="docutils literal notranslate"><span class="pre">$$</span></code> on their own lines</p></td>
+</tr>
+<tr class="row-even"><td><p>HTML</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&lt;div</span> <span class="pre">class=&quot;formula&quot;&gt;$$...$$&lt;/div&gt;</span></code>, rendered by MathJax or KaTeX auto-render</p></td>
+</tr>
+<tr class="row-odd"><td><p>AsciiDoc</p></td>
+<td><p>a <code class="docutils literal notranslate"><span class="pre">[latexmath]</span></code> passthrough block</p></td>
+</tr>
+<tr class="row-even"><td><p>hOCR</p></td>
+<td><p>an <code class="docutils literal notranslate"><span class="pre">ocr_math</span></code> element holding the LaTeX source</p></td>
+</tr>
+<tr class="row-odd"><td><p>JSON</p></td>
+<td><p>the <code class="docutils literal notranslate"><span class="pre">formulas</span></code> key of each page: <code class="docutils literal notranslate"><span class="pre">value</span></code>, <code class="docutils literal notranslate"><span class="pre">confidence</span></code>, <code class="docutils literal notranslate"><span class="pre">geometry</span></code>, <code class="docutils literal notranslate"><span class="pre">objectness_score</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>The formula regions are <strong>not</strong> read by the text recognition model, so a formula is not returned twice. The LaTeX
+source is never escaped as Markdown or AsciiDoc text, and it is HTML-escaped in HTML exports.</p>
+</div>
+</section>
 <section id="standalone-predictors">
 <h2>Standalone predictors<a class="headerlink" href="#standalone-predictors" title="Link to this heading">#</a></h2>
-<p>Both models can also run on their own, without text recognition:</p>
+<p>The models can also run on their own, without text recognition:</p>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
 <label aria-controls="sd-tab-item-0-content" class="sd-tab-label" for="sd-tab-item-0">
@@ -748,6 +801,29 @@ the words assigned to the cells:</p>
 <span class="n">tables</span> <span class="o">=</span> <span class="n">predictor</span><span class="o">.</span><span class="n">predict_regions</span><span class="p">(</span><span class="n">pages</span><span class="p">,</span> <span class="n">regions</span><span class="p">,</span> <span class="n">word_boxes</span><span class="p">)</span>  <span class="c1"># one (N, 4) array of relative boxes per page</span>
 
 <span class="n">tables</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"cells"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"words"</span><span class="p">]</span>  <span class="c1"># indices of the words of the cell in `word_boxes[0]`, in reading order</span>
+</pre></div>
+</div>
+</div>
+<input id="sd-tab-item-2" name="sd-tab-set-0" type="radio">
+<label aria-controls="sd-tab-item-2-content" class="sd-tab-label" for="sd-tab-item-2">
+Formula recognition</label><div class="sd-tab-content docutils" id="sd-tab-item-2-content">
+<p>Pass images of formulas, e.g. crops of the <code class="docutils literal notranslate"><span class="pre">Formula</span></code> regions, margins included:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">formula_predictor</span>
+
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">formula_predictor</span><span class="p">(</span><span class="s2">"formulanet"</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">([</span><span class="n">formula_image</span><span class="p">])</span>
+
+<span class="c1"># The LaTeX tokens separated by spaces, and the confidence</span>
+<span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># ('J ( u , y ) = \\int _ { 0 } ^ { 1 } \\frac { | u | ^ { 2 } } { 2 } \\, d x + \\Psi ( y )', 0.98)</span>
+</pre></div>
+</div>
+<p>With the layout regions of whole pages, the formula regions are cropped and read:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">layout_predictor</span>
+
+<span class="n">regions</span> <span class="o">=</span> <span class="n">layout_predictor</span><span class="p">(</span><span class="s2">"lw_detr_s"</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)(</span><span class="n">pages</span><span class="p">)</span>
+<span class="n">formulas</span> <span class="o">=</span> <span class="n">predictor</span><span class="o">.</span><span class="n">predict_regions</span><span class="p">(</span><span class="n">pages</span><span class="p">,</span> <span class="n">regions</span><span class="p">)</span>
+
+<span class="n">formulas</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># {'geometry': ..., 'value': '\\frac { a } { b ^ { 2 } }', 'confidence': 0.97, 'score': 0.91}</span>
 </pre></div>
 </div>
 </div>
@@ -813,6 +889,7 @@ the words assigned to the cells:</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cells-spans-and-geometry">Cells, spans and geometry</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#formula-recognition">Formula recognition</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#standalone-predictors">Standalone predictors</a></li>
 </ul>
   </nav></div>

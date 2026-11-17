@@ -538,7 +538,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils.common_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">BoundingBox</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io.elements</span><span class="w"> </span><span class="kn">import</span> <span class="n">Block</span><span class="p">,</span> <span class="n">KIEPage</span><span class="p">,</span> <span class="n">LayoutElement</span><span class="p">,</span> <span class="n">Line</span><span class="p">,</span> <span class="n">Page</span><span class="p">,</span> <span class="n">Table</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io.elements</span><span class="w"> </span><span class="kn">import</span> <span class="n">Block</span><span class="p">,</span> <span class="n">Formula</span><span class="p">,</span> <span class="n">KIEPage</span><span class="p">,</span> <span class="n">LayoutElement</span><span class="p">,</span> <span class="n">Line</span><span class="p">,</span> <span class="n">Page</span><span class="p">,</span> <span class="n">Table</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"AsciiDocExporter"</span><span class="p">,</span>
@@ -620,6 +620,13 @@
     <span class="k">return</span> <span class="p">[</span><span class="n">groups</span><span class="p">[</span><span class="n">reg</span><span class="p">]</span> <span class="k">if</span> <span class="n">reg</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">reg</span> <span class="k">for</span> <span class="n">reg</span> <span class="ow">in</span> <span class="n">elt_regions</span><span class="p">]</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_atomic</span><span class="p">(</span><span class="n">element</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether a reading-order element is an item of its own (a table, a formula or a figure), not a text line"""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io.elements</span><span class="w"> </span><span class="kn">import</span> <span class="n">Formula</span><span class="p">,</span> <span class="n">LayoutElement</span><span class="p">,</span> <span class="n">Table</span>
+
+    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="p">(</span><span class="n">Table</span><span class="p">,</span> <span class="n">Formula</span><span class="p">,</span> <span class="n">LayoutElement</span><span class="p">))</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_xyxy</span><span class="p">(</span><span class="n">geometry</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Return the enclosing box (xmin, ymin, xmax, ymax) of a box or a polygon"""</span>
     <span class="n">pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
@@ -643,13 +650,15 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">_reading_order_signature</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="s2">"Page"</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Return a cheap fingerprint of a page, used to invalidate the reading-order cache</span>
 
-<span class="sd">    It covers the direction and the identity of the blocks (with their line count), tables and layout regions.</span>
+<span class="sd">    It covers the direction and the identity of the blocks (with their line count), tables, formulas and layout</span>
+<span class="sd">    regions.</span>
 <span class="sd">    In-place edits of the words of a line are not detected: drop `_reading_order_cache` after such edits.</span>
 <span class="sd">    """</span>
     <span class="k">return</span> <span class="p">(</span>
         <span class="n">direction</span><span class="p">,</span>
         <span class="nb">tuple</span><span class="p">((</span><span class="nb">id</span><span class="p">(</span><span class="n">block</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">block</span><span class="o">.</span><span class="n">lines</span><span class="p">))</span> <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">page</span><span class="o">.</span><span class="n">blocks</span><span class="p">),</span>
         <span class="nb">tuple</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="s2">"tables"</span><span class="p">,</span> <span class="p">())</span> <span class="ow">or</span> <span class="p">()),</span>
+        <span class="nb">tuple</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span> <span class="k">for</span> <span class="n">formula</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="s2">"formulas"</span><span class="p">,</span> <span class="p">())</span> <span class="ow">or</span> <span class="p">()),</span>
         <span class="nb">tuple</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">region</span><span class="p">)</span> <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="s2">"layout"</span><span class="p">,</span> <span class="p">())</span> <span class="ow">or</span> <span class="p">()),</span>
     <span class="p">)</span>
 
@@ -667,7 +676,7 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">page_reading_order</span><span class="p">(</span>
     <span class="n">page</span><span class="p">:</span> <span class="s2">"Page"</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span> <span class="n">include_figures</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span> <span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""Linearize the content of a page (blocks, tables and optionally figures) in reading order</span>
+<span class="w">    </span><span class="sd">"""Linearize the content of a page (blocks, tables, formulas and optionally figures) in reading order</span>
 
 <span class="sd">    The result is cached on the page, so a page exported to several formats is ordered once. The figures always take</span>
 <span class="sd">    part in the ordering, `include_figures` only controls whether they are returned.</span>
@@ -694,8 +703,8 @@
     <span class="n">direction</span> <span class="o">=</span> <span class="n">ReadingOrderPredictor</span><span class="p">(</span><span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">)</span><span class="o">.</span><span class="n">resolve_direction</span><span class="p">(</span>
         <span class="p">[</span><span class="n">word</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">words</span><span class="p">],</span> <span class="n">language</span><span class="o">=</span><span class="n">language</span>
     <span class="p">)</span>
-    <span class="c1"># Lines, tables and figures (as floats) are ordered together</span>
-    <span class="n">elements</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="n">lines</span><span class="p">,</span> <span class="o">*</span><span class="n">page</span><span class="o">.</span><span class="n">tables</span><span class="p">,</span> <span class="o">*</span><span class="n">picture_regions</span><span class="p">(</span><span class="n">page</span><span class="p">)]</span>
+    <span class="c1"># Lines, tables and figures (as floats) and formulas (in the text flow) are ordered together</span>
+    <span class="n">elements</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="n">lines</span><span class="p">,</span> <span class="o">*</span><span class="n">page</span><span class="o">.</span><span class="n">tables</span><span class="p">,</span> <span class="o">*</span><span class="nb">getattr</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="s2">"formulas"</span><span class="p">,</span> <span class="p">[]),</span> <span class="o">*</span><span class="n">picture_regions</span><span class="p">(</span><span class="n">page</span><span class="p">)]</span>
     <span class="n">items</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">labels</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -727,12 +736,13 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">_element_labels</span><span class="p">(</span>
     <span class="n">page</span><span class="p">:</span> <span class="s2">"Page"</span><span class="p">,</span> <span class="n">elements</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">elt_geoms</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">elt_regions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">region_geoms</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""Return the layout label of each element: the label of its layout region (None for none), 'Table' for a table</span>
+<span class="w">    </span><span class="sd">"""Return the layout label of each element: the label of its layout region (None for none), 'Table' for a table,</span>
+<span class="sd">    'Formula' for a formula</span>
 
 <span class="sd">    A figure takes its own type, unless it lies in page furniture (e.g. a logo in the page header): it is then read with</span>
 <span class="sd">    the furniture, along with its text.</span>
 <span class="sd">    """</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io.elements</span><span class="w"> </span><span class="kn">import</span> <span class="n">LayoutElement</span><span class="p">,</span> <span class="n">Table</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io.elements</span><span class="w"> </span><span class="kn">import</span> <span class="n">Formula</span><span class="p">,</span> <span class="n">LayoutElement</span><span class="p">,</span> <span class="n">Table</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.reading_order</span><span class="w"> </span><span class="kn">import</span> <span class="n">layout_label_role</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.reading_order.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">_FURNITURE_ROLES</span>
 
@@ -752,6 +762,8 @@
     <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">elt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">elements</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elt</span><span class="p">,</span> <span class="n">Table</span><span class="p">):</span>
             <span class="n">labels</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"Table"</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elt</span><span class="p">,</span> <span class="n">Formula</span><span class="p">):</span>
+            <span class="n">labels</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"Formula"</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elt</span><span class="p">,</span> <span class="n">LayoutElement</span><span class="p">)</span> <span class="ow">and</span> <span class="n">elt_regions</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="ow">in</span> <span class="n">furniture_of_figure</span><span class="p">:</span>
             <span class="n">labels</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">furniture_of_figure</span><span class="p">[</span><span class="n">elt_regions</span><span class="p">[</span><span class="n">idx</span><span class="p">]]</span>
     <span class="k">return</span> <span class="n">labels</span>
@@ -799,11 +811,11 @@
     <span class="n">page</span><span class="p">:</span> <span class="s2">"Page"</span><span class="p">,</span> <span class="n">elements</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">segments</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span> <span class="n">elt_labels</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span> <span class="n">elt_regions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">"""Turn reading-ordered segments of elements into page items: one block per paragraph, one block per list item</span>
-<span class="sd">    (a list item wrapped over several lines is one block), tables and figures as they are</span>
+<span class="sd">    (a list item wrapped over several lines is one block), tables, formulas and figures as they are</span>
 
 <span class="sd">    The artefacts of a block follow its first line; those of blocks without lines go to the last block.</span>
 <span class="sd">    """</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io.elements</span><span class="w"> </span><span class="kn">import</span> <span class="n">LayoutElement</span><span class="p">,</span> <span class="n">Table</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io.elements</span><span class="w"> </span><span class="kn">import</span> <span class="n">Formula</span><span class="p">,</span> <span class="n">Table</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.reading_order</span><span class="w"> </span><span class="kn">import</span> <span class="n">normalize_layout_label</span>
 
     <span class="n">artefacts</span> <span class="o">=</span> <span class="n">_ArtefactClaims</span><span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">blocks</span><span class="p">)</span>
@@ -812,9 +824,9 @@
     <span class="n">list_region</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># region of the list item being built</span>
     <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="p">(</span><span class="n">run</span> <span class="k">for</span> <span class="n">segment</span> <span class="ow">in</span> <span class="n">segments</span> <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="n">_float_runs</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">segment</span><span class="p">)):</span>
         <span class="n">first</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="n">elements</span><span class="p">[</span><span class="n">run</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">elt_labels</span><span class="p">[</span><span class="n">run</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="p">(</span><span class="n">Table</span><span class="p">,</span> <span class="n">LayoutElement</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">_is_atomic</span><span class="p">(</span><span class="n">first</span><span class="p">):</span>
             <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">first</span><span class="p">)</span>
-            <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"Table"</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">Table</span><span class="p">)</span> <span class="k">else</span> <span class="n">label</span><span class="p">)</span>
+            <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"Table"</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">Table</span><span class="p">)</span> <span class="k">else</span> <span class="s2">"Formula"</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">Formula</span><span class="p">)</span> <span class="k">else</span> <span class="n">label</span><span class="p">)</span>
             <span class="n">list_region</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">elif</span> <span class="n">normalize_layout_label</span><span class="p">(</span><span class="n">label</span><span class="p">)</span> <span class="ow">in</span> <span class="n">_LIST_LABELS</span><span class="p">:</span>
             <span class="c1"># One bullet per list-item region: consecutive lines of the same region are a single bullet</span>
@@ -867,13 +879,11 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_float_runs</span><span class="p">(</span><span class="n">elements</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">segment</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">"""Split the tables and figures out of a segment (a figure in page furniture can share one)"""</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io.elements</span><span class="w"> </span><span class="kn">import</span> <span class="n">LayoutElement</span><span class="p">,</span> <span class="n">Table</span>
-
+<span class="w">    </span><span class="sd">"""Split the tables, formulas and figures out of a segment (a figure in page furniture can share one)"""</span>
     <span class="n">runs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">segment</span><span class="p">:</span>
-        <span class="n">is_float</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="p">(</span><span class="n">Table</span><span class="p">,</span> <span class="n">LayoutElement</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">runs</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_float</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="n">runs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="p">(</span><span class="n">Table</span><span class="p">,</span> <span class="n">LayoutElement</span><span class="p">)):</span>
+        <span class="n">is_atomic</span> <span class="o">=</span> <span class="n">_is_atomic</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">runs</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_atomic</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_is_atomic</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="n">runs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]]):</span>
             <span class="n">runs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">runs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">idx</span><span class="p">])</span>
@@ -1125,6 +1135,10 @@
 <span class="w">        </span><span class="sd">"""Render a recognized table in the target format"""</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">formula</span><span class="p">:</span> <span class="s2">"Formula"</span><span class="p">,</span> <span class="n">escape</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Render a recognized formula in the target format (its LaTeX source is never escaped as text)"""</span>
+        <span class="k">return</span> <span class="n">formula</span><span class="o">.</span><span class="n">value</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">render_figure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">caption</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">escape</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Render a figure in the target format</span>
 
@@ -1252,7 +1266,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            the exported page as a string</span>
 <span class="sd">        """</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io.elements</span><span class="w"> </span><span class="kn">import</span> <span class="n">LayoutElement</span><span class="p">,</span> <span class="n">Table</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io.elements</span><span class="w"> </span><span class="kn">import</span> <span class="n">Formula</span><span class="p">,</span> <span class="n">LayoutElement</span><span class="p">,</span> <span class="n">Table</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.reading_order</span><span class="w"> </span><span class="kn">import</span> <span class="n">layout_label_role</span><span class="p">,</span> <span class="n">normalize_layout_label</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.reading_order.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">_FURNITURE_ROLES</span>
 
@@ -1280,9 +1294,13 @@
                 <span class="k">continue</span>
             <span class="k">if</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">absorbed_captions</span> <span class="ow">or</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">figure_text</span><span class="p">:</span>
                 <span class="k">continue</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">Table</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="p">(</span><span class="n">Table</span><span class="p">,</span> <span class="n">Formula</span><span class="p">)):</span>
                 <span class="n">_flush_list</span><span class="p">()</span>
-                <span class="n">rendered</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_table</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="n">escape</span><span class="p">)</span>
+                <span class="n">rendered</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">render_table</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="n">escape</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">Table</span><span class="p">)</span>
+                    <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_formula</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="n">escape</span><span class="p">)</span>
+                <span class="p">)</span>
                 <span class="k">if</span> <span class="n">rendered</span><span class="p">:</span>
                     <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rendered</span><span class="p">)</span>
                 <span class="k">continue</span>
@@ -1410,6 +1428,10 @@
         <span class="n">separator</span> <span class="o">=</span> <span class="s2">"| "</span> <span class="o">+</span> <span class="s2">" | "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">"---"</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="s2">" |"</span>
         <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">separator</span><span class="p">,</span> <span class="o">*</span><span class="n">rows</span><span class="p">[</span><span class="mi">1</span><span class="p">:]])</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">formula</span><span class="p">:</span> <span class="s2">"Formula"</span><span class="p">,</span> <span class="n">escape</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Render a formula as display math: `$$`, the LaTeX source and `$$` on their own lines"""</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"$$</span><span class="se">\n</span><span class="si">{</span><span class="n">formula</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="se">\n</span><span class="s2">$$"</span> <span class="k">if</span> <span class="n">formula</span><span class="o">.</span><span class="n">value</span> <span class="k">else</span> <span class="s2">""</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">render_figure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">caption</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">escape</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Render a figure as an image, with its caption as alt text and as a visible italic line below"""</span>
         <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1468,6 +1490,10 @@
 
         <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">"|==="</span><span class="p">,</span> <span class="n">_row</span><span class="p">(</span><span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="s2">""</span><span class="p">,</span> <span class="o">*</span><span class="p">[</span><span class="n">_row</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">grid</span><span class="p">[</span><span class="mi">1</span><span class="p">:]],</span> <span class="s2">"|==="</span><span class="p">])</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">formula</span><span class="p">:</span> <span class="s2">"Formula"</span><span class="p">,</span> <span class="n">escape</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Render a formula as a `latexmath` passthrough block"""</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"[latexmath]</span><span class="se">\n</span><span class="s2">++++</span><span class="se">\n</span><span class="si">{</span><span class="n">formula</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="se">\n</span><span class="s2">++++"</span> <span class="k">if</span> <span class="n">formula</span><span class="o">.</span><span class="n">value</span> <span class="k">else</span> <span class="s2">""</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">render_figure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">caption</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">escape</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Render a figure as a block image macro, titled with its caption"""</span>
         <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1494,7 +1520,8 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">HTMLExporter</span><span class="p">(</span><span class="n">_PageTextExporter</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Export OCR results to semantic HTML, with the content sorted in reading order.</span>
 
-<span class="sd">    Headings map to `&lt;h1&gt;`/`&lt;h2&gt;`, list items to `&lt;ul&gt;&lt;li&gt;`, recognized tables to `&lt;table&gt;` and</span>
+<span class="sd">    Headings map to `&lt;h1&gt;`/`&lt;h2&gt;`, list items to `&lt;ul&gt;&lt;li&gt;`, recognized tables to `&lt;table&gt;`, recognized formulas to</span>
+<span class="sd">    `&lt;div class="formula"&gt;` holding `$$...$$` display math (rendered by MathJax or KaTeX auto-render) and</span>
 <span class="sd">    paragraphs to `&lt;p&gt;` (with `&lt;br&gt;` between the visual lines of a paragraph). The output is a</span>
 <span class="sd">    fragment, not a full document: it carries no doctype, `&lt;html&gt;` or charset declaration.</span>
 
@@ -1536,6 +1563,12 @@
         <span class="n">alt</span> <span class="o">=</span> <span class="n">_html_escape</span><span class="p">(</span><span class="n">caption</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">,</span> <span class="n">quote</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">figcaption</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">&lt;figcaption&gt;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">escape_text</span><span class="p">(</span><span class="n">caption</span><span class="p">)</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">escape</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="n">caption</span><span class="si">}</span><span class="s2">&lt;/figcaption&gt;"</span> <span class="k">if</span> <span class="n">caption</span> <span class="k">else</span> <span class="s2">""</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s1">'&lt;figure&gt;&lt;img src="</span><span class="si">{</span><span class="n">_html_escape</span><span class="p">(</span><span class="n">source</span><span class="p">,</span><span class="w"> </span><span class="n">quote</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="si">}</span><span class="s1">" alt="</span><span class="si">{</span><span class="n">alt</span><span class="si">}</span><span class="s1">"&gt;</span><span class="si">{</span><span class="n">figcaption</span><span class="si">}</span><span class="s1">&lt;/figure&gt;'</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">formula</span><span class="p">:</span> <span class="s2">"Formula"</span><span class="p">,</span> <span class="n">escape</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Render a formula as `$$...$$` display math in a `&lt;div class="formula"&gt;`"""</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">formula</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">""</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">'&lt;div class="formula"&gt;$$</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">escape_text</span><span class="p">(</span><span class="n">formula</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">escape</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="n">formula</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s1">$$&lt;/div&gt;'</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">render_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">:</span> <span class="s2">"Table"</span><span class="p">,</span> <span class="n">escape</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Render a table as an HTML table (first row used as header). A cell spanning several rows / columns is</span>
@@ -1663,7 +1696,7 @@
 <span class="sd">    &gt;&gt;&gt; xml_bytes, xml_tree = XMLExporter().export_page(page)</span>
 <span class="sd">    """</span>
 
-    <span class="n">ocr_capabilities</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"ocr_page ocr_carea ocr_par ocr_line ocrx_word ocr_photo"</span>
+    <span class="n">ocr_capabilities</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"ocr_page ocr_carea ocr_par ocr_line ocrx_word ocr_photo ocr_math"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_new_document</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">language</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ETElement</span><span class="p">,</span> <span class="n">ETElement</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Create the hOCR root element with its &lt;head&gt;, returning the root and its &lt;body&gt; element."""</span>
@@ -1741,6 +1774,39 @@
                 <span class="n">cell_span</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">cell</span><span class="o">.</span><span class="n">value</span>
         <span class="k">return</span> <span class="n">table_count</span> <span class="o">+</span> <span class="mi">1</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">_add_formula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page_div</span><span class="p">:</span> <span class="n">ETElement</span><span class="p">,</span> <span class="n">formula</span><span class="p">:</span> <span class="s2">"Formula"</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">formula_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Add a formula as an hOCR text area holding an `ocr_math` element, with its LaTeX source as text</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            page_div: the `ocr_page` element</span>
+<span class="sd">            formula: the formula</span>
+<span class="sd">            width: page width in pixels</span>
+<span class="sd">            height: page height in pixels</span>
+<span class="sd">            formula_count: 1-based index of the formula on the page</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            the index of the next formula</span>
+<span class="sd">        """</span>
+        <span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="n">_xyxy</span><span class="p">(</span><span class="n">formula</span><span class="o">.</span><span class="n">geometry</span><span class="p">)</span>
+        <span class="n">bbox</span> <span class="o">=</span> <span class="n">_hocr_bbox</span><span class="p">(((</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)),</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
+        <span class="n">area</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span>
+            <span class="n">page_div</span><span class="p">,</span> <span class="s2">"div"</span><span class="p">,</span> <span class="n">attrib</span><span class="o">=</span><span class="p">{</span><span class="s2">"class"</span><span class="p">:</span> <span class="s2">"ocr_carea"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"formula_area_</span><span class="si">{</span><span class="n">formula_count</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"title"</span><span class="p">:</span> <span class="n">bbox</span><span class="p">}</span>
+        <span class="p">)</span>
+        <span class="n">paragraph</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span>
+            <span class="n">area</span><span class="p">,</span> <span class="s2">"p"</span><span class="p">,</span> <span class="n">attrib</span><span class="o">=</span><span class="p">{</span><span class="s2">"class"</span><span class="p">:</span> <span class="s2">"ocr_par"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"formula_par_</span><span class="si">{</span><span class="n">formula_count</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"title"</span><span class="p">:</span> <span class="n">bbox</span><span class="p">}</span>
+        <span class="p">)</span>
+        <span class="n">math</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span>
+            <span class="n">paragraph</span><span class="p">,</span>
+            <span class="s2">"span"</span><span class="p">,</span>
+            <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">"class"</span><span class="p">:</span> <span class="s2">"ocr_math"</span><span class="p">,</span>
+                <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"formula_</span><span class="si">{</span><span class="n">formula_count</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="s2">"title"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">bbox</span><span class="si">}</span><span class="s2">; x_wconf </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">formula</span><span class="o">.</span><span class="n">confidence</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="p">))</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+        <span class="n">math</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">formula</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">return</span> <span class="n">formula_count</span> <span class="o">+</span> <span class="mi">1</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">_add_figure</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">page_div</span><span class="p">:</span> <span class="n">ETElement</span><span class="p">,</span> <span class="n">region</span><span class="p">:</span> <span class="s2">"LayoutElement"</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">figure_count</span><span class="p">:</span> <span class="nb">int</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -1780,26 +1846,27 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Export a page as hOCR XML, with its content sorted in reading order.</span>
 
-<span class="sd">        Figures are exported as `ocr_photo` areas.</span>
+<span class="sd">        Figures are exported as `ocr_photo` areas, formulas as `ocr_math` elements holding their LaTeX source.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            page: the page to export</span>
 <span class="sd">            file_title: the title of the XML file</span>
 <span class="sd">            direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'</span>
 <span class="sd">            reading_order: whether the content should be linearized in reading order. Pass False to serialize</span>
-<span class="sd">                `page.blocks` then `page.tables` in their raw order.</span>
+<span class="sd">                `page.blocks`, `page.tables` then `page.formulas` in their raw order.</span>
 <span class="sd">            dpi: the page resolution in dots per inch, used to estimate font sizes (`x_size`, `x_fsize`)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            a tuple of the XML byte string, and its ElementTree</span>
 <span class="sd">        """</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io.elements</span><span class="w"> </span><span class="kn">import</span> <span class="n">LayoutElement</span><span class="p">,</span> <span class="n">Table</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io.elements</span><span class="w"> </span><span class="kn">import</span> <span class="n">Formula</span><span class="p">,</span> <span class="n">LayoutElement</span><span class="p">,</span> <span class="n">Table</span>
 
         <span class="n">block_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">line_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">word_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">table_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">figure_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">formula_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">dimensions</span>
         <span class="n">page_hocr</span><span class="p">,</span> <span class="n">body</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_new_document</span><span class="p">(</span><span class="n">file_title</span><span class="p">,</span> <span class="n">_resolve_hocr_language</span><span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">language</span><span class="p">))</span>
         <span class="n">page_div</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span>
@@ -1815,7 +1882,7 @@
         <span class="k">if</span> <span class="n">reading_order</span><span class="p">:</span>
             <span class="n">items</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">direction</span> <span class="o">=</span> <span class="n">page_reading_order</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">include_figures</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">items</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="n">page</span><span class="o">.</span><span class="n">blocks</span><span class="p">,</span> <span class="o">*</span><span class="n">page</span><span class="o">.</span><span class="n">tables</span><span class="p">,</span> <span class="o">*</span><span class="n">picture_regions</span><span class="p">(</span><span class="n">page</span><span class="p">)]</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="n">page</span><span class="o">.</span><span class="n">blocks</span><span class="p">,</span> <span class="o">*</span><span class="n">page</span><span class="o">.</span><span class="n">tables</span><span class="p">,</span> <span class="o">*</span><span class="n">page</span><span class="o">.</span><span class="n">formulas</span><span class="p">,</span> <span class="o">*</span><span class="n">picture_regions</span><span class="p">(</span><span class="n">page</span><span class="p">)]</span>
         <span class="c1"># iterate over the blocks / lines / words and create the XML elements line by line with the attributes</span>
         <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">Table</span><span class="p">):</span>
@@ -1823,6 +1890,9 @@
                 <span class="k">continue</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">LayoutElement</span><span class="p">):</span>
                 <span class="n">figure_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_figure</span><span class="p">(</span><span class="n">page_div</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">figure_count</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">Formula</span><span class="p">):</span>
+                <span class="n">formula_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_formula</span><span class="p">(</span><span class="n">page_div</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">formula_count</span><span class="p">)</span>
                 <span class="k">continue</span>
             <span class="n">block</span> <span class="o">=</span> <span class="n">item</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">block</span><span class="o">.</span><span class="n">geometry</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
@@ -1996,6 +2066,7 @@
         <span class="n">language</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
         <span class="n">layout</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span>
         <span class="n">tables</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="s2">"Table"</span><span class="p">]</span>
+        <span class="n">formulas</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="s2">"Formula"</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">block_break</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span> <span class="n">include_furniture</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Renders the full text of the page, with its content sorted in reading order.</span>
@@ -2026,7 +2097,7 @@
 
         <span class="n">export_dict</span> <span class="o">=</span> <span class="n">Element</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">cast</span><span class="p">(</span><span class="s2">"Element"</span><span class="p">,</span> <span class="bp">self</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">reading_order</span><span class="p">:</span>
-            <span class="c1"># Tables and layout regions have their own export keys</span>
+            <span class="c1"># Tables, formulas and layout regions have their own export keys</span>
             <span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">page_reading_order</span><span class="p">(</span><span class="n">cast</span><span class="p">(</span><span class="s2">"Page"</span><span class="p">,</span> <span class="bp">self</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">Block</span><span class="p">)]</span>
             <span class="k">if</span> <span class="n">blocks</span><span class="p">:</span>  <span class="c1"># an empty linearization (no line on the page) leaves the stored blocks untouched</span>
                 <span class="n">export_dict</span><span class="p">[</span><span class="s2">"blocks"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">block</span><span class="o">.</span><span class="n">export</span><span class="p">()</span> <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">]</span>
@@ -2057,15 +2128,15 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">items_in_reading_order</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span> <span class="n">include_figures</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="s2">"Block | Table | LayoutElement"</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">"""Return the content of the page (blocks, tables and optionally figures) sorted in reading order.</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="s2">"Block | Table | Formula | LayoutElement"</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Return the content of the page (blocks, tables, formulas and optionally figures) sorted in reading order.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'</span>
 <span class="sd">            include_figures: whether to return the figure regions too</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            list of blocks, tables and, if requested, figures in reading order</span>
+<span class="sd">            list of blocks, tables, formulas and, if requested, figures in reading order</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="n">page_reading_order</span><span class="p">(</span><span class="n">cast</span><span class="p">(</span><span class="s2">"Page"</span><span class="p">,</span> <span class="bp">self</span><span class="p">),</span> <span class="n">direction</span><span class="p">,</span> <span class="n">include_figures</span><span class="o">=</span><span class="n">include_figures</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 

@@ -662,7 +662,23 @@ inclusive: a cell spanning one row and one column has equal start and end indice
 </div>
 <input id="sd-tab-item-4" name="sd-tab-set-0" type="radio">
 <label aria-controls="sd-tab-item-4-content" class="sd-tab-label" for="sd-tab-item-4">
-Orientation</label><div class="sd-tab-content docutils" id="sd-tab-item-4-content">
+Formula</label><div class="sd-tab-content docutils" id="sd-tab-item-4-content">
+<p><code class="docutils literal notranslate"><span class="pre">images/</span></code> contains images of <strong>formulas</strong> and <code class="docutils literal notranslate"><span class="pre">labels.json</span></code> their LaTeX source, without math delimiters:</p>
+<div class="literal-block-wrapper docutils container" id="id5">
+<div class="code-block-caption"><span class="caption-text">labels.json</span><a class="headerlink" href="#id5" title="Link to this code">#</a></div>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="s2">"img_1.png"</span><span class="o">:</span><span class="w"> </span><span class="s2">"\\frac{a}{b^{2}}"</span><span class="p">,</span>
+<span class="w">  </span><span class="s2">"img_2.png"</span><span class="o">:</span><span class="w"> </span><span class="s2">"\\sum_{i=1}^{n} x_{i}"</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<p>The labels are split into LaTeX tokens with <a class="reference internal" href="../api/datasets.html#doctr.datasets.tokenize_latex" title="doctr.datasets.tokenize_latex"><code class="xref py py-func docutils literal notranslate"><span class="pre">tokenize_latex()</span></code></a>, raw or already separated by
+spaces.</p>
+</div>
+<input id="sd-tab-item-5" name="sd-tab-set-0" type="radio">
+<label aria-controls="sd-tab-item-5-content" class="sd-tab-label" for="sd-tab-item-5">
+Orientation</label><div class="sd-tab-content docutils" id="sd-tab-item-5-content">
 <p>No labels: a folder of <strong>upright</strong> images. The script rotates them to generate the training targets.</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>train_set/
 ├── sample_img_01.png
@@ -714,6 +730,16 @@ script trains on synthetic words generated from the vocabulary, optionally with 
 <p><a class="reference external" href="https://github.com/mindee/doctr/tree/main/references/table#readme">Full guide</a>, including a toy dataset to try
 the pipeline end to end.</p>
 </section>
+<section id="formula-recognition">
+<h3>Formula recognition<a class="headerlink" href="#formula-recognition" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>references/formula/train.py<span class="w"> </span>formulanet<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--train_path<span class="w"> </span>path/to/train_set<span class="w"> </span>--val_path<span class="w"> </span>path/to/val_set<span class="w"> </span>--epochs<span class="w"> </span><span class="m">5</span>
+</pre></div>
+</div>
+<p>The samples with a token out of the vocabulary are skipped: <code class="docutils literal notranslate"><span class="pre">build_vocab.py</span></code> extends the vocabulary with the tokens of
+your labels (<code class="docutils literal notranslate"><span class="pre">--vocab</span> <span class="pre">vocab.json</span></code>). <a class="reference external" href="https://github.com/mindee/doctr/tree/main/references/formula#readme">Full guide</a>,
+including a toy dataset to try the pipeline end to end.</p>
+</section>
 <section id="orientation-classifiers">
 <h3>Orientation classifiers<a class="headerlink" href="#orientation-classifiers" title="Link to this heading">#</a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># --type page for whole pages, --type crop for word crops</span>
@@ -727,9 +753,9 @@ python<span class="w"> </span>references/classification/train_orientation.py<spa
 <section id="hardware">
 <h2>Hardware<a class="headerlink" href="#hardware" title="Link to this heading">#</a></h2>
 <div class="sd-tab-set docutils">
-<input checked="checked" id="sd-tab-item-5" name="sd-tab-set-1" type="radio">
-<label aria-controls="sd-tab-item-5-content" class="sd-tab-label" for="sd-tab-item-5">
-Single GPU</label><div class="sd-tab-content docutils" id="sd-tab-item-5-content">
+<input checked="checked" id="sd-tab-item-6" name="sd-tab-set-1" type="radio">
+<label aria-controls="sd-tab-item-6-content" class="sd-tab-label" for="sd-tab-item-6">
+Single GPU</label><div class="sd-tab-content docutils" id="sd-tab-item-6-content">
 <p>Every script accepts <code class="docutils literal notranslate"><span class="pre">--device</span></code>: a CUDA index (<code class="docutils literal notranslate"><span class="pre">0</span></code>), <code class="docutils literal notranslate"><span class="pre">cuda:N</span></code>, <code class="docutils literal notranslate"><span class="pre">mps</span></code> or <code class="docutils literal notranslate"><span class="pre">cpu</span></code>. By default, the script picks CUDA,
 then MPS, then the CPU.</p>
 <p><code class="docutils literal notranslate"><span class="pre">--amp</span></code> enables automatic mixed precision on CUDA; add <code class="docutils literal notranslate"><span class="pre">--amp-dtype</span> <span class="pre">bfloat16</span></code> on Ampere GPUs or newer to avoid the
@@ -739,9 +765,9 @@ overflows of float16:</p>
 </pre></div>
 </div>
 </div>
-<input id="sd-tab-item-6" name="sd-tab-set-1" type="radio">
-<label aria-controls="sd-tab-item-6-content" class="sd-tab-label" for="sd-tab-item-6">
-Multi-GPU</label><div class="sd-tab-content docutils" id="sd-tab-item-6-content">
+<input id="sd-tab-item-7" name="sd-tab-set-1" type="radio">
+<label aria-controls="sd-tab-item-7-content" class="sd-tab-label" for="sd-tab-item-7">
+Multi-GPU</label><div class="sd-tab-content docutils" id="sd-tab-item-7-content">
 <p>Launch the same scripts with <a class="reference external" href="https://pytorch.org/docs/stable/elastic/run.html"><code class="docutils literal notranslate"><span class="pre">torchrun</span></code></a> to train with
 DistributedDataParallel:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="m">0</span>,2<span class="w"> </span>torchrun<span class="w"> </span>--nproc_per_node<span class="o">=</span><span class="m">2</span><span class="w"> </span>references/detection/train.py<span class="w"> </span>db_resnet50<span class="w"> </span><span class="se">\</span>
@@ -749,9 +775,9 @@ DistributedDataParallel:</p>
 </pre></div>
 </div>
 </div>
-<input id="sd-tab-item-7" name="sd-tab-set-1" type="radio">
-<label aria-controls="sd-tab-item-7-content" class="sd-tab-label" for="sd-tab-item-7">
-Apple Silicon</label><div class="sd-tab-content docutils" id="sd-tab-item-7-content">
+<input id="sd-tab-item-8" name="sd-tab-set-1" type="radio">
+<label aria-controls="sd-tab-item-8-content" class="sd-tab-label" for="sd-tab-item-8">
+Apple Silicon</label><div class="sd-tab-content docutils" id="sd-tab-item-8-content">
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Let the few operations MPS lacks fall back to the CPU</span>
 <span class="nv">PYTORCH_ENABLE_MPS_FALLBACK</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>python<span class="w"> </span>references/detection/train.py<span class="w"> </span>db_resnet50<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--train_path<span class="w"> </span>train<span class="w"> </span>--val_path<span class="w"> </span>val<span class="w"> </span>--device<span class="w"> </span>mps
@@ -828,6 +854,7 @@ versions and all the arguments.</p></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#text-recognition">Text recognition</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#layout-analysis">Layout analysis</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#table-structure">Table structure</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#formula-recognition">Formula recognition</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#orientation-classifiers">Orientation classifiers</a></li>
 </ul>
 </li>

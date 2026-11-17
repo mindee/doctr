@@ -636,7 +636,8 @@ lower them if you run out of memory:</p>
 the more expensive rotated-box post-processing.</p></li>
 <li><p>With rotated documents, <code class="docutils literal notranslate"><span class="pre">disable_page_orientation=True</span></code> and <code class="docutils literal notranslate"><span class="pre">disable_crop_orientation=True</span></code> skip the orientation
 classifiers when you know the text is horizontal (see <a class="reference internal" href="../user_guide/rotated_documents.html"><span class="std std-doc">Rotated documents</span></a>).</p></li>
-<li><p>Only enable <code class="docutils literal notranslate"><span class="pre">detect_layout</span></code>, <code class="docutils literal notranslate"><span class="pre">detect_tables</span></code>, <code class="docutils literal notranslate"><span class="pre">detect_orientation</span></code> and <code class="docutils literal notranslate"><span class="pre">detect_language</span></code> when you use them.</p></li>
+<li><p>Only enable <code class="docutils literal notranslate"><span class="pre">detect_layout</span></code>, <code class="docutils literal notranslate"><span class="pre">detect_tables</span></code>, <code class="docutils literal notranslate"><span class="pre">detect_formulas</span></code>, <code class="docutils literal notranslate"><span class="pre">detect_orientation</span></code> and <code class="docutils literal notranslate"><span class="pre">detect_language</span></code> when you
+use them. The formula model decodes its LaTeX token by token: its latency grows with the length of the formulas.</p></li>
 <li><p>Use lighter architectures, see the <a class="reference internal" href="../models/index.html"><span class="std std-doc">model zoo</span></a>.</p></li>
 </ul>
 </section>

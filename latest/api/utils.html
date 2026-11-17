@@ -1168,6 +1168,53 @@ precision, F1 and the <strong>structure accuracy</strong> (the fraction of match
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.utils.metrics.FormulaMetric">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">FormulaMetric</span></span><a class="reference internal" href="../_modules/doctr/utils/metrics.html#FormulaMetric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.utils.metrics.FormulaMetric" title="Link to this definition">#</a></dt>
+<dd><p>Implements formula recognition metrics, computed on LaTeX tokens (cf. <a class="reference internal" href="datasets.html#doctr.datasets.tokenize_latex" title="doctr.datasets.tokenize_latex"><code class="xref py py-func docutils literal notranslate"><span class="pre">doctr.datasets.tokenize_latex()</span></code></a>),
+so they do not depend on the whitespaces of the LaTeX sources.</p>
+<p>It reports the <strong>exact match</strong> rate (the share of formulas whose token sequences are identical), the <strong>edit
+similarity</strong> (the mean over formulas of <span class="math notranslate nohighlight">\(1 - \frac{d(X, Y)}{\max(|X|, |Y|)}\)</span> with <span class="math notranslate nohighlight">\(d\)</span> the
+token-level Levenshtein distance) and the corpus-level <strong>BLEU-4</strong> score (geometric mean of the 1- to 4-gram
+precisions with a brevity penalty, without smoothing).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">FormulaMetric</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span> <span class="o">=</span> <span class="n">FormulaMetric</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span><span class="o">.</span><span class="n">update</span><span class="p">([</span><span class="sa">r</span><span class="s2">"\frac</span><span class="si">{a}{b}</span><span class="s2">"</span><span class="p">],</span> <span class="p">[</span><span class="sa">r</span><span class="s2">"\frac { a } { c }"</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.utils.metrics.FormulaMetric.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/utils/metrics.html#FormulaMetric.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.utils.metrics.FormulaMetric.update" title="Link to this definition">#</a></dt>
+<dd><p>Update the state of the metric with new predictions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gt</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>]</em>) – list of ground-truth LaTeX strings</p></li>
+<li><p><strong>pred</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>]</em>) – list of predicted LaTeX strings</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.utils.metrics.FormulaMetric.summary">
+<span class="sig-name descname"><span class="pre">summary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/utils/metrics.html#FormulaMetric.summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.utils.metrics.FormulaMetric.summary" title="Link to this definition">#</a></dt>
+<dd><p>Computes the aggregated metrics</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a dictionary with the <cite>exact_match</cite> rate, the mean <cite>edit_similarity</cite> and the corpus <cite>bleu</cite> score</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)">dict</a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)">float</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 
@@ -1257,6 +1304,11 @@ precision, F1 and the <strong>structure accuracy</strong> (the fraction of match
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.utils.metrics.TableCellMetric"><code class="docutils literal notranslate"><span class="pre">TableCellMetric</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.utils.metrics.TableCellMetric.update"><code class="docutils literal notranslate"><span class="pre">TableCellMetric.update()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.utils.metrics.TableCellMetric.summary"><code class="docutils literal notranslate"><span class="pre">TableCellMetric.summary()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.utils.metrics.FormulaMetric"><code class="docutils literal notranslate"><span class="pre">FormulaMetric</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.utils.metrics.FormulaMetric.update"><code class="docutils literal notranslate"><span class="pre">FormulaMetric.update()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.utils.metrics.FormulaMetric.summary"><code class="docutils literal notranslate"><span class="pre">FormulaMetric.summary()</span></code></a></li>
 </ul>
 </li>
 </ul>

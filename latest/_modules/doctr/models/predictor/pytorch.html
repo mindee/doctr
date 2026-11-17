@@ -534,6 +534,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io.elements</span><span class="w"> </span><span class="kn">import</span> <span class="n">Document</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models._utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_language</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.detection.predictor</span><span class="w"> </span><span class="kn">import</span> <span class="n">DetectionPredictor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.formula.predictor</span><span class="w"> </span><span class="kn">import</span> <span class="n">FormulaPredictor</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.layout.predictor</span><span class="w"> </span><span class="kn">import</span> <span class="n">LayoutPredictor</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.recognition.predictor</span><span class="w"> </span><span class="kn">import</span> <span class="n">RecognitionPredictor</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.table_structure.predictor</span><span class="w"> </span><span class="kn">import</span> <span class="n">TablePredictor</span>
@@ -567,6 +568,8 @@
 <span class="sd">        table_predictor: optional table structure recognition module. Requires `layout_predictor`: table</span>
 <span class="sd">            regions are located by the layout model, cropped, and passed to this module. Words falling inside a</span>
 <span class="sd">            detected table are regrouped into a structured table and removed from the regular text output.</span>
+<span class="sd">        formula_predictor: optional formula recognition module. Requires `layout_predictor`: formula regions are</span>
+<span class="sd">            located by the layout model, masked out of the text detection, cropped, and read as LaTeX by this module.</span>
 <span class="sd">        page_chunk_size: the maximum number of pages processed at once (32 by default) for lazy page sources</span>
 <span class="sd">            (cf. `DocumentFile.from_pdf(..., lazy=True)`), iterators and :meth:`stream`, with a memory footprint that</span>
 <span class="sd">            does not grow with the number of pages. Lists and tuples of pages are processed in a single pass.</span>
@@ -586,6 +589,7 @@
         <span class="n">preserve_original_coords</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">layout_predictor</span><span class="p">:</span> <span class="n">LayoutPredictor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">table_predictor</span><span class="p">:</span> <span class="n">TablePredictor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">formula_predictor</span><span class="p">:</span> <span class="n">FormulaPredictor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -611,6 +615,14 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">"`table_predictor` requires a `layout_predictor`: tables are located with the layout model, "</span>
                 <span class="s2">"cropped, and then passed to the table model."</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">formula_predictor</span> <span class="o">=</span> <span class="n">formula_predictor</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span> <span class="k">if</span> <span class="n">formula_predictor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="c1"># Layout class label whose regions are read by the formula model (and masked out of the text detection)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">formula_class_name</span> <span class="o">=</span> <span class="s2">"Formula"</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">formula_predictor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">layout_predictor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">"`formula_predictor` requires a `layout_predictor`: formulas are located with the layout model, "</span>
+                <span class="s2">"cropped, and then passed to the formula model."</span>
             <span class="p">)</span>
 
     <span class="nd">@torch</span><span class="o">.</span><span class="n">inference_mode</span><span class="p">()</span>
@@ -737,6 +749,12 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">table_predictor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">regions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="k">else</span> <span class="kc">None</span>
         <span class="p">)</span>
+        <span class="c1"># Recognize formulas: read the formula regions of the layout model as LaTeX</span>
+        <span class="n">formulas</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">formula_predictor</span><span class="o">.</span><span class="n">predict_regions</span><span class="p">(</span><span class="n">pages</span><span class="p">,</span> <span class="n">regions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">formula_class_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">formula_predictor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">regions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
 
         <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc_builder</span><span class="p">(</span>
             <span class="n">pages</span><span class="p">,</span>
@@ -749,6 +767,7 @@
             <span class="n">languages_dict</span><span class="p">,</span>
             <span class="n">regions</span><span class="p">,</span>
             <span class="n">tables</span><span class="p">,</span>
+            <span class="n">formulas</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">straighten_pages</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">preserve_original_coords</span><span class="p">:</span>

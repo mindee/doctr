@@ -642,6 +642,30 @@ other transforms (padding and rotation fill new areas with False).</p></li>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="doctr.transforms.RandomPad">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">RandomPad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/transforms/modules/pytorch.html#RandomPad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.transforms.RandomPad" title="Link to this definition">#</a></dt>
+<dd><p>Randomly pad the input image with its background color and align the corresponding targets</p>
+<p>Each side gets an independent padding, filled with the background color of the image (the median color of its
+border pixels: white for a rendered document, the paper color for a photo). Used for instance to teach a model to
+read the crops of layout regions with their margins.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.transforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">RandomPad</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sample</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transfo</span> <span class="o">=</span> <span class="n">RandomPad</span><span class="p">(</span><span class="n">max_ratio</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">Sample</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">256</span><span class="p">))))</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>max_ratio</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – maximum padding of each side, relative to the image height</p></li>
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – probability to apply the transformation</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="doctr.transforms.GaussianNoise">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">GaussianNoise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/transforms/modules/pytorch.html#GaussianNoise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.transforms.GaussianNoise" title="Link to this definition">#</a></dt>
 <dd><p>Adds Gaussian Noise to the input tensor</p>
@@ -999,6 +1023,7 @@ or curved sheet, vignetting</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#image-transformations">Image transformations</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.transforms.Resize"><code class="docutils literal notranslate"><span class="pre">Resize</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.transforms.RandomResize"><code class="docutils literal notranslate"><span class="pre">RandomResize</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.transforms.RandomPad"><code class="docutils literal notranslate"><span class="pre">RandomPad</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.transforms.GaussianNoise"><code class="docutils literal notranslate"><span class="pre">GaussianNoise</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.transforms.GaussianBlur"><code class="docutils literal notranslate"><span class="pre">GaussianBlur</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.transforms.ChannelShuffle"><code class="docutils literal notranslate"><span class="pre">ChannelShuffle</span></code></a></li>

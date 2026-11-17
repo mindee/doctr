@@ -719,19 +719,23 @@ alphabet to it. Both are used by the reference training scripts when no dataset 
 <td><p>Text recognition</p></td>
 <td><p>word images + <code class="docutils literal notranslate"><span class="pre">labels.json</span></code> mapping each image to its text</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api/datasets.html#doctr.datasets.OCRDataset" title="doctr.datasets.OCRDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">OCRDataset</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/datasets.html#doctr.datasets.RecognitionDataset" title="doctr.datasets.RecognitionDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">RecognitionDataset</span></code></a></p></td>
+<td><p>Formula recognition</p></td>
+<td><p>formula images + <code class="docutils literal notranslate"><span class="pre">labels.json</span></code> mapping each image to its LaTeX source</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/datasets.html#doctr.datasets.OCRDataset" title="doctr.datasets.OCRDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">OCRDataset</span></code></a></p></td>
 <td><p>End-to-end OCR</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">images/</span></code> + <code class="docutils literal notranslate"><span class="pre">labels.json</span></code> with boxes and transcriptions</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api/datasets.html#doctr.datasets.LayoutDataset" title="doctr.datasets.LayoutDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">LayoutDataset</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/datasets.html#doctr.datasets.LayoutDataset" title="doctr.datasets.LayoutDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">LayoutDataset</span></code></a></p></td>
 <td><p>Layout analysis</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">images/</span></code> + <code class="docutils literal notranslate"><span class="pre">labels.json</span></code> with polygons and classes</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api/datasets.html#doctr.datasets.TableStructureDataset" title="doctr.datasets.TableStructureDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">TableStructureDataset</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/datasets.html#doctr.datasets.TableStructureDataset" title="doctr.datasets.TableStructureDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">TableStructureDataset</span></code></a></p></td>
 <td><p>Table structure</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">images/</span></code> + <code class="docutils literal notranslate"><span class="pre">labels.json</span></code> with cells and their logical coordinates</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../api/datasets.html#doctr.datasets.OrientationDataset" title="doctr.datasets.OrientationDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">OrientationDataset</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/datasets.html#doctr.datasets.OrientationDataset" title="doctr.datasets.OrientationDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">OrientationDataset</span></code></a></p></td>
 <td><p>Orientation classification</p></td>
 <td><p>a folder of upright images</p></td>
 </tr>

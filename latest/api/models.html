@@ -574,6 +574,7 @@ directly. See the <a class="reference internal" href="../models/index.html"><spa
 <dd><em class="sig-param"><span class="n"><span class="pre">layout_arch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lw_detr_s'</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">ignore_regions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">detect_tables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">detect_formulas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">confidence_aggregation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em>,</dd>
 </dl>
@@ -622,6 +623,10 @@ be masked out (filled with black) before passing the pages to the detection/reco
 structure model. Words falling inside a detected table are regrouped into a structured table
 (accessible via <cite>page.tables</cite>) and removed from the regular text output. This enables the layout
 model and slightly deteriorates the overall latency.</p></li>
+<li><p><strong>detect_formulas</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – if True, formula regions found by the layout model are masked out of the text detection,
+cropped and read as LaTeX by a formula recognition model (accessible via <cite>page.formulas</cite>, and exported as
+display math, e.g. <cite>$$…$$</cite> in Markdown). This enables the layout model and deteriorates the overall
+latency.</p></li>
 <li><p><strong>confidence_aggregation</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.15)"><em>Literal</em></a><em>[</em><em>'mean'</em><em>, </em><em>'min'</em><em>, </em><em>'max'</em><em>, </em><em>'median'</em><em>, </em><em>'geometric_mean'</em><em>, </em><em>'harmonic_mean'</em><em>] </em><em>| </em><em>~collections.abc.Callable</em><em>[</em><em>[</em><em>~numpy.ndarray</em><em>]</em><em>, </em><em>float</em><em>] </em><em>| </em><em>None</em>) – aggregation method of the character probabilities of the recognition model into the
 word confidence: “mean”, “min”, “max”, “median”, “geometric_mean”, “harmonic_mean” or a Python callable
 taking the 1D array of probabilities and returning a float. If None (default), the method of the
@@ -737,6 +742,7 @@ page source processed at once)</p></li>
 <dd><em class="sig-param"><span class="n"><span class="pre">preserve_original_coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">layout_predictor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">table_predictor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">formula_predictor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em>,</dd>
 </dl>
 
@@ -762,6 +768,8 @@ to the original page coordinate space. Useful for redaction and annotation.</p><
 <li><p><strong>table_predictor</strong> (<a class="reference internal" href="#doctr.models.table_structure.predictor.TablePredictor" title="doctr.models.table_structure.predictor.pytorch.TablePredictor"><em>TablePredictor</em></a><em> | </em><em>None</em>) – optional table structure recognition module. Requires <cite>layout_predictor</cite>: table
 regions are located by the layout model, cropped, and passed to this module. Words falling inside a
 detected table are regrouped into a structured table and removed from the regular text output.</p></li>
+<li><p><strong>formula_predictor</strong> (<a class="reference internal" href="#doctr.models.formula.predictor.FormulaPredictor" title="doctr.models.formula.predictor.pytorch.FormulaPredictor"><em>FormulaPredictor</em></a><em> | </em><em>None</em>) – optional formula recognition module. Requires <cite>layout_predictor</cite>: formula regions are
+located by the layout model, masked out of the text detection, cropped, and read as LaTeX by this module.</p></li>
 <li><p><strong>page_chunk_size</strong> – the maximum number of pages processed at once (32 by default) for lazy page sources
 (cf. <cite>DocumentFile.from_pdf(…, lazy=True)</cite>), iterators and <a class="reference internal" href="#doctr.models.predictor.OCRPredictor.stream" title="doctr.models.predictor.OCRPredictor.stream"><code class="xref py py-meth docutils literal notranslate"><span class="pre">stream()</span></code></a>, with a memory footprint that
 does not grow with the number of pages. Lists and tuples of pages are processed in a single pass.</p></li>
@@ -1864,6 +1872,127 @@ coordinates, each cell listing the page indices of its words in reading order (<
 </dd></dl>
 
 </section>
+<section id="formula-recognition">
+<h2>Formula recognition<a class="headerlink" href="#formula-recognition" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.formula.formula_predictor">
+<span class="sig-name descname"><span class="pre">formula_predictor</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">arch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'formulanet'</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">confidence_aggregation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">max_decode_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/models/formula/zoo.html#formula_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.formula.formula_predictor" title="Link to this definition">#</a></dt>
+<dd><p>Formula recognition architecture: turns images of mathematical formulas into LaTeX strings.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">formula_predictor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">formula_predictor</span><span class="p">(</span><span class="n">arch</span><span class="o">=</span><span class="s1">'formulanet'</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_crop</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_crop</span><span class="p">])</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arch</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>) – name of the architecture or model itself to use (e.g. ‘formulanet’)</p></li>
+<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – If True, returns a model pre-trained on a formula recognition dataset</p></li>
+<li><p><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – number of samples the model processes in parallel</p></li>
+<li><p><strong>confidence_aggregation</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.15)"><em>Literal</em></a><em>[</em><em>'mean'</em><em>, </em><em>'min'</em><em>, </em><em>'max'</em><em>, </em><em>'median'</em><em>, </em><em>'geometric_mean'</em><em>, </em><em>'harmonic_mean'</em><em>] </em><em>| </em><em>~collections.abc.Callable</em><em>[</em><em>[</em><em>~numpy.ndarray</em><em>]</em><em>, </em><em>float</em><em>] </em><em>| </em><em>None</em>) – aggregation method of the token probabilities into the formula confidence:
+“mean”, “min”, “max”, “median”, “geometric_mean”, “harmonic_mean” or a callable. If None, the one of
+the model is kept (“mean” by default)</p></li>
+<li><p><strong>max_decode_length</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> | </em><em>None</em>) – maximum number of tokens generated per formula. If None, the one of the model is kept
+(2048 by default). A model instance passed as <cite>arch</cite> is modified.</p></li>
+<li><p><strong>chunk_size</strong> – maximum number of formula images decoded and processed at once (128 by default): longer inputs and
+lazy page sources (cf. <cite>DocumentFile.from_images(…, lazy=True)</cite>) are processed chunk by chunk</p></li>
+<li><p><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>) – optional keyword arguments passed to the architecture</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Formula recognition predictor</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#doctr.models.formula.predictor.FormulaPredictor" title="doctr.models.formula.predictor.pytorch.FormulaPredictor"><em>FormulaPredictor</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.models.formula.predictor.FormulaPredictor">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">FormulaPredictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pre_processor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/models/formula/predictor/pytorch.html#FormulaPredictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.formula.predictor.FormulaPredictor" title="Link to this definition">#</a></dt>
+<dd><p>Implements an object able to recognize mathematical formulas as LaTeX strings</p>
+<p>Each formula image is resized (keeping its aspect ratio), padded and normalized. The margins around a formula
+(e.g. of a layout region) are kept: the model is trained to read formulas with margins.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pre_processor</strong> (<a class="reference internal" href="#doctr.models.preprocessor.PreProcessor" title="doctr.models.preprocessor.pytorch.PreProcessor"><em>PreProcessor</em></a>) – transform inputs for easier batched model inference</p></li>
+<li><p><strong>model</strong> (<a class="reference external" href="https://docs.pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" title="(in PyTorch v2.15)"><em>Module</em></a>) – core formula recognition architecture</p></li>
+<li><p><strong>chunk_size</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – the maximum number of formula images decoded and processed at once (128 by default). Longer
+inputs, lazy page sources (cf. <cite>DocumentFile.from_images(…, lazy=True)</cite>) and iterators are processed
+chunk by chunk, with a memory footprint that does not grow with the number of images. It is rounded
+up to a multiple of the batch size, so that the predictions are the same as in a single pass.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.models.formula.predictor.FormulaPredictor.predict_regions">
+<span class="sig-name descname"><span class="pre">predict_regions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pages</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">class_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Formula'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/models/formula/predictor/pytorch.html#FormulaPredictor.predict_regions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.formula.predictor.FormulaPredictor.predict_regions" title="Link to this definition">#</a></dt>
+<dd><p>Recognize the formulas a layout model located on pages</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pages</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><em>list</em></a><em>[</em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a><em>]</em>) – the page images</p></li>
+<li><p><strong>regions</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>] </em><em>| </em><em>None</em><em>]</em>) – the per-page layout predictions <cite>{“class_names”, “boxes”, “scores”}</cite> (None for none)</p></li>
+<li><p><strong>class_name</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – the layout class of the formula regions</p></li>
+<li><p><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>) – keyword arguments forwarded to the model</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a per-page list of formulas <cite>{“geometry”, “value”, “confidence”, “score”}</cite>, with the geometry of the
+layout region (page-relative) and its layout score</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)">list</a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)">list</a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)">dict</a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.formula.formulanet">
+<span class="sig-name descname"><span class="pre">formulanet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/models/formula/formulanet/pytorch.html#formulanet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.formula.formulanet" title="Link to this definition">#</a></dt>
+<dd><p>FormulaNet: a HGNetV2-B4 encoder with a transformer decoder predicting LaTeX tokens, following
+<a class="reference external" href="https://arxiv.org/abs/2503.18382">“PP-FormulaNet: Bridging Accuracy and Efficiency in Advanced Formula Recognition”</a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">formulanet</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">formulanet</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">768</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – If True, returns a model pre-trained on a formula recognition dataset</p></li>
+<li><p><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>) – keyword arguments of the FormulaNet architecture</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>formula recognition architecture</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>FormulaNet</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 <section id="classification">
 <h2>Classification<a class="headerlink" href="#classification" title="Link to this heading">#</a></h2>
 <p>Orientation classifiers, and the backbones used by the detection and recognition models.</p>
@@ -2552,6 +2681,33 @@ in the official implementation:
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.classification.hgnetv2_b4">
+<span class="sig-name descname"><span class="pre">hgnetv2_b4</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/models/classification/hgnetv2/pytorch.html#hgnetv2_b4"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.classification.hgnetv2_b4" title="Link to this definition">#</a></dt>
+<dd><p>HGNetV2-B4 from PaddlePaddle’s <a class="reference external" href="https://github.com/PaddlePaddle/PaddleClas/blob/release/2.6/docs/en/models/PP-HGNetV2_en.md">PP-HGNetV2</a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">hgnetv2_b4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">hgnetv2_b4</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – boolean, True if model is pretrained</p></li>
+<li><p><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>) – keyword arguments of the HGNetV2 architecture</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A HGNetV2-B4 model</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>HGNetV2</em></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="hugging-face-hub">
 <h2>Hugging Face Hub<a class="headerlink" href="#hugging-face-hub" title="Link to this heading">#</a></h2>
@@ -3102,6 +3258,15 @@ nothing is done.</p></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.models.table_structure.tablecenternet"><code class="docutils literal notranslate"><span class="pre">tablecenternet()</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#formula-recognition">Formula recognition</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.models.formula.formula_predictor"><code class="docutils literal notranslate"><span class="pre">formula_predictor()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.models.formula.predictor.FormulaPredictor"><code class="docutils literal notranslate"><span class="pre">FormulaPredictor</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.models.formula.predictor.FormulaPredictor.predict_regions"><code class="docutils literal notranslate"><span class="pre">FormulaPredictor.predict_regions()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.models.formula.formulanet"><code class="docutils literal notranslate"><span class="pre">formulanet()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#classification">Classification</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.models.classification.crop_orientation_predictor"><code class="docutils literal notranslate"><span class="pre">crop_orientation_predictor()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.models.classification.page_orientation_predictor"><code class="docutils literal notranslate"><span class="pre">page_orientation_predictor()</span></code></a></li>
@@ -3127,6 +3292,7 @@ nothing is done.</p></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.models.classification.vit_det_s"><code class="docutils literal notranslate"><span class="pre">vit_det_s()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.models.classification.vit_det_m"><code class="docutils literal notranslate"><span class="pre">vit_det_m()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.models.classification.starnet_s3"><code class="docutils literal notranslate"><span class="pre">starnet_s3()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.models.classification.hgnetv2_b4"><code class="docutils literal notranslate"><span class="pre">hgnetv2_b4()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hugging-face-hub">Hugging Face Hub</a><ul class="pst-show_toc_level nav section-nav flex-column">

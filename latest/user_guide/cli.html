@@ -740,23 +740,27 @@ falls back to JSON. Use <code class="docutils literal notranslate"><span class="
 <td><p>off</p></td>
 <td><p>Recognize tables (enables the layout model)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--ignore_regions</span> <span class="pre">CLASS</span> <span class="pre">[CLASS</span> <span class="pre">...]</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--detect_formulas</span></code></p></td>
+<td><p>off</p></td>
+<td><p>Read formulas as LaTeX (enables the layout model)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--ignore_regions</span> <span class="pre">CLASS</span> <span class="pre">[CLASS</span> <span class="pre">...]</span></code></p></td>
 <td><p>none</p></td>
 <td><p>Layout classes to mask before OCR, e.g. <code class="docutils literal notranslate"><span class="pre">Picture</span> <span class="pre">Table</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--export_as_straight_boxes</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--export_as_straight_boxes</span></code></p></td>
 <td><p>off</p></td>
 <td><p>Export straight boxes with <code class="docutils literal notranslate"><span class="pre">--no-assume_straight_pages</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--preserve_original_coords</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--preserve_original_coords</span></code></p></td>
 <td><p>off</p></td>
 <td><p>With <code class="docutils literal notranslate"><span class="pre">--straighten_pages</span></code>, map the boxes back to the original pages</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--disable_page_orientation</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--disable_page_orientation</span></code></p></td>
 <td><p>off</p></td>
 <td><p>Skip the page orientation classifier</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--disable_crop_orientation</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--disable_crop_orientation</span></code></p></td>
 <td><p>off</p></td>
 <td><p>Skip the crop orientation classifier</p></td>
 </tr>
@@ -865,7 +869,7 @@ falls back to JSON. Use <code class="docutils literal notranslate"><span class="
 <h2>Output files<a class="headerlink" href="#output-files" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p><strong>JSON</strong> contains the full structure: pages (dimensions, orientation, language, layout), blocks, lines and words
-with their confidence and geometry, and the tables with <code class="docutils literal notranslate"><span class="pre">--detect_tables</span></code>.</p></li>
+with their confidence and geometry, the tables with <code class="docutils literal notranslate"><span class="pre">--detect_tables</span></code> and the formulas with <code class="docutils literal notranslate"><span class="pre">--detect_formulas</span></code>.</p></li>
 <li><p><strong>Text-like formats</strong> (<code class="docutils literal notranslate"><span class="pre">txt</span></code>, <code class="docutils literal notranslate"><span class="pre">md</span></code>, <code class="docutils literal notranslate"><span class="pre">adoc</span></code>, <code class="docutils literal notranslate"><span class="pre">html</span></code>) are written to a single file.</p></li>
 <li><p><strong>hOCR</strong> describes one page per file: <code class="docutils literal notranslate"><span class="pre">--output</span> <span class="pre">doc.xml</span></code> on a three-page document writes <code class="docutils literal notranslate"><span class="pre">doc_page_1.xml</span></code>,
 <code class="docutils literal notranslate"><span class="pre">doc_page_2.xml</span></code> and <code class="docutils literal notranslate"><span class="pre">doc_page_3.xml</span></code>.</p></li>

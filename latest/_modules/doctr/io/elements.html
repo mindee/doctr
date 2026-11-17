@@ -556,6 +556,7 @@
     <span class="s2">"LayoutElement"</span><span class="p">,</span>
     <span class="s2">"TableCell"</span><span class="p">,</span>
     <span class="s2">"Table"</span><span class="p">,</span>
+    <span class="s2">"Formula"</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -907,6 +908,53 @@
 
 
 
+<div class="viewcode-block" id="Formula">
+<a class="viewcode-back" href="../../../api/io.html#doctr.io.Formula">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Formula</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""Implements a mathematical formula recognized on a page as LaTeX</span>
+
+<span class="sd">    The formula regions are located by the layout model and kept out of the regular text recognition, so the</span>
+<span class="sd">    formula is not duplicated in the `blocks` of the page.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        value: the LaTeX source of the formula (tokens separated by spaces, e.g. `\frac { a } { b }`), without</span>
+<span class="sd">            math delimiters</span>
+<span class="sd">        confidence: the confidence of the formula recognition</span>
+<span class="sd">        geometry: bounding box of the formula in format ((xmin, ymin), (xmax, ymax)) or a (4, 2) polygon, with</span>
+<span class="sd">            coordinates relative to the page's size</span>
+<span class="sd">        objectness_score: the score of the formula region predicted by the layout model, None if unknown</span>
+<span class="sd">    """</span>
+
+    <span class="n">_exported_keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"geometry"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">,</span> <span class="s2">"confidence"</span><span class="p">,</span> <span class="s2">"objectness_score"</span><span class="p">]</span>
+    <span class="n">_children_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">geometry</span><span class="p">:</span> <span class="n">BoundingBox</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">objectness_score</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">confidence</span> <span class="o">=</span> <span class="n">confidence</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="n">geometry</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">objectness_score</span> <span class="o">=</span> <span class="n">objectness_score</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Renders the LaTeX source of the formula"""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"value='</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">', confidence=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">confidence</span><span class="si">:</span><span class="s2">.2</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">save_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">save_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_exported_keys</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">"objectness_score"</span><span class="p">}</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">objectness_score</span><span class="o">=</span><span class="n">save_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"objectness_score"</span><span class="p">))</span></div>
+
+
+
 <div class="viewcode-block" id="Line">
 <a class="viewcode-back" href="../../../api/io.html#doctr.io.Line">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Line</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
@@ -1050,13 +1098,15 @@
 <span class="sd">        language: a dictionary with the language value and confidence of the prediction</span>
 <span class="sd">        layout: optional list of layout regions detected on the page</span>
 <span class="sd">        tables: optional list of tables recognized on the page. Words assigned to a table are removed from `blocks`.</span>
+<span class="sd">        formulas: optional list of formulas recognized on the page. Formula regions are not part of `blocks`.</span>
 <span class="sd">    """</span>
 
     <span class="n">_exported_keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"page_idx"</span><span class="p">,</span> <span class="s2">"dimensions"</span><span class="p">,</span> <span class="s2">"orientation"</span><span class="p">,</span> <span class="s2">"language"</span><span class="p">]</span>
-    <span class="n">_children_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"blocks"</span><span class="p">,</span> <span class="s2">"layout"</span><span class="p">,</span> <span class="s2">"tables"</span><span class="p">]</span>
+    <span class="n">_children_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"blocks"</span><span class="p">,</span> <span class="s2">"layout"</span><span class="p">,</span> <span class="s2">"tables"</span><span class="p">,</span> <span class="s2">"formulas"</span><span class="p">]</span>
     <span class="n">blocks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Block</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">layout</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">LayoutElement</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">tables</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Table</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">formulas</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Formula</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="n">page</span> <span class="o">=</span> <span class="n">_page_image_property</span>
 
@@ -1070,11 +1120,13 @@
         <span class="n">language</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">layout</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">LayoutElement</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">tables</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Table</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">formulas</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Formula</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">blocks</span><span class="o">=</span><span class="n">blocks</span><span class="p">,</span>
             <span class="n">layout</span><span class="o">=</span><span class="n">layout</span> <span class="k">if</span> <span class="n">layout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[],</span>
             <span class="n">tables</span><span class="o">=</span><span class="n">tables</span> <span class="k">if</span> <span class="n">tables</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[],</span>
+            <span class="n">formulas</span><span class="o">=</span><span class="n">formulas</span> <span class="k">if</span> <span class="n">formulas</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[],</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">page</span> <span class="o">=</span> <span class="n">page</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">page_idx</span> <span class="o">=</span> <span class="n">page_idx</span>
@@ -1132,6 +1184,7 @@
             <span class="s2">"blocks"</span><span class="p">:</span> <span class="p">[</span><span class="n">Block</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">block_dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">block_dict</span> <span class="ow">in</span> <span class="n">save_dict</span><span class="p">[</span><span class="s2">"blocks"</span><span class="p">]],</span>
             <span class="s2">"layout"</span><span class="p">:</span> <span class="p">[</span><span class="n">LayoutElement</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">region_dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">region_dict</span> <span class="ow">in</span> <span class="n">save_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"layout"</span><span class="p">,</span> <span class="p">[])],</span>
             <span class="s2">"tables"</span><span class="p">:</span> <span class="p">[</span><span class="n">Table</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">table_dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">table_dict</span> <span class="ow">in</span> <span class="n">save_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tables"</span><span class="p">,</span> <span class="p">[])],</span>
+            <span class="s2">"formulas"</span><span class="p">:</span> <span class="p">[</span><span class="n">Formula</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">formula_dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">formula_dict</span> <span class="ow">in</span> <span class="n">save_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"formulas"</span><span class="p">,</span> <span class="p">[])],</span>
         <span class="p">})</span>
         <span class="c1"># The page image is not part of the export: pass it back explicitly to restore a fully usable page</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">page</span><span class="o">=</span><span class="n">_empty_page_image</span><span class="p">(</span><span class="n">page</span><span class="p">),</span> <span class="o">**</span><span class="n">_kwargs</span><span class="p">)</span></div>

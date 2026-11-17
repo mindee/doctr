@@ -1242,6 +1242,7 @@ KIE pages)</p></li>
 <dd><em class="sig-param"><span class="n"><span class="pre">language</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">layout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">tables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">formulas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>,</dd>
 </dl>
 
 <span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/elements.html#Page"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.Page" title="Link to this definition">#</a></dt>
@@ -1257,6 +1258,7 @@ KIE pages)</p></li>
 <li><p><strong>language</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>) – a dictionary with the language value and confidence of the prediction</p></li>
 <li><p><strong>layout</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><em>list</em></a><em>[</em><a class="reference internal" href="#doctr.io.LayoutElement" title="doctr.io.elements.LayoutElement"><em>LayoutElement</em></a><em>]</em>) – optional list of layout regions detected on the page</p></li>
 <li><p><strong>tables</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><em>list</em></a><em>[</em><a class="reference internal" href="#doctr.io.Table" title="doctr.io.elements.Table"><em>Table</em></a><em>]</em>) – optional list of tables recognized on the page. Words assigned to a table are removed from <cite>blocks</cite>.</p></li>
+<li><p><strong>formulas</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><em>list</em></a><em>[</em><a class="reference internal" href="#doctr.io.Formula" title="doctr.io.elements.Formula"><em>Formula</em></a><em>]</em>) – optional list of formulas recognized on the page. Formula regions are not part of <cite>blocks</cite>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1442,7 +1444,7 @@ convention: <a class="github reference external" href="https://github.com/kba/ho
 <dl class="py method">
 <dt class="sig sig-object py" id="doctr.io.Page.items_in_reading_order">
 <span class="sig-name descname"><span class="pre">items_in_reading_order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_figures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#doctr.io.Page.items_in_reading_order" title="Link to this definition">#</a></dt>
-<dd><p>Return the content of the page (blocks, tables and optionally figures) sorted in reading order.</p>
+<dd><p>Return the content of the page (blocks, tables, formulas and optionally figures) sorted in reading order.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1451,10 +1453,10 @@ convention: <a class="github reference external" href="https://github.com/kba/ho
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>list of blocks, tables and, if requested, figures in reading order</p>
+<dd class="field-even"><p>list of blocks, tables, formulas and, if requested, figures in reading order</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)">list</a>[<a class="reference internal" href="#doctr.io.Block" title="doctr.io.Block">Block</a> | <a class="reference internal" href="#doctr.io.Table" title="doctr.io.Table">Table</a> | <a class="reference internal" href="#doctr.io.LayoutElement" title="doctr.io.LayoutElement">LayoutElement</a>]</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)">list</a>[<a class="reference internal" href="#doctr.io.Block" title="doctr.io.Block">Block</a> | <a class="reference internal" href="#doctr.io.Table" title="doctr.io.Table">Table</a> | <a class="reference internal" href="#doctr.io.Formula" title="doctr.io.Formula">Formula</a> | <a class="reference internal" href="#doctr.io.LayoutElement" title="doctr.io.LayoutElement">LayoutElement</a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1565,8 +1567,8 @@ the page’s size.</p></li>
 </dd></dl>
 
 </section>
-<section id="layout-and-tables">
-<h3>Layout and tables<a class="headerlink" href="#layout-and-tables" title="Link to this heading">#</a></h3>
+<section id="layout-tables-and-formulas">
+<h3>Layout, tables and formulas<a class="headerlink" href="#layout-tables-and-formulas" title="Link to this heading">#</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="doctr.io.LayoutElement">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">LayoutElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layout_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geometry</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/elements.html#LayoutElement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.LayoutElement" title="Link to this definition">#</a></dt>
@@ -1677,6 +1679,26 @@ with coordinates relative to the page’s size</p></li>
 <dd><p>Number of columns spanned by the cell</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.io.Formula">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Formula</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geometry</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objectness_score</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/elements.html#Formula"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.Formula" title="Link to this definition">#</a></dt>
+<dd><p>Implements a mathematical formula recognized on a page as LaTeX</p>
+<p>The formula regions are located by the layout model and kept out of the regular text recognition, so the
+formula is not duplicated in the <cite>blocks</cite> of the page.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – the LaTeX source of the formula (tokens separated by spaces, e.g. <cite>frac { a } { b }</cite>), without
+math delimiters</p></li>
+<li><p><strong>confidence</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – the confidence of the formula recognition</p></li>
+<li><p><strong>geometry</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em>]</em><em>] </em><em>| </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a>) – bounding box of the formula in format ((xmin, ymin), (xmax, ymax)) or a (4, 2) polygon, with
+coordinates relative to the page’s size</p></li>
+<li><p><strong>objectness_score</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> | </em><em>None</em>) – the score of the formula region predicted by the layout model, None if unknown</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -2163,7 +2185,8 @@ linearization. See <a class="reference internal" href="../user_guide/exporting.h
 <dt class="sig sig-object py" id="doctr.io.HTMLExporter">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">HTMLExporter</span></span><a class="reference internal" href="../_modules/doctr/io/exporters.html#HTMLExporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.HTMLExporter" title="Link to this definition">#</a></dt>
 <dd><p>Export OCR results to semantic HTML, with the content sorted in reading order.</p>
-<p>Headings map to <cite>&lt;h1&gt;</cite>/<cite>&lt;h2&gt;</cite>, list items to <cite>&lt;ul&gt;&lt;li&gt;</cite>, recognized tables to <cite>&lt;table&gt;</cite> and
+<p>Headings map to <cite>&lt;h1&gt;</cite>/<cite>&lt;h2&gt;</cite>, list items to <cite>&lt;ul&gt;&lt;li&gt;</cite>, recognized tables to <cite>&lt;table&gt;</cite>, recognized formulas to
+<cite>&lt;div class=”formula”&gt;</cite> holding <cite>$$…$$</cite> display math (rendered by MathJax or KaTeX auto-render) and
 paragraphs to <cite>&lt;p&gt;</cite> (with <cite>&lt;br&gt;</cite> between the visual lines of a paragraph). The output is a
 fragment, not a full document: it carries no doctype, <cite>&lt;html&gt;</cite> or charset declaration.</p>
 <div class="admonition warning">
@@ -2279,7 +2302,7 @@ See the hOCR 1.2 specification for the XML convention: <a class="github referenc
 
 <span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/exporters.html#XMLExporter.export_page"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.XMLExporter.export_page" title="Link to this definition">#</a></dt>
 <dd><p>Export a page as hOCR XML, with its content sorted in reading order.</p>
-<p>Figures are exported as <cite>ocr_photo</cite> areas.</p>
+<p>Figures are exported as <cite>ocr_photo</cite> areas, formulas as <cite>ocr_math</cite> elements holding their LaTeX source.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -2287,7 +2310,7 @@ See the hOCR 1.2 specification for the XML convention: <a class="github referenc
 <li><p><strong>file_title</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – the title of the XML file</p></li>
 <li><p><strong>direction</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
 <li><p><strong>reading_order</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – whether the content should be linearized in reading order. Pass False to serialize
-<cite>page.blocks</cite> then <cite>page.tables</cite> in their raw order.</p></li>
+<cite>page.blocks</cite>, <cite>page.tables</cite> then <cite>page.formulas</cite> in their raw order.</p></li>
 <li><p><strong>dpi</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – the page resolution in dots per inch, used to estimate font sizes (<cite>x_size</cite>, <cite>x_fsize</cite>)</p></li>
 </ul>
 </dd>
@@ -2358,7 +2381,7 @@ See the hOCR 1.2 specification for the XML convention: <a class="github referenc
 <dl class="py function">
 <dt class="sig sig-object py" id="doctr.io.page_reading_order">
 <span class="sig-name descname"><span class="pre">page_reading_order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_figures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/exporters.html#page_reading_order"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.page_reading_order" title="Link to this definition">#</a></dt>
-<dd><p>Linearize the content of a page (blocks, tables and optionally figures) in reading order</p>
+<dd><p>Linearize the content of a page (blocks, tables, formulas and optionally figures) in reading order</p>
 <p>The result is cached on the page, so a page exported to several formats is ordered once. The figures always take
 part in the ordering, <cite>include_figures</cite> only controls whether they are returned.</p>
 <dl class="field-list simple">
@@ -2684,7 +2707,7 @@ Written files are named after the figure position and content, e.g. <code class=
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.io.Artefact"><code class="docutils literal notranslate"><span class="pre">Artefact</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#layout-and-tables">Layout and tables</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#layout-tables-and-formulas">Layout, tables and formulas</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.io.LayoutElement"><code class="docutils literal notranslate"><span class="pre">LayoutElement</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.io.Table"><code class="docutils literal notranslate"><span class="pre">Table</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.io.Table.to_grid"><code class="docutils literal notranslate"><span class="pre">Table.to_grid()</span></code></a></li>
@@ -2696,6 +2719,7 @@ Written files are named after the figure position and content, e.g. <code class=
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.io.TableCell.col_span"><code class="docutils literal notranslate"><span class="pre">TableCell.col_span</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.io.Formula"><code class="docutils literal notranslate"><span class="pre">Formula</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#key-information-extraction">Key information extraction</a><ul class="nav section-nav flex-column">

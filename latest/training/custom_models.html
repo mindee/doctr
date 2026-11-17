@@ -660,6 +660,27 @@ model should feed the table model.</p>
 </pre></div>
 </div>
 </section>
+<section id="formula-recognition-models">
+<h2>Formula recognition models<a class="headerlink" href="#formula-recognition-models" title="Link to this heading">#</a></h2>
+<p>A model trained with your own vocabulary must be built with the same one:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">formula_predictor</span><span class="p">,</span> <span class="n">formulanet</span><span class="p">,</span> <span class="n">ocr_predictor</span>
+
+<span class="n">vocab</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">"path/to/vocab.json"</span><span class="p">))</span>  <span class="c1"># cf. references/formula/build_vocab.py</span>
+<span class="n">formula_model</span> <span class="o">=</span> <span class="n">formulanet</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">vocab</span><span class="o">=</span><span class="n">vocab</span><span class="p">)</span>
+<span class="n">formula_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">"path/to/formula.pt"</span><span class="p">)</span>
+
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">detect_formulas</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">predictor</span><span class="o">.</span><span class="n">formula_predictor</span> <span class="o">=</span> <span class="n">formula_predictor</span><span class="p">(</span><span class="n">formula_model</span><span class="p">)</span>  <span class="c1"># replace the default formula model</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Formula recognition (<code class="docutils literal notranslate"><span class="pre">detect_formulas=True</span></code>) reads the regions labelled <code class="docutils literal notranslate"><span class="pre">Formula</span></code>: keep this class name if your layout
+model should feed the formula model.</p>
+</div>
+</section>
 <section id="orientation-classifiers">
 <h2>Orientation classifiers<a class="headerlink" href="#orientation-classifiers" title="Link to this heading">#</a></h2>
 <p>The orientation classifiers are used with <code class="docutils literal notranslate"><span class="pre">assume_straight_pages=False</span></code>, <code class="docutils literal notranslate"><span class="pre">straighten_pages=True</span></code> or
@@ -775,6 +796,7 @@ settings automatically. See <a class="reference internal" href="sharing_models.h
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#layout-models">Layout models</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#table-structure-models">Table structure models</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#formula-recognition-models">Formula recognition models</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#orientation-classifiers">Orientation classifiers</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#custom-pre-processing">Custom pre-processing</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#models-from-the-hugging-face-hub">Models from the Hugging Face Hub</a></li>
