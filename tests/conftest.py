@@ -27,6 +27,14 @@ def pytest_configure(config):
         cv2.setNumThreads(num_threads)
 
 
+@pytest.fixture(autouse=True)
+def _release_gpu_memory():
+    yield
+    # With pytest-xdist, the workers share the GPU: give back the memory cached by a test, so that the others can use it
+    if int(os.environ.get("PYTEST_XDIST_WORKER_COUNT", 0)) > 1 and torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
+
 @pytest.fixture(scope="session")
 def mock_vocab():
     return (

@@ -78,8 +78,9 @@ class SVT(VisionDataset):
             name, _, _, _resolution, rectangles = image
 
             # File existence check
-            if not os.path.exists(os.path.join(tmp_root, name.text)):
-                raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, name.text)}")
+            img_name = name.text
+            if not img_name or not os.path.exists(os.path.join(tmp_root, img_name)):
+                raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_name or '')}")
 
             if use_polygons:
                 # (x, y) coordinates of top left, top right, bottom right, bottom left corners
@@ -112,14 +113,14 @@ class SVT(VisionDataset):
             labels = [lab.text for rect in rectangles for lab in rect]
 
             if recognition_task:
-                crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, name.text), geoms=boxes)
+                crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, img_name), geoms=boxes)
                 for crop, label in zip(crops, labels):
-                    if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0 and " " not in label:
+                    if crop.shape[0] > 0 and crop.shape[1] > 0 and label and " " not in label:
                         self.data.append((crop, label))
             elif detection_task:
-                self.data.append((name.text, boxes))
+                self.data.append((img_name, boxes))
             else:
-                self.data.append((name.text, dict(boxes=boxes, labels=labels)))
+                self.data.append((img_name, dict(boxes=boxes, labels=labels)))
 
         self.root = tmp_root
 

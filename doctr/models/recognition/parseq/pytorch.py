@@ -85,20 +85,43 @@ class PARSeqDecoder(nn.Module):
         self.cross_attention_dropout = nn.Dropout(dropout)
         self.feed_forward_dropout = nn.Dropout(dropout)
 
+    def project_content(self, content: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """Normalize and project the content into the keys and values of the self-attention"""
+        content_norm = self.content_norm(content)
+        return self.attention.project_kv(content_norm, content_norm)
+
     def forward(
         self,
         target,
         content,
         memory,
         target_mask: torch.Tensor | None = None,
+        content_kv: tuple[torch.Tensor, torch.Tensor] | None = None,
+        memory_kv: tuple[torch.Tensor, torch.Tensor] | None = None,
     ):
+        """Decode the target queries
+
+        Args:
+            target: target queries of shape (N, L, d_model)
+            content: content of shape (N, S, d_model), unused if `content_kv` is given
+            memory: encoded image of shape (N, T, d_model), unused if `memory_kv` is given
+            target_mask: optional mask of the content for the target queries
+            content_kv: optional keys and values of the content, cf. `project_content`
+            memory_kv: optional keys and values of the memory, cf. `MultiHeadAttention.project_kv`
+
+        Returns:
+            the decoded queries of shape (N, L, d_model)
+        """
         query_norm = self.query_norm(target)
-        content_norm = self.content_norm(content)
+        if content_kv is None:
+            content_kv = self.project_content(content)
         target = target.clone() + self.attention_dropout(
-            self.attention(query_norm, content_norm, content_norm, mask=target_mask)
+            self.attention.attend(query_norm, *content_kv, mask=target_mask)
         )
+        if memory_kv is None:
+            memory_kv = self.cross_attention.project_kv(memory, memory)
         target = target.clone() + self.cross_attention_dropout(
-            self.cross_attention(self.query_norm(target), memory, memory)
+            self.cross_attention.attend(self.query_norm(target), *memory_kv)
         )
         target = target.clone() + self.feed_forward_dropout(self.position_feed_forward(self.feed_forward_norm(target)))
         return self.output_norm(target)
@@ -284,14 +307,22 @@ class PARSeq(_PARSeq, nn.Module):
             torch.tril(torch.ones((max_length, max_length), device=features.device), diagonal=0).to(dtype=torch.bool)
         ).int()
 
+        # Incremental decoding: project the image features once and the content one token at a time (cached)
+        memory_kv = self.decoder.cross_attention.project_kv(features, features)
+        content_kv: tuple[torch.Tensor, torch.Tensor] | None = None
         pos_logits = []
         for i in range(max_length):
+            # Content of the last token: its embedding, with the position it is read at (none for SOS)
+            content = self.embed(ys[:, i : i + 1])
+            if i > 0:
+                content = self.pos_queries[:, i - 1 : i] + content
+            key, value = self.decoder.project_content(self.dropout(content))
+            if content_kv is not None:
+                key, value = torch.cat([content_kv[0], key], dim=2), torch.cat([content_kv[1], value], dim=2)
+            content_kv = (key, value)
             # Decode one token at a time without providing information about the future tokens
-            tgt_out = self.decode(
-                ys[:, : i + 1],
-                features,
-                query_mask[i : i + 1, : i + 1],
-                target_query=pos_queries[:, i : i + 1],
+            tgt_out = self.decoder(
+                self.dropout(pos_queries[:, i : i + 1]), None, None, content_kv=content_kv, memory_kv=memory_kv
             )
             pos_prob = self.head(tgt_out)
             pos_logits.append(pos_prob)
