@@ -249,7 +249,10 @@ def test_page_orientation_model(mock_payslip):
         ["hgnetv2_b4", (3, 32, 32), (126,)],
     ],
 )
-def test_models_onnx_export(arch_name, input_shape, output_size):
+@pytest.mark.parametrize("dynamo", [False, True])
+def test_models_onnx_export(arch_name, input_shape, output_size, dynamo):
+    if dynamo:
+        pytest.importorskip("onnxscript")
     # Model
     batch_size = 2
     model = classification.__dict__[arch_name](pretrained=True).eval()
@@ -257,7 +260,9 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
     pt_logits = model(dummy_input).detach().cpu().numpy()
     with tempfile.TemporaryDirectory() as tmpdir:
         # Export
-        model_path = export_model_to_onnx(model, model_name=os.path.join(tmpdir, "model"), dummy_input=dummy_input)
+        model_path = export_model_to_onnx(
+            model, model_name=os.path.join(tmpdir, "model"), dummy_input=dummy_input, dynamo=dynamo
+        )
 
         assert os.path.exists(model_path)
         # Inference

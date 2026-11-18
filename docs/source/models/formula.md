@@ -44,3 +44,8 @@ formulas = formula_predictor("formulanet", pretrained=True)
 
 See [](../user_guide/layout_and_tables.md#formula-recognition) to work with the recognized formulas, and the
 [reference scripts](https://github.com/mindee/doctr/tree/main/references/formula#readme) to train on your own data.
+
+:::{note}
+To export `formulanet` to ONNX, use `export_model_to_onnx(..., dynamo=True)`: see
+[](../deployment/onnx.md#formula-recognition).
+:::

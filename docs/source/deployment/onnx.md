@@ -26,6 +26,32 @@ model_path = export_model_to_onnx(model, model_name="vitstr_small", dummy_input=
 
 The batch dimension of the exported model is dynamic. Find the input shape of any model in `model.cfg["input_shape"]`.
 
+### Formula recognition
+
+:::{important}
+`formulanet` must be exported with `dynamo=True` (requires `pip install onnxscript`). The default exporter
+(`dynamo=False`) cannot express its decoding loop, which stops once every formula of the batch is complete: it unrolls
+`max_decode_length` steps (2048 by default), a graph far too large to be loaded.
+:::
+
+With `dynamo=True`, the decoding is exported as ONNX loops, which stop at the end of the formulas as in PyTorch:
+
+```python
+from doctr.models import formulanet
+
+model = formulanet(pretrained=True, exportable=True)
+dummy_input = torch.rand((1, *model.cfg["input_shape"]), dtype=torch.float32)
+
+model_path = export_model_to_onnx(model, model_name="formulanet", dummy_input=dummy_input, dynamo=True)
+```
+
+The exported logits always have `max_decode_length + 1` steps, with zeros after the end of every formula.
+
+The autoregressive text recognition models `parseq` and `master` can also be exported with `dynamo=True`: their
+decoding then stops at the end of the words (up to 20% faster for `master` on CPU, but about 2x slower on GPU with
+ONNX Runtime), and the `master` logits are zeros after the end of every word, as in PyTorch. With the default exporter,
+they always run the full decoding length.
+
 ## Run it with OnnxTR
 
 [OnnxTR](https://github.com/felixdittrich92/OnnxTR) is a lightweight package built on

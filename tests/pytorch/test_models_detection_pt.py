@@ -162,7 +162,10 @@ def test_dilate():
         ["fast_tiny_rep", (3, 512, 512), (1, 512, 512)],  # Reparameterized model
     ],
 )
-def test_models_onnx_export(arch_name, input_shape, output_size):
+@pytest.mark.parametrize("dynamo", [False, True])
+def test_models_onnx_export(arch_name, input_shape, output_size, dynamo):
+    if dynamo:
+        pytest.importorskip("onnxscript")
     # Model
     batch_size = 2
     if arch_name == "fast_tiny_rep":
@@ -173,7 +176,9 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
     pt_logits = model(dummy_input)["logits"].detach().cpu().numpy()
     with tempfile.TemporaryDirectory() as tmpdir:
         # Export
-        model_path = export_model_to_onnx(model, model_name=os.path.join(tmpdir, "model"), dummy_input=dummy_input)
+        model_path = export_model_to_onnx(
+            model, model_name=os.path.join(tmpdir, "model"), dummy_input=dummy_input, dynamo=dynamo
+        )
         assert os.path.exists(model_path)
         # Inference
         ort_session = onnxruntime.InferenceSession(

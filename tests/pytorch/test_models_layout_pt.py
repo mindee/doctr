@@ -125,7 +125,10 @@ def test_layout_zoo(arch_name):
         ["lw_detr_m", (3, 512, 512)],
     ],
 )
-def test_models_onnx_export(arch_name, input_shape):
+@pytest.mark.parametrize("dynamo", [False, True])
+def test_models_onnx_export(arch_name, input_shape, dynamo):
+    if dynamo:
+        pytest.importorskip("onnxscript")
     # Model
     batch_size = 2
     model = layout.__dict__[arch_name](pretrained=True, exportable=True).eval()
@@ -137,7 +140,7 @@ def test_models_onnx_export(arch_name, input_shape):
     with tempfile.TemporaryDirectory() as tmpdir:
         # Export
         model_path = export_model_to_onnx(
-            model, model_name=os.path.join(tmpdir, "model"), dummy_input=(dummy_input, dummy_masks)
+            model, model_name=os.path.join(tmpdir, "model"), dummy_input=(dummy_input, dummy_masks), dynamo=dynamo
         )
         assert os.path.exists(model_path)
         # Inference

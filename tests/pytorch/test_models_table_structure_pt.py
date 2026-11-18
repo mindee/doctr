@@ -123,7 +123,10 @@ def test_table_structure_zoo(arch_name, assume_straight_pages):
         ["tablecenternet", (3, 1024, 1024)],
     ],
 )
-def test_models_onnx_export(arch_name, input_shape):
+@pytest.mark.parametrize("dynamo", [False, True])
+def test_models_onnx_export(arch_name, input_shape, dynamo):
+    if dynamo:
+        pytest.importorskip("onnxscript")
     # Model
     batch_size = 2
     model = table_structure.__dict__[arch_name](pretrained=True, exportable=True).eval()
@@ -134,7 +137,11 @@ def test_models_onnx_export(arch_name, input_shape):
     with tempfile.TemporaryDirectory() as tmpdir:
         # Export (the multi-head model relies on the generalized export helper to name every output)
         model_path = export_model_to_onnx(
-            model, model_name=os.path.join(tmpdir, "model"), dummy_input=dummy_input, output_names=head_names
+            model,
+            model_name=os.path.join(tmpdir, "model"),
+            dummy_input=dummy_input,
+            output_names=head_names,
+            dynamo=dynamo,
         )
         assert os.path.exists(model_path)
         # Inference
