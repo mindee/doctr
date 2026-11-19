@@ -616,7 +616,7 @@
     <span class="n">out_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">act</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">bn</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="n">activation</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+    <span class="n">activation</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Builds a convolutional-based layer sequence</span>
@@ -630,7 +630,9 @@
 <span class="sd">        out_channels: number of output channels</span>
 <span class="sd">        act: should an activation layer be added</span>
 <span class="sd">        bn: should a batch normalization layer be added</span>
-<span class="sd">        activation: the activation layer to be added if act is True</span>
+<span class="sd">        activation: the activation layer to be added if act is True. Defaults to a new ``nn.ReLU(inplace=True)``</span>
+<span class="sd">            per call. When passing one, use a new instance per call: a module shared between layers is kept only</span>
+<span class="sd">            once by ``named_children`` (e.g. in ``IntermediateLayerGetter``)</span>
 <span class="sd">        **kwargs: additional arguments to be passed to the convolutional layer</span>
 
 <span class="sd">    Returns:</span>
@@ -645,7 +647,9 @@
         <span class="n">conv_seq</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="n">out_channels</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">act</span><span class="p">:</span>
-        <span class="n">conv_seq</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">activation</span><span class="p">)</span>
+        <span class="c1"># A new module per call: a default ``nn.ReLU`` instance would be shared by every layer, and modules</span>
+        <span class="c1"># that appear twice in a model are kept once by ``named_children`` (e.g. in ``IntermediateLayerGetter``).</span>
+        <span class="n">conv_seq</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">if</span> <span class="n">activation</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">activation</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">conv_seq</span>
 
