@@ -571,6 +571,29 @@ often a faster CPU inference.</p>
 </pre></div>
 </div>
 <p>The batch dimension of the exported model is dynamic. Find the input shape of any model in <code class="docutils literal notranslate"><span class="pre">model.cfg[&quot;input_shape&quot;]</span></code>.</p>
+<section id="formula-recognition">
+<h3>Formula recognition<a class="headerlink" href="#formula-recognition" title="Link to this heading">#</a></h3>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p><code class="docutils literal notranslate"><span class="pre">formulanet</span></code> must be exported with <code class="docutils literal notranslate"><span class="pre">dynamo=True</span></code> (requires <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">onnxscript</span></code>). The default exporter
+(<code class="docutils literal notranslate"><span class="pre">dynamo=False</span></code>) cannot express its decoding loop, which stops once every formula of the batch is complete: it unrolls
+<code class="docutils literal notranslate"><span class="pre">max_decode_length</span></code> steps (2048 by default), a graph far too large to be loaded.</p>
+</div>
+<p>With <code class="docutils literal notranslate"><span class="pre">dynamo=True</span></code>, the decoding is exported as ONNX loops, which stop at the end of the formulas as in PyTorch:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">formulanet</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">formulanet</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exportable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">dummy_input</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s2">"input_shape"</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+<span class="n">model_path</span> <span class="o">=</span> <span class="n">export_model_to_onnx</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="s2">"formulanet"</span><span class="p">,</span> <span class="n">dummy_input</span><span class="o">=</span><span class="n">dummy_input</span><span class="p">,</span> <span class="n">dynamo</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The exported logits always have <code class="docutils literal notranslate"><span class="pre">max_decode_length</span> <span class="pre">+</span> <span class="pre">1</span></code> steps, with zeros after the end of every formula.</p>
+<p>The autoregressive text recognition models <code class="docutils literal notranslate"><span class="pre">parseq</span></code> and <code class="docutils literal notranslate"><span class="pre">master</span></code> can also be exported with <code class="docutils literal notranslate"><span class="pre">dynamo=True</span></code>: their
+decoding then stops at the end of the words (up to 20% faster for <code class="docutils literal notranslate"><span class="pre">master</span></code> on CPU, but about 2x slower on GPU with
+ONNX Runtime), and the <code class="docutils literal notranslate"><span class="pre">master</span></code> logits are zeros after the end of every word, as in PyTorch. With the default exporter,
+they always run the full decoding length.</p>
+</section>
 </section>
 <section id="run-it-with-onnxtr">
 <h2>Run it with OnnxTR<a class="headerlink" href="#run-it-with-onnxtr" title="Link to this heading">#</a></h2>
@@ -668,7 +691,10 @@ and <a class="reference external" href="https://github.com/felixdittrich92/OnnxT
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#export-a-model">Export a model</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#export-a-model">Export a model</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#formula-recognition">Formula recognition</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run-it-with-onnxtr">Run it with OnnxTR</a></li>
 </ul>
   </nav></div>

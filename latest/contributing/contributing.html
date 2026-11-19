@@ -612,6 +612,13 @@ pre-commit<span class="w"> </span>install
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nb">test</span>
 </pre></div>
 </div>
+<p>The tests are split into three folders, each run by its own CI job (and its own <code class="docutils literal notranslate"><span class="pre">make</span></code> target):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">tests/common/</span></code> (<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-common</span></code>): the framework-independent parts (I/O, datasets, metrics, utils, …)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tests/pytorch/</span></code> (<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-torch</span></code>): the PyTorch models, predictors and transforms</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tests/optimization/</span></code> (<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test-optimization</span></code>): the compiled and exported models (<code class="docutils literal notranslate"><span class="pre">torch.compile</span></code>, ONNX export
+with <code class="docutils literal notranslate"><span class="pre">export_model_to_onnx</span></code>), checked against the outputs of the PyTorch models</p></li>
+</ul>
 </section>
 <section id="code-quality">
 <h3>Code quality<a class="headerlink" href="#code-quality" title="Link to this heading">#</a></h3>

@@ -2833,6 +2833,7 @@ the original, unconstrained decoding.</p>
 <dd><em class="sig-param"><span class="n"><span class="pre">input_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">output_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">dynamic_axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">dynamo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em>,</dd>
 </dl>
 
@@ -2857,6 +2858,11 @@ when <cite>dummy_input</cite> is a tuple).</p></li>
 <cite>[“logits”, “pred_boxes”]</cite> when <cite>dummy_input</cite> is a tuple). Pass the names of every output when
 the model returns more than one tensor (e.g. a multi-head model).</p></li>
 <li><p><strong>dynamic_axes</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>]</em><em>] </em><em>| </em><em>None</em>) – optional dynamic axes. Defaults to a dynamic batch dimension on every input and output.</p></li>
+<li><p><strong>dynamo</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – whether to export with the <cite>torch.export</cite>-based exporter of PyTorch (requires <cite>onnxscript</cite>) instead of
+the TorchScript-based one (default). Required for <cite>formulanet</cite>: its decoding is then exported as ONNX
+<cite>Loop</cite> nodes, which stop once every formula of the batch is complete, instead of <cite>max_decode_length</cite>
+unrolled steps. <cite>parseq</cite> and <cite>master</cite> are exported with such a loop as well. The model is saved as a
+single file.</p></li>
 <li><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>) – additional arguments to be passed to torch.onnx.export</p></li>
 </ul>
 </dd>

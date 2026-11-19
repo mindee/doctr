@@ -526,6 +526,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">nullcontext</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
@@ -533,6 +534,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">anyascii</span><span class="w"> </span><span class="kn">import</span> <span class="n">anyascii</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">nn</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.file_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">requires_package</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">download_from_url</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -692,6 +694,7 @@
     <span class="n">input_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">output_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">dynamic_axes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">dynamo</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Export model to ONNX format.</span>
@@ -712,6 +715,11 @@
 <span class="sd">            `["logits", "pred_boxes"]` when `dummy_input` is a tuple). Pass the names of every output when</span>
 <span class="sd">            the model returns more than one tensor (e.g. a multi-head model).</span>
 <span class="sd">        dynamic_axes: optional dynamic axes. Defaults to a dynamic batch dimension on every input and output.</span>
+<span class="sd">        dynamo: whether to export with the `torch.export`-based exporter of PyTorch (requires `onnxscript`) instead of</span>
+<span class="sd">            the TorchScript-based one (default). Required for `formulanet`: its decoding is then exported as ONNX</span>
+<span class="sd">            `Loop` nodes, which stop once every formula of the batch is complete, instead of `max_decode_length`</span>
+<span class="sd">            unrolled steps. `parseq` and `master` are exported with such a loop as well. The model is saved as a</span>
+<span class="sd">            single file.</span>
 <span class="sd">        kwargs: additional arguments to be passed to torch.onnx.export</span>
 
 <span class="sd">    Returns:</span>
@@ -725,21 +733,66 @@
     <span class="k">if</span> <span class="n">dynamic_axes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">dynamic_axes</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">"batch_size"</span><span class="p">}</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="o">*</span><span class="n">input_names</span><span class="p">,</span> <span class="o">*</span><span class="n">output_names</span><span class="p">]}</span>
 
-    <span class="n">torch</span><span class="o">.</span><span class="n">onnx</span><span class="o">.</span><span class="n">export</span><span class="p">(</span>
-        <span class="n">model</span><span class="p">,</span>
-        <span class="n">dummy_input</span><span class="p">,</span>  <span class="c1"># type: ignore[arg-type]</span>
-        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">.onnx"</span><span class="p">,</span>
-        <span class="n">input_names</span><span class="o">=</span><span class="n">input_names</span><span class="p">,</span>
-        <span class="n">output_names</span><span class="o">=</span><span class="n">output_names</span><span class="p">,</span>
-        <span class="n">dynamic_axes</span><span class="o">=</span><span class="n">dynamic_axes</span><span class="p">,</span>
-        <span class="n">export_params</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">dynamo</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">dynamo</span><span class="p">:</span>
+        <span class="n">requires_package</span><span class="p">(</span><span class="s2">"onnxscript"</span><span class="p">,</span> <span class="s2">"`dynamo=True` requires onnxscript installed."</span><span class="p">)</span>
+        <span class="c1"># A single file, as with the TorchScript-based exporter (the weights are otherwise saved in a separate file)</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"external_data"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># torch.export specializes the dimensions of size 1 (e.g. a reshape would keep a batch size of 1): trace with a</span>
+        <span class="c1"># batch of 2 so that the batch dimension stays dynamic</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">dummy_input</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_tuple</span> <span class="k">else</span> <span class="n">dummy_input</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># type: ignore[union-attr]</span>
+            <span class="n">dummy_input</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="nb">tuple</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">t</span><span class="p">,</span> <span class="n">t</span><span class="p">])</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">dummy_input</span><span class="p">)</span>  <span class="c1"># type: ignore[assignment]</span>
+                <span class="k">if</span> <span class="n">is_tuple</span>
+                <span class="k">else</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">dummy_input</span><span class="p">,</span> <span class="n">dummy_input</span><span class="p">])</span>  <span class="c1"># type: ignore[list-item]</span>
+            <span class="p">)</span>
+
+    <span class="c1"># The TorchScript-based exporter otherwise traces with autograd: the same file, with up to twice the memory</span>
+    <span class="k">with</span> <span class="n">nullcontext</span><span class="p">()</span> <span class="k">if</span> <span class="n">dynamo</span> <span class="k">else</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">onnx</span><span class="o">.</span><span class="n">export</span><span class="p">(</span>
+            <span class="n">model</span><span class="p">,</span>
+            <span class="n">dummy_input</span><span class="p">,</span>  <span class="c1"># type: ignore[arg-type]</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">.onnx"</span><span class="p">,</span>
+            <span class="n">input_names</span><span class="o">=</span><span class="n">input_names</span><span class="p">,</span>
+            <span class="n">output_names</span><span class="o">=</span><span class="n">output_names</span><span class="p">,</span>
+            <span class="n">dynamic_axes</span><span class="o">=</span><span class="n">dynamic_axes</span><span class="p">,</span>
+            <span class="n">export_params</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">dynamo</span><span class="o">=</span><span class="n">dynamo</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">dynamo</span><span class="p">:</span>
+        <span class="n">_strip_onnx_node_metadata</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">.onnx"</span><span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Model exported to </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">.onnx"</span><span class="p">)</span>
     <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">.onnx"</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_strip_onnx_node_metadata</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Remove the metadata the `torch.export`-based exporter attaches to every node (e.g. the Python stack trace that</span>
+<span class="sd">    created it, with the paths of the local files), which makes up most of the file for models with loops, and the</span>
+<span class="sd">    initializers no node uses (ONNX Runtime warns about them): neither has any effect on the inference"""</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">onnx</span>
+
+    <span class="n">used</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_strip</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span> <span class="n">onnx</span><span class="o">.</span><span class="n">GraphProto</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">node</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">node</span><span class="o">.</span><span class="n">metadata_props</span><span class="p">[:]</span>
+            <span class="n">used</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">input</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">attribute</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">attr</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">onnx</span><span class="o">.</span><span class="n">AttributeProto</span><span class="o">.</span><span class="n">GRAPH</span><span class="p">:</span>
+                    <span class="n">_strip</span><span class="p">(</span><span class="n">attr</span><span class="o">.</span><span class="n">g</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">attr</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">onnx</span><span class="o">.</span><span class="n">AttributeProto</span><span class="o">.</span><span class="n">GRAPHS</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">subgraph</span> <span class="ow">in</span> <span class="n">attr</span><span class="o">.</span><span class="n">graphs</span><span class="p">:</span>
+                        <span class="n">_strip</span><span class="p">(</span><span class="n">subgraph</span><span class="p">)</span>
+
+    <span class="n">model</span> <span class="o">=</span> <span class="n">onnx</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">_strip</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">graph</span><span class="p">)</span>
+    <span class="n">used</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
+    <span class="n">unused</span> <span class="o">=</span> <span class="p">[</span><span class="n">init</span> <span class="k">for</span> <span class="n">init</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">initializer</span> <span class="k">if</span> <span class="n">init</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">used</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">init</span> <span class="ow">in</span> <span class="n">unused</span><span class="p">:</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">initializer</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">init</span><span class="p">)</span>
+    <span class="n">onnx</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
 
 
 <span class="c1"># Location of the final vocabulary-projection layer for each recognition architecture.</span>
