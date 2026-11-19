@@ -33,8 +33,8 @@ classifiers=[
 ]
 dynamic = ["version"]
 dependencies = [
-    "torch>=2.7.0,<3.0.0",
-    "torchvision>=0.22.0",
+    "torch>=2.11.0,<3.0.0",
+    "torchvision>=0.26.0",
     "onnx>=1.12.0,<3.0.0",
     # For proper typing, mypy needs numpy>=1.20.0 (cf. https://github.com/numpy/numpy/pull/16515)
     # Additional typing support is brought by numpy>=1.22.4, but core build sticks to >=1.16.0
@@ -96,8 +96,8 @@ docs = [
 ]
 dev = [
     # PyTorch
-    "torch>=2.7.0,<3.0.0",
-    "torchvision>=0.22.0",
+    "torch>=2.11.0,<3.0.0",
+    "torchvision>=0.26.0",
     "onnx>=1.12.0,<3.0.0",
     # Extras
     "weasyprint>=55.0",
