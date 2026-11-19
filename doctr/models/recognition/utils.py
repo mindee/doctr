@@ -7,7 +7,7 @@ import math
 
 from rapidfuzz.distance import Levenshtein
 
-__all__ = ["merge_strings", "merge_multi_strings"]
+__all__ = ["merge_strings", "merge_multi_strings", "exact_overlaps"]
 
 
 def merge_strings(a: str, b: str, overlap_ratio: float) -> str:
@@ -78,7 +78,9 @@ def merge_strings(a: str, b: str, overlap_ratio: float) -> str:
     return a_crop[: len(a_crop) - best_i] + tail[:cut_a] + head[cut_b:] + b_crop[best_j:]
 
 
-def merge_multi_strings(seq_list: list[str], overlap_ratio: float, last_overlap_ratio: float) -> str:
+def merge_multi_strings(
+    seq_list: list[str], overlap_ratio: float, last_overlap_ratio: float, overlaps: dict[int, int] | None = None
+) -> str:
     """
     Merges consecutive string sequences with overlapping characters.
 
@@ -86,6 +88,8 @@ def merge_multi_strings(seq_list: list[str], overlap_ratio: float, last_overlap_
         seq_list: list of sequences to merge. Sequences need to be ordered from left to right.
         overlap_ratio: Estimated ratio of overlapping letters between neighboring strings.
         last_overlap_ratio: Estimated ratio of overlapping letters for the last element in seq_list.
+        overlaps: number of chars shared by sequences ``i`` and ``i + 1`` once they lose their border chars, for the
+            pairs ``i`` where it is known (cf. `exact_overlaps`); the other pairs are aligned by `merge_strings`
 
     Returns:
         A merged character sequence
@@ -100,5 +104,20 @@ def merge_multi_strings(seq_list: list[str], overlap_ratio: float, last_overlap_
     for i in range(1, len(seq_list)):
         text_b = seq_list[i]
         ratio = last_overlap_ratio if i == len(seq_list) - 1 else overlap_ratio
-        result = merge_strings(result, text_b, ratio)
+        length = (overlaps or {}).get(i - 1)
+        if length is not None and length in exact_overlaps(result, text_b):
+            result = result[: len(result) - 1 - length] + text_b[1:]
+        else:
+            result = merge_strings(result, text_b, ratio)
     return result
+
+
+def exact_overlaps(a: str, b: str) -> list[int]:
+    """Lengths at which the end of ``a`` matches the start of ``b`` exactly, once both lose their border char
+
+    >>> from doctr.models.recognition.utils import exact_overlaps
+    >>> exact_overlaps('WARMUP-0000', '-0000001')
+    [1, 2, 3]
+    """
+    a_crop, b_crop = a[:-1], b[1:]
+    return [n for n in range(1, min(len(a_crop), len(b_crop)) + 1) if a_crop[-n:] == b_crop[:n]]
