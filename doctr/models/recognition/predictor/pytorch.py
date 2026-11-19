@@ -113,7 +113,9 @@ class RecognitionPredictor(nn.Module):
                 pairs = ambiguous_overlaps(out, crop_map, list(crops), self.target_ar, self.overlap_ratio)
                 if pairs:
                     region_reads = self._read([region for _, region, *_ in pairs], **kwargs)
-                    # A reading this long may have been cut short by the model
+                    # A reading this long may have been cut short by the model: the models are trained on words of
+                    # up to `max_length - 2` (PARSeq, MASTER, ViTSTR), `max_length - 1` (SAR) or `max_length` chars
+                    # (CRNN, VIPTR)
                     max_length = getattr(self.model, "max_length", math.inf) - 2
                     for (key, _, a, b, ratio, offset), (region_text, _) in zip(pairs, region_reads, strict=True):
                         length = resolve_overlap(a, b, ratio, offset, region_text)
