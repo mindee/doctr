@@ -5,6 +5,7 @@
 
 import logging
 from collections.abc import Iterable
+from contextlib import nullcontext
 from typing import Any
 
 import torch
@@ -222,18 +223,20 @@ def export_model_to_onnx(
                 else torch.cat([dummy_input, dummy_input])  # type: ignore[list-item]
             )
 
-    torch.onnx.export(
-        model,
-        dummy_input,  # type: ignore[arg-type]
-        f"{model_name}.onnx",
-        input_names=input_names,
-        output_names=output_names,
-        dynamic_axes=dynamic_axes,
-        export_params=True,
-        dynamo=dynamo,
-        verbose=False,
-        **kwargs,
-    )
+    # The TorchScript-based exporter otherwise traces with autograd: the same file, with up to twice the memory
+    with nullcontext() if dynamo else torch.no_grad():
+        torch.onnx.export(
+            model,
+            dummy_input,  # type: ignore[arg-type]
+            f"{model_name}.onnx",
+            input_names=input_names,
+            output_names=output_names,
+            dynamic_axes=dynamic_axes,
+            export_params=True,
+            dynamo=dynamo,
+            verbose=False,
+            **kwargs,
+        )
     if dynamo:
         _strip_onnx_node_metadata(f"{model_name}.onnx")
     logger.info(f"Model exported to {model_name}.onnx")

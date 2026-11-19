@@ -173,7 +173,8 @@ def test_models_onnx_export(arch_name, input_shape, output_size, dynamo):
     else:
         model = detection.__dict__[arch_name](pretrained=True, exportable=True).eval()
     dummy_input = torch.rand((batch_size, *input_shape), dtype=torch.float32)
-    pt_logits = model(dummy_input)["logits"].detach().cpu().numpy()
+    with torch.inference_mode():
+        pt_logits = model(dummy_input)["logits"].numpy()
     with tempfile.TemporaryDirectory() as tmpdir:
         # Export
         model_path = export_model_to_onnx(

@@ -172,14 +172,16 @@ def test_models_onnx_export(arch_name, input_shape, dynamo):
     # The tracing exporter unrolls the greedy decoding (no early stop): keep it short
     model.max_decode_length = 4
     dummy_input = torch.rand((batch_size, *input_shape), dtype=torch.float32)
-    if dynamo:
-        # The exported loops stop at the end of the formulas, as the decoding of PyTorch: the steps after it are zeros
-        model.exportable = False
-        pt_logits = model(dummy_input, return_model_output=True)["out_map"].detach().cpu().numpy()
-        model.exportable = True
-    else:
-        pt_logits = model(dummy_input)["logits"].detach().cpu().numpy()
-        assert pt_logits.shape == (batch_size, 5, len(LATEX_TOKENS) + 1)
+    with torch.inference_mode():
+        if dynamo:
+            # The exported loops stop at the end of the formulas, as the decoding of PyTorch: the steps after it are
+            # zeros
+            model.exportable = False
+            pt_logits = model(dummy_input, return_model_output=True)["out_map"].numpy()
+            model.exportable = True
+        else:
+            pt_logits = model(dummy_input)["logits"].numpy()
+            assert pt_logits.shape == (batch_size, 5, len(LATEX_TOKENS) + 1)
     with tempfile.TemporaryDirectory() as tmpdir:
         model_path = export_model_to_onnx(
             model, model_name=os.path.join(tmpdir, "model"), dummy_input=dummy_input, dynamo=dynamo

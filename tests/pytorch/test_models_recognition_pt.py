@@ -280,18 +280,22 @@ def test_recognition_zoo(arch_name, input_shape):
 def test_models_onnx_export(arch_name, input_shape, dynamo):
     if dynamo:
         pytest.importorskip("onnxscript")
+        if os.environ.get("CI") and arch_name == "viptr_tiny":
+            # The ONNX optimizer of onnxscript takes minutes on the ViP blocks: `vip_tiny` covers them on CI
+            pytest.skip("slow dynamo export on CI")
     # Model
     batch_size = 2
     model = recognition.__dict__[arch_name](pretrained=True, exportable=True).eval()
     dummy_input = torch.rand((batch_size, *input_shape), dtype=torch.float32)
-    if dynamo:
-        # The exported autoregressive decoding stops at the end of the sequences, as the decoding of PyTorch (the
-        # exportable model runs every step, as the tracing exporter)
-        model.exportable = False
-        pt_logits = model(dummy_input, return_model_output=True)["out_map"].detach().cpu().numpy()
-        model.exportable = True
-    else:
-        pt_logits = model(dummy_input)["logits"].detach().cpu().numpy()
+    with torch.inference_mode():
+        if dynamo:
+            # The exported autoregressive decoding stops at the end of the sequences, as the decoding of PyTorch (the
+            # exportable model runs every step, as the tracing exporter)
+            model.exportable = False
+            pt_logits = model(dummy_input, return_model_output=True)["out_map"].numpy()
+            model.exportable = True
+        else:
+            pt_logits = model(dummy_input)["logits"].numpy()
     with tempfile.TemporaryDirectory() as tmpdir:
         # Export
         model_path = export_model_to_onnx(

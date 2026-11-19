@@ -132,7 +132,8 @@ def test_models_onnx_export(arch_name, input_shape, dynamo):
     model = table_structure.__dict__[arch_name](pretrained=True, exportable=True).eval()
     dummy_input = torch.rand((batch_size, *input_shape), dtype=torch.float32)
     head_names = list(model.heads.keys())
-    pt = model(dummy_input)
+    with torch.inference_mode():
+        pt = model(dummy_input)
     pt_out = {name: pt[name].detach().cpu().numpy() for name in head_names}
     with tempfile.TemporaryDirectory() as tmpdir:
         # Export (the multi-head model relies on the generalized export helper to name every output)
