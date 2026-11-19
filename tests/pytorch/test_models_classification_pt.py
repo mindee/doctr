@@ -54,6 +54,9 @@ def test_classification_architectures(arch_name, input_shape, output_size):
     # Model
     model = classification.__dict__[arch_name](pretrained=True).eval()
     _test_classification(model, input_shape, output_size)
+    # SAR, MASTER, ... rebuild their backbone with IntermediateLayerGetter, which iterates named_children() and so keeps
+    # a module shared between top-level layers only once: every top-level layer must be its own module
+    assert len(list(model.named_children())) == len(model._modules)
     # Check that you can pretrained everything up until the last layer
     assert classification.__dict__[arch_name](pretrained=True, num_classes=10)
     # Check from pretrained is a class method

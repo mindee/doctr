@@ -58,6 +58,14 @@ def test_conv_sequence():
     assert len(conv_sequence_pt(3, 8, True, kernel_size=3)) == 2
     assert len(conv_sequence_pt(3, 8, False, True, kernel_size=3)) == 2
     assert len(conv_sequence_pt(3, 8, True, True, kernel_size=3)) == 3
+    # Each call builds its own activation: a shared module is kept only once by named_children(),
+    # so IntermediateLayerGetter would drop every repeat of it from a model.
+    stem = nn.Sequential(
+        *conv_sequence_pt(3, 8, True, True, kernel_size=3), *conv_sequence_pt(8, 8, True, True, kernel_size=3)
+    )
+    assert stem[2] is not stem[5]
+    assert len(list(stem.named_children())) == 6
+    assert isinstance(conv_sequence_pt(3, 8, True, activation=nn.GELU(), kernel_size=3)[-1], nn.GELU)
 
 
 def test_set_device_and_dtype():

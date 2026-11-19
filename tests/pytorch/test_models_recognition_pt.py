@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 import torch
+from torchvision.models._utils import IntermediateLayerGetter
 
 from doctr.models import recognition
 from doctr.models.preprocessor import PreProcessor
@@ -34,6 +35,9 @@ def test_recognition_models(arch_name, input_shape, train_mode, mock_vocab):
     model = recognition.__dict__[arch_name](vocab=mock_vocab, pretrained=True, input_shape=input_shape)
     model = model.train() if train_mode else model.eval()
     assert isinstance(model, torch.nn.Module)
+    # A backbone layer shared with an earlier one is dropped by IntermediateLayerGetter: no layer index may be missing
+    if isinstance(model.feat_extractor, IntermediateLayerGetter):
+        assert list(model.feat_extractor) == [str(idx) for idx in range(len(model.feat_extractor))]
     input_tensor = torch.rand((batch_size, *input_shape))
     target = ["i", "am", "a", "jedi"]
 
