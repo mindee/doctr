@@ -95,7 +95,7 @@ def conv_sequence_pt(
     out_channels: int,
     act: bool = False,
     bn: bool = False,
-    activation: nn.Module = nn.ReLU(inplace=True),
+    activation: nn.Module | None = None,
     **kwargs: Any,
 ) -> list[nn.Module]:
     """Builds a convolutional-based layer sequence
@@ -109,7 +109,9 @@ def conv_sequence_pt(
         out_channels: number of output channels
         act: should an activation layer be added
         bn: should a batch normalization layer be added
-        activation: the activation layer to be added if act is True
+        activation: the activation layer to be added if act is True. Defaults to a new ``nn.ReLU(inplace=True)``
+            per call. When passing one, use a new instance per call: a module shared between layers is kept only
+            once by ``named_children`` (e.g. in ``IntermediateLayerGetter``)
         **kwargs: additional arguments to be passed to the convolutional layer
 
     Returns:
@@ -124,7 +126,9 @@ def conv_sequence_pt(
         conv_seq.append(nn.BatchNorm2d(out_channels))
 
     if act:
-        conv_seq.append(activation)
+        # A new module per call: a default ``nn.ReLU`` instance would be shared by every layer, and modules
+        # that appear twice in a model are kept once by ``named_children`` (e.g. in ``IntermediateLayerGetter``).
+        conv_seq.append(nn.ReLU(inplace=True) if activation is None else activation)
 
     return conv_seq
 

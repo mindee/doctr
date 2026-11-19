@@ -7,6 +7,7 @@
 
 import math
 from collections.abc import Callable, Sequence
+from copy import deepcopy
 from typing import Any, cast
 
 import torch
@@ -68,11 +69,12 @@ class PositionwiseFeedForward(nn.Sequential):
     """Position-wise Feed-Forward Network"""
 
     def __init__(
-        self, d_model: int, ffd: int, dropout: float = 0.1, activation_fct: Callable[[Any], Any] = nn.ReLU()
+        self, d_model: int, ffd: int, dropout: float = 0.1, activation_fct: Callable[[Any], Any] | None = None
     ) -> None:
         super().__init__(  # type: ignore[call-overload]
             nn.Linear(d_model, ffd),
-            activation_fct,
+            # A new module per instance: a default instance would be shared by every layer of every model
+            nn.ReLU() if activation_fct is None else activation_fct,
             nn.Dropout(p=dropout),
             nn.Linear(ffd, d_model),
             nn.Dropout(p=dropout),
@@ -152,7 +154,7 @@ class EncoderBlock(nn.Module):
         d_model: int,
         dff: int,  # hidden dimension of the feedforward network
         dropout: float,
-        activation_fct: Callable[[Any], Any] = nn.ReLU(),
+        activation_fct: Callable[[Any], Any] | None = None,
     ) -> None:
         super().__init__()
 
@@ -167,7 +169,9 @@ class EncoderBlock(nn.Module):
             MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)
         ])
         self.position_feed_forward = nn.ModuleList([
-            PositionwiseFeedForward(d_model, dff, dropout, activation_fct) for _ in range(self.num_layers)
+            # deepcopy: one activation module per layer instead of one shared by all of them
+            PositionwiseFeedForward(d_model, dff, dropout, deepcopy(activation_fct))
+            for _ in range(self.num_layers)
         ])
 
     def forward(self, x: torch.Tensor, mask: torch.Tensor | None = None) -> torch.Tensor:
