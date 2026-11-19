@@ -3,7 +3,6 @@ import os
 import tempfile
 
 import numpy as np
-import onnxruntime
 import pytest
 import torch
 
@@ -19,7 +18,6 @@ from doctr.models.formula.predictor import FormulaPredictor
 from doctr.models.formula.zoo import formula_predictor
 from doctr.models.layout.zoo import layout_predictor
 from doctr.models.predictor import OCRPredictor
-from doctr.models.utils import _CompiledModule, export_model_to_onnx
 from doctr.utils.metrics import FormulaMetric
 
 _TARGETS = [r"\frac{a}{b^2}", r"\sum_{i=1}^{n} x_i \leq \alpha"]
@@ -154,52 +152,6 @@ def test_formula_predictor_regions(monkeypatch):
     np.testing.assert_allclose(formulas[0][0]["geometry"], [0.1, 0.25, 0.5, 0.375])
     np.testing.assert_allclose(formulas[2][0]["geometry"], polygon)
     assert predictor.predict_regions([page], [None]) == [[]]
-
-
-@pytest.mark.parametrize(
-    "arch_name, input_shape",
-    [
-        ["formulanet", (3, 256, 768)],
-    ],
-)
-def test_models_onnx_export(arch_name, input_shape):
-    batch_size = 2
-    model = formula.__dict__[arch_name](pretrained=True, exportable=True).eval()
-    # The greedy decoding is unrolled in the exported graph (no early stop): keep it short
-    model.max_decode_length = 4
-    dummy_input = torch.rand((batch_size, *input_shape), dtype=torch.float32)
-    pt_logits = model(dummy_input)["logits"].detach().cpu().numpy()
-    assert pt_logits.shape == (batch_size, 5, len(LATEX_TOKENS) + 1)
-    with tempfile.TemporaryDirectory() as tmpdir:
-        model_path = export_model_to_onnx(model, model_name=os.path.join(tmpdir, "model"), dummy_input=dummy_input)
-        assert os.path.exists(model_path)
-        ort_session = onnxruntime.InferenceSession(model_path, providers=["CPUExecutionProvider"])
-        ort_outs = ort_session.run(["logits"], {"input": dummy_input.numpy()})
-    assert ort_outs[0].shape == pt_logits.shape
-    try:
-        assert np.allclose(pt_logits, ort_outs[0], atol=1e-4)
-    except AssertionError:
-        pytest.skip(f"Output of {arch_name}:\nMax element-wise difference: {np.max(np.abs(pt_logits - ort_outs[0]))}")
-
-
-@pytest.mark.parametrize("arch_name", ["formulanet"])
-def test_torch_compiled_models(arch_name, mock_formula_image):
-    doc = DocumentFile.from_images([mock_formula_image])
-    model = formula.__dict__[arch_name](pretrained=True).eval()
-    # Bound the decoding, in case the model does not end the formula of the mock image
-    predictor = formula_predictor(model, max_decode_length=32)
-    assert isinstance(predictor, FormulaPredictor)
-    out = predictor(doc)
-
-    # Compile the model
-    compiled_model = torch.compile(model)
-    assert isinstance(compiled_model, _CompiledModule)
-    compiled_predictor = formula_predictor(compiled_model)
-    compiled_out = compiled_predictor(doc)
-
-    # Compare
-    assert out[0][0] == compiled_out[0][0]
-    assert np.allclose(out[0][1], compiled_out[0][1], atol=1e-4)
 
 
 def test_formulanet_pretrained_prediction(mock_formula_image):

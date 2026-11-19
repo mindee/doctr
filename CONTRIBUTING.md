@@ -58,6 +58,13 @@ In order to run the same unit tests as the CI workflows, you can run unittests l
 make test
 ```
 
+The tests are split into three folders, each run by its own CI job (and its own `make` target):
+
+- `tests/common/` (`make test-common`): the framework-independent parts (I/O, datasets, metrics, utils, ...)
+- `tests/pytorch/` (`make test-torch`): the PyTorch models, predictors and transforms
+- `tests/optimization/` (`make test-optimization`): the compiled and exported models (`torch.compile`, ONNX export
+  with `export_model_to_onnx`), checked against the outputs of the PyTorch models
+
 ### Code quality
 
 To run all quality checks together

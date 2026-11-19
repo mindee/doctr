@@ -98,6 +98,7 @@ class PARSeqDecoder(nn.Module):
         target_mask: torch.Tensor | None = None,
         content_kv: tuple[torch.Tensor, torch.Tensor] | None = None,
         memory_kv: tuple[torch.Tensor, torch.Tensor] | None = None,
+        keys_transposed: bool = False,
     ):
         """Decode the target queries
 
@@ -108,6 +109,8 @@ class PARSeqDecoder(nn.Module):
             target_mask: optional mask of the content for the target queries
             content_kv: optional keys and values of the content, cf. `project_content`
             memory_kv: optional keys and values of the memory, cf. `MultiHeadAttention.project_kv`
+            keys_transposed: whether the keys of `content_kv` and `memory_kv` are transposed, of shape
+                (N, num_heads, d_k, S) (inference, cf. `MultiHeadAttention.attend_transposed`)
 
         Returns:
             the decoded queries of shape (N, L, d_model)
@@ -115,14 +118,12 @@ class PARSeqDecoder(nn.Module):
         query_norm = self.query_norm(target)
         if content_kv is None:
             content_kv = self.project_content(content)
-        target = target.clone() + self.attention_dropout(
-            self.attention.attend(query_norm, *content_kv, mask=target_mask)
-        )
+        attend = self.attention.attend_transposed if keys_transposed else self.attention.attend
+        target = target.clone() + self.attention_dropout(attend(query_norm, *content_kv, mask=target_mask))
         if memory_kv is None:
             memory_kv = self.cross_attention.project_kv(memory, memory)
-        target = target.clone() + self.cross_attention_dropout(
-            self.cross_attention.attend(self.query_norm(target), *memory_kv)
-        )
+        attend = self.cross_attention.attend_transposed if keys_transposed else self.cross_attention.attend
+        target = target.clone() + self.cross_attention_dropout(attend(self.query_norm(target), *memory_kv))
         target = target.clone() + self.feed_forward_dropout(self.position_feed_forward(self.feed_forward_norm(target)))
         return self.output_norm(target)
 
@@ -307,6 +308,9 @@ class PARSeq(_PARSeq, nn.Module):
             torch.tril(torch.ones((max_length, max_length), device=features.device), diagonal=0).to(dtype=torch.bool)
         ).int()
 
+        if max_len is None and torch.compiler.is_exporting():
+            return self._decode_autoregressive_loop(features, ys, pos_queries, query_mask)
+
         # Incremental decoding: project the image features once and the content one token at a time (cached)
         memory_kv = self.decoder.cross_attention.project_kv(features, features)
         content_kv: tuple[torch.Tensor, torch.Tensor] | None = None
@@ -338,21 +342,83 @@ class PARSeq(_PARSeq, nn.Module):
 
         logits = torch.cat(pos_logits, dim=1)  # (N, max_length, vocab_size + 1)
 
-        # One refine iteration
-        # Update query mask
-        query_mask[torch.triu(torch.ones(max_length, max_length, dtype=torch.bool, device=features.device), 2)] = 1
-
         # Prepare target input for 1 refine iteration
         sos = torch.full((features.size(0), 1), self.vocab_size + 1, dtype=torch.long, device=features.device)
-        ys = torch.cat([sos, logits[:, :-1].argmax(-1)], dim=1)
+        return self._refine(torch.cat([sos, logits[:, :-1].argmax(-1)], dim=1), features, pos_queries, query_mask)
+
+    def _refine(
+        self, ys: torch.Tensor, features: torch.Tensor, pos_queries: torch.Tensor, query_mask: torch.Tensor
+    ) -> torch.Tensor:
+        """One refine iteration of the decoded tokens `ys` (starting with SOS), with the context of every token"""
+        max_length = query_mask.shape[0]
+        # Update query mask
+        query_mask[torch.triu(torch.ones(max_length, max_length, dtype=torch.bool, device=features.device), 2)] = 1
 
         # Create padding mask for refined target input maskes all behind EOS token as False
         # (N, 1, 1, max_length)
         target_pad_mask = ~((ys == self.vocab_size).int().cumsum(-1) > 0).unsqueeze(1).unsqueeze(1)
         mask = (target_pad_mask.bool() & query_mask[:, : ys.shape[1]].bool()).int()
-        logits = self.head(self.decode(ys, features, mask, target_query=pos_queries))
+        return self.head(self.decode(ys, features, mask, target_query=pos_queries))  # (N, max_length, vocab_size + 1)
 
-        return logits  # (N, max_length, vocab_size + 1)
+    def _decode_autoregressive_loop(
+        self, features: torch.Tensor, ys: torch.Tensor, pos_queries: torch.Tensor, query_mask: torch.Tensor
+    ) -> torch.Tensor:
+        """Autoregressive decoding with `torch.while_loop`, used when the model is traced by `torch.export` (e.g.
+        `export_model_to_onnx(..., dynamo=True)`): it is exported as an ONNX `Loop`, which stops once every sequence is
+        complete, instead of the `max_length` unrolled steps of the tracing exporter
+
+        Args:
+            features: the image features
+            ys: the initial tokens (SOS, then padding), of shape (N, max_length)
+            pos_queries: the position queries, of shape (N, max_length, d_model)
+            query_mask: the query mask of the decoder attention
+
+        Returns:
+            the refined logits, as `decode_autoregressive`
+        """
+        from torch._higher_order_ops.while_loop import while_loop
+
+        decoder, length, eos = self.decoder, ys.shape[1], self.vocab_size
+        heads, head_dim = decoder.attention.num_heads, decoder.attention.d_k
+        positions = torch.arange(length, device=features.device).view(1, -1)
+        # Keys transposed once (image features) or when written (content): no transpose in the loop
+        memory_k, memory_v = decoder.cross_attention.project_kv(features, features)
+        memory_kv = (memory_k.transpose(-2, -1).contiguous(), memory_v)
+        # The content of a token is its embedding, with the position it is read at (none for SOS)
+        content_pos = F.pad(self.pos_queries[:, : length - 1], (0, 0, 1, 0))
+
+        def cond_fn(step: torch.Tensor, ys: torch.Tensor, keys: torch.Tensor, values: torch.Tensor):
+            # Stop once every sequence has reached the EOS token
+            return (step < length) & ~(ys == eos).any(dim=-1).all()
+
+        def body_fn(step: torch.Tensor, ys: torch.Tensor, keys: torch.Tensor, values: torch.Tensor):
+            idx = step.view(1)
+            content = self.embed(ys.index_select(1, idx)) + content_pos.index_select(1, idx)
+            key, value = decoder.project_content(self.dropout(content))
+            keys, values = keys.index_copy(3, idx, key.transpose(-2, -1)), values.index_copy(2, idx, value)
+            # Decode one token at a time without providing information about the future tokens
+            query = self.dropout(self.pos_queries.index_select(1, idx).expand(ys.shape[0], -1, -1))
+            tgt_out = decoder(
+                query,
+                None,
+                None,
+                (positions <= step).view(1, 1, 1, -1),
+                content_kv=(keys, values),
+                memory_kv=memory_kv,
+                keys_transposed=True,
+            )
+            # Write the next token (none after the last step)
+            ys = torch.where(positions == step + 1, self.head(tgt_out)[:, 0].argmax(-1, keepdim=True), ys)
+            return step + 1, ys, keys, values
+
+        buffers = [
+            features.new_zeros(features.size(0), heads, head_dim, length),  # transposed keys
+            features.new_zeros(features.size(0), heads, length, head_dim),
+        ]
+        step = torch.zeros((), dtype=torch.long, device=features.device)
+        steps, ys, _, _ = while_loop(cond_fn, body_fn, (step, ys, *buffers))
+        # The positions that were not decoded come after the EOS of every sequence: they are read as padding
+        return self._refine(torch.where(positions < steps, ys, eos), features, pos_queries, query_mask)
 
     def forward(
         self,

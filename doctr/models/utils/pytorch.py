@@ -5,6 +5,7 @@
 
 import logging
 from collections.abc import Iterable
+from contextlib import nullcontext
 from typing import Any
 
 import torch
@@ -12,6 +13,7 @@ import validators
 from anyascii import anyascii
 from torch import nn
 
+from doctr.file_utils import requires_package
 from doctr.utils.data import download_from_url
 
 __all__ = [
@@ -169,6 +171,7 @@ def export_model_to_onnx(
     input_names: list[str] | None = None,
     output_names: list[str] | None = None,
     dynamic_axes: dict[str, dict[int, str]] | None = None,
+    dynamo: bool = False,
     **kwargs: Any,
 ) -> str:
     """Export model to ONNX format.
@@ -189,6 +192,11 @@ def export_model_to_onnx(
             `["logits", "pred_boxes"]` when `dummy_input` is a tuple). Pass the names of every output when
             the model returns more than one tensor (e.g. a multi-head model).
         dynamic_axes: optional dynamic axes. Defaults to a dynamic batch dimension on every input and output.
+        dynamo: whether to export with the `torch.export`-based exporter of PyTorch (requires `onnxscript`) instead of
+            the TorchScript-based one (default). Required for `formulanet`: its decoding is then exported as ONNX
+            `Loop` nodes, which stop once every formula of the batch is complete, instead of `max_decode_length`
+            unrolled steps. `parseq` and `master` are exported with such a loop as well. The model is saved as a
+            single file.
         kwargs: additional arguments to be passed to torch.onnx.export
 
     Returns:
@@ -202,20 +210,65 @@ def export_model_to_onnx(
     if dynamic_axes is None:
         dynamic_axes = {name: {0: "batch_size"} for name in [*input_names, *output_names]}
 
-    torch.onnx.export(
-        model,
-        dummy_input,  # type: ignore[arg-type]
-        f"{model_name}.onnx",
-        input_names=input_names,
-        output_names=output_names,
-        dynamic_axes=dynamic_axes,
-        export_params=True,
-        dynamo=False,
-        verbose=False,
-        **kwargs,
-    )
+    if dynamo:
+        requires_package("onnxscript", "`dynamo=True` requires onnxscript installed.")
+        # A single file, as with the TorchScript-based exporter (the weights are otherwise saved in a separate file)
+        kwargs.setdefault("external_data", False)
+        # torch.export specializes the dimensions of size 1 (e.g. a reshape would keep a batch size of 1): trace with a
+        # batch of 2 so that the batch dimension stays dynamic
+        if (dummy_input[0] if is_tuple else dummy_input).shape[0] == 1:  # type: ignore[union-attr]
+            dummy_input = (
+                tuple(torch.cat([t, t]) for t in dummy_input)  # type: ignore[assignment]
+                if is_tuple
+                else torch.cat([dummy_input, dummy_input])  # type: ignore[list-item]
+            )
+
+    # The TorchScript-based exporter otherwise traces with autograd: the same file, with up to twice the memory
+    with nullcontext() if dynamo else torch.no_grad():
+        torch.onnx.export(
+            model,
+            dummy_input,  # type: ignore[arg-type]
+            f"{model_name}.onnx",
+            input_names=input_names,
+            output_names=output_names,
+            dynamic_axes=dynamic_axes,
+            export_params=True,
+            dynamo=dynamo,
+            verbose=False,
+            **kwargs,
+        )
+    if dynamo:
+        _strip_onnx_node_metadata(f"{model_name}.onnx")
     logger.info(f"Model exported to {model_name}.onnx")
     return f"{model_name}.onnx"
+
+
+def _strip_onnx_node_metadata(path: str) -> None:
+    """Remove the metadata the `torch.export`-based exporter attaches to every node (e.g. the Python stack trace that
+    created it, with the paths of the local files), which makes up most of the file for models with loops, and the
+    initializers no node uses (ONNX Runtime warns about them): neither has any effect on the inference"""
+    import onnx
+
+    used: set[str] = set()
+
+    def _strip(graph: onnx.GraphProto) -> None:
+        for node in graph.node:
+            del node.metadata_props[:]
+            used.update(node.input)
+            for attr in node.attribute:
+                if attr.type == onnx.AttributeProto.GRAPH:
+                    _strip(attr.g)
+                elif attr.type == onnx.AttributeProto.GRAPHS:
+                    for subgraph in attr.graphs:
+                        _strip(subgraph)
+
+    model = onnx.load(path)
+    _strip(model.graph)
+    used.update(output.name for output in model.graph.output)
+    unused = [init for init in model.graph.initializer if init.name not in used]
+    for init in unused:
+        model.graph.initializer.remove(init)
+    onnx.save(model, path)
 
 
 # Location of the final vocabulary-projection layer for each recognition architecture.

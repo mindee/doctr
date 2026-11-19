@@ -6,7 +6,7 @@
 # This module 'transformer.py' is inspired by https://github.com/wenwenyu/MASTER-pytorch and Decoder is borrowed
 
 import math
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from typing import Any, cast
 
 import torch
@@ -126,6 +126,17 @@ class MultiHeadAttention(nn.Module):
         # Concat attention heads
         x = x.transpose(1, 2).contiguous().view(query.size(0), -1, self.num_heads * self.d_k)
         return self.output_linear(x)
+
+    def attend_transposed(
+        self, query: torch.Tensor, key_t: torch.Tensor, value: torch.Tensor, mask: torch.Tensor | None = None
+    ) -> torch.Tensor:
+        """Attention (inference) over keys transposed beforehand, of shape (N, num_heads, d_k, S): an exported decoding
+        loop then has no transpose of the keys at each step (cf. `attend` for the other arguments)"""
+        scores = torch.matmul(self._split_heads(self.linear_layers[0](query)), key_t) * self.d_k**-0.5
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, float("-inf"))
+        x = torch.matmul(scores.softmax(-1), value)
+        return self.output_linear(x.transpose(1, 2).flatten(2))
 
     def forward(self, query: torch.Tensor, key: torch.Tensor, value: torch.Tensor, mask=None) -> torch.Tensor:
         return self.attend(query, *self.project_kv(key, value), mask=mask)
@@ -262,3 +273,45 @@ class Decoder(nn.Module):
 
         # (batch_size, seq_len, d_model)
         return self.layer_norm_output(output)
+
+    def decode_step(
+        self,
+        token: torch.Tensor,
+        step: torch.Tensor,
+        source_kv: list[tuple[torch.Tensor, torch.Tensor]],
+        keys: Sequence[torch.Tensor],
+        values: Sequence[torch.Tensor],
+    ) -> tuple[torch.Tensor, list[torch.Tensor], list[torch.Tensor]]:
+        """Decode one token with key / value buffers of a fixed size (inference), as the loop state of a
+        `torch.while_loop`, which the `torch.export`-based ONNX exporter turns into an ONNX `Loop`
+
+        Args:
+            token: the token to decode, of shape (N, 1)
+            step: its position in the sequence, a scalar tensor
+            source_kv: the transposed keys, of shape (N, num_heads, d_model / num_heads, S), and the values of the
+                source, for each layer (cf. `MultiHeadAttention.project_kv`)
+            keys: the transposed key buffer of each layer, of shape (N, num_heads, d_model / num_heads, L), filled
+                before `step`
+            values: the value buffer of each layer, of shape (N, num_heads, L, d_model / num_heads)
+
+        Returns:
+            the decoded token of shape (N, 1, d_model), and the buffers with its key and value written at `step`
+        """
+        idx = step.view(1)
+        pe = cast(torch.Tensor, self.positional_encoding.pe)
+        output = self.embed(token) * math.sqrt(self.d_model) + pe.index_select(1, idx)
+        # The token attends to itself and to the previous ones
+        mask = (torch.arange(values[0].shape[2], device=token.device) <= step).view(1, 1, 1, -1)
+        new_keys, new_values = [], []
+        for i in range(self.num_layers):
+            self_attention = cast(MultiHeadAttention, self.attention[i])
+            source_attention = cast(MultiHeadAttention, self.source_attention[i])
+            normed_output = self.layer_norm_input(output)
+            key, value = self_attention.project_kv(normed_output, normed_output)
+            new_keys.append(keys[i].index_copy(3, idx, key.transpose(-2, -1)))
+            new_values.append(values[i].index_copy(2, idx, value))
+            output = output + self_attention.attend_transposed(normed_output, new_keys[-1], new_values[-1], mask)
+            normed_output = self.layer_norm_masked_attention(output)
+            output = output + source_attention.attend_transposed(normed_output, *source_kv[i])
+            output = output + self.position_feed_forward[i](self.layer_norm_attention(output))
+        return self.layer_norm_output(output), new_keys, new_values

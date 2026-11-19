@@ -1,13 +1,7 @@
-import os
-import tempfile
-
 import numpy as np
-import onnxruntime
-import psutil
 import pytest
 import torch
 
-from doctr.io import DocumentFile
 from doctr.models import recognition
 from doctr.models.preprocessor import PreProcessor
 from doctr.models.recognition.crnn.pytorch import CTCPostProcessor
@@ -18,9 +12,6 @@ from doctr.models.recognition.predictor._utils import split_crops
 from doctr.models.recognition.sar.pytorch import SARPostProcessor
 from doctr.models.recognition.viptr.pytorch import VIPTRPostProcessor
 from doctr.models.recognition.vitstr.pytorch import ViTSTRPostProcessor
-from doctr.models.utils import _CompiledModule, export_model_to_onnx
-
-system_available_memory = int(psutil.virtual_memory().available / 1024**3)
 
 
 @pytest.mark.parametrize("train_mode", [True, False])
@@ -256,50 +247,6 @@ def test_recognition_zoo(arch_name, input_shape):
     assert all(isinstance(word, str) and isinstance(conf, float) for word, conf in out)
 
 
-@pytest.mark.parametrize(
-    "arch_name, input_shape",
-    [
-        ["crnn_vgg16_bn", (3, 32, 128)],
-        ["crnn_mobilenet_v3_small", (3, 32, 128)],
-        ["crnn_mobilenet_v3_large", (3, 32, 128)],
-        pytest.param(
-            "sar_resnet31",
-            (3, 32, 128),
-            marks=pytest.mark.skipif(system_available_memory < 16, reason="too less memory"),
-        ),
-        pytest.param(
-            "master", (3, 32, 128), marks=pytest.mark.skipif(system_available_memory < 16, reason="too less memory")
-        ),
-        ["vitstr_small", (3, 32, 128)],  # testing one vitstr version is enough
-        ["parseq", (3, 32, 128)],
-        ["viptr_tiny", (3, 32, 128)],
-    ],
-)
-def test_models_onnx_export(arch_name, input_shape):
-    # Model
-    batch_size = 2
-    model = recognition.__dict__[arch_name](pretrained=True, exportable=True).eval()
-    dummy_input = torch.rand((batch_size, *input_shape), dtype=torch.float32)
-    pt_logits = model(dummy_input)["logits"].detach().cpu().numpy()
-    with tempfile.TemporaryDirectory() as tmpdir:
-        # Export
-        model_path = export_model_to_onnx(model, model_name=os.path.join(tmpdir, "model"), dummy_input=dummy_input)
-        assert os.path.exists(model_path)
-        # Inference
-        ort_session = onnxruntime.InferenceSession(
-            os.path.join(tmpdir, "model.onnx"), providers=["CPUExecutionProvider"]
-        )
-        ort_outs = ort_session.run(["logits"], {"input": dummy_input.numpy()})
-
-    assert isinstance(ort_outs, list) and len(ort_outs) == 1
-    assert ort_outs[0].shape == pt_logits.shape
-    # Check that the output is close to the PyTorch output - only warn if not close
-    try:
-        assert np.allclose(pt_logits, ort_outs[0], atol=1e-4)
-    except AssertionError:
-        pytest.skip(f"Output of {arch_name}:\nMax element-wise difference: {np.max(np.abs(pt_logits - ort_outs[0]))}")
-
-
 @pytest.mark.parametrize("arch_name, head", [["master", "linear"], ["parseq", "head"]])
 @pytest.mark.parametrize("exportable", [False, True])
 def test_autoregressive_decoding_early_stop(arch_name, head, exportable):
@@ -323,34 +270,3 @@ def test_autoregressive_decoding_early_stop(arch_name, head, exportable):
     # EOS emitted at the first step vs. never emitted
     early, full = _decoder_calls(1e4), _decoder_calls(-1e4)
     assert early == full if exportable else early < full
-
-
-@pytest.mark.parametrize(
-    "arch_name",
-    [
-        "crnn_vgg16_bn",
-        "crnn_mobilenet_v3_small",
-        "crnn_mobilenet_v3_large",
-        "sar_resnet31",
-        # "master",  NOTE: MASTER model isn't 100% safe compilable yet (pytorch v2.5.1) - sometimes it fails to compile.
-        "vitstr_small",
-        "vitstr_base",
-        "parseq",
-        "viptr_tiny",
-    ],
-)
-def test_torch_compiled_models(arch_name, mock_text_box):
-    doc = DocumentFile.from_images([mock_text_box])
-    predictor = recognition.zoo.recognition_predictor(arch_name, pretrained=True)
-    assert isinstance(predictor, RecognitionPredictor)
-    out = predictor(doc)
-
-    # Compile the model
-    compiled_model = torch.compile(recognition.__dict__[arch_name](pretrained=True).eval())
-    assert isinstance(compiled_model, _CompiledModule)
-    compiled_predictor = recognition.zoo.recognition_predictor(compiled_model)
-    compiled_out = compiled_predictor(doc)
-
-    # Compare
-    assert out[0][0] == compiled_out[0][0]
-    assert np.allclose(out[0][1], compiled_out[0][1], atol=1e-4)

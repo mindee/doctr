@@ -33,8 +33,8 @@ classifiers=[
 ]
 dynamic = ["version"]
 dependencies = [
-    "torch>=2.0.0,<3.0.0",
-    "torchvision>=0.15.0",
+    "torch>=2.11.0,<3.0.0",
+    "torchvision>=0.26.0",
     "onnx>=1.12.0,<3.0.0",
     # For proper typing, mypy needs numpy>=1.20.0 (cf. https://github.com/numpy/numpy/pull/16515)
     # Additional typing support is brought by numpy>=1.22.4, but core build sticks to >=1.16.0
@@ -71,6 +71,8 @@ contrib = [
 testing = [
     "pytest-cov>=7.0.0",
     "onnxruntime>=1.11.0",
+    # Required for ONNX export tests (dynamo)
+    "onnxscript>=0.5.0",
     "requests>=2.20.0",
     "psutil>=5.9.5",
     "pandas>=2.0.0",
@@ -94,8 +96,8 @@ docs = [
 ]
 dev = [
     # PyTorch
-    "torch>=2.0.0,<3.0.0",
-    "torchvision>=0.15.0",
+    "torch>=2.11.0,<3.0.0",
+    "torchvision>=0.26.0",
     "onnx>=1.12.0,<3.0.0",
     # Extras
     "weasyprint>=55.0",
@@ -104,6 +106,7 @@ dev = [
     # Testing
     "pytest-cov>=7.0.0",
     "onnxruntime>=1.11.0",
+    "onnxscript>=0.5.0",
     "requests>=2.20.0",
     "psutil>=5.9.5",
     "pandas>=2.0.0",

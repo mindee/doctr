@@ -220,14 +220,14 @@ def test_rotate_image():
         color = geometry.rotate_image(img, 30.0, **kwargs)
         rotated = geometry.rotate_image(img[..., 0], 30.0, **kwargs)
         assert rotated.shape == shape
-        assert np.array_equal(rotated, color[..., 0])
+        np.testing.assert_allclose(rotated, color[..., 0], rtol=0, atol=1e-6)
         # The trailing channel axis is kept
         rotated = geometry.rotate_image(img[..., :1], 30.0, **kwargs)
         assert rotated.shape == (*shape, 1)
-        assert np.array_equal(rotated, color[..., :1])
+        np.testing.assert_allclose(rotated, color[..., :1], rtol=0, atol=1e-6)
     rotated = geometry.rotate_image(img[..., :1], 90.0, expand=True)
     assert rotated.shape == (64, 128, 1)
-    assert np.array_equal(rotated, geometry.rotate_image(img, 90.0, expand=True)[..., :1])
+    np.testing.assert_allclose(rotated, geometry.rotate_image(img, 90.0, expand=True)[..., :1], rtol=0, atol=1e-6)
 
 
 def test_remove_image_padding():

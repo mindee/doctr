@@ -1,4 +1,4 @@
-.PHONY: quality style test test-common test-tf test-torch docs-single-version docs
+.PHONY: quality style test test-common test-tf test-torch test-optimization docs-single-version docs
 # this target runs checks on all files
 quality:
 	ruff check .
@@ -13,6 +13,7 @@ style:
 test:
 	pytest tests/common/ -rs --cov
 	pytest tests/pytorch/ -rs --cov --cov-append
+	pytest tests/optimization/ -rs --cov --cov-append
 	coverage report --fail-under=80 --show-missing
 
 test-common:
@@ -20,6 +21,9 @@ test-common:
 
 test-torch:
 	pytest tests/pytorch/ -rs --cov
+
+test-optimization:
+	pytest tests/optimization/ -rs --cov
 
 # Check that docs can build
 docs-single-version:

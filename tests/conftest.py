@@ -1,3 +1,4 @@
+import importlib
 import json
 import os
 import shutil
@@ -33,6 +34,24 @@ def _release_gpu_memory():
     # With pytest-xdist, the workers share the GPU: give back the memory cached by a test, so that the others can use it
     if int(os.environ.get("PYTEST_XDIST_WORKER_COUNT", 0)) > 1 and torch.cuda.is_available():
         torch.cuda.empty_cache()
+
+
+@pytest.fixture
+def eager_export_loops(monkeypatch):
+    """Run the models as traced by `torch.export`, with their `torch.while_loop` decoding run as a Python loop: the
+    eager equivalent of the exported loops, whose bodies `torch.export` traces without running them (no coverage).
+    Returns the number of iterations run so far"""
+    iterations = [0]
+
+    def while_loop(cond_fn, body_fn, carried_inputs):
+        while cond_fn(*carried_inputs):
+            carried_inputs = tuple(body_fn(*carried_inputs))
+            iterations[0] += 1
+        return carried_inputs
+
+    monkeypatch.setattr(importlib.import_module("torch._higher_order_ops.while_loop"), "while_loop", while_loop)
+    monkeypatch.setattr(torch.compiler, "is_exporting", lambda: True)
+    return iterations
 
 
 @pytest.fixture(scope="session")
