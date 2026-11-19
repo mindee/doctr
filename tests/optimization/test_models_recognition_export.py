@@ -1,5 +1,6 @@
 import os
 import tempfile
+from unittest import mock
 
 import numpy as np
 import onnx
@@ -104,6 +105,29 @@ def test_models_onnx_export_loop(arch_name, mock_text_box):
     ref_preds = model.postprocessor(torch.from_numpy(ref_logits))
     assert [word for word, _ in ort_preds] == [word for word, _ in ref_preds]
     assert [conf for _, conf in ort_preds] == pytest.approx([conf for _, conf in ref_preds], abs=1e-4)
+
+
+@pytest.mark.parametrize("arch_name", ["master", "parseq"])
+def test_models_export_loop_eager(arch_name, mock_text_box, eager_export_loops):
+    # The decoding exported as an ONNX loop (cf. `test_models_onnx_export_loop`), run in Python: same outputs as the
+    # PyTorch decoding, which stops early as well
+    model = recognition.__dict__[arch_name](pretrained=True, exportable=True).eval()
+    processor = recognition.zoo.recognition_predictor(model).pre_processor
+    word = DocumentFile.from_images([mock_text_box])[0]
+    # The text crop, a blank crop and a crop of noise: sequences that end at different steps
+    crops = [word, np.full_like(word, 255), np.random.default_rng(0).integers(0, 256, word.shape, dtype=np.uint8)]
+    batch = processor(crops)[0]
+    with torch.inference_mode():
+        loop_logits = model(batch)["logits"]
+        assert eager_export_loops[0] > 0  # the loops ran
+        with mock.patch.object(torch.compiler, "is_exporting", lambda: False):
+            model.exportable = False
+            ref_logits = model(batch, return_model_output=True)["out_map"]
+    assert loop_logits.shape == ref_logits.shape
+    assert torch.allclose(loop_logits, ref_logits, atol=1e-4)
+    loop_preds, ref_preds = model.postprocessor(loop_logits), model.postprocessor(ref_logits)
+    assert [word for word, _ in loop_preds] == [word for word, _ in ref_preds]
+    assert [conf for _, conf in loop_preds] == pytest.approx([conf for _, conf in ref_preds], abs=1e-4)
 
 
 @pytest.mark.parametrize(

@@ -1,5 +1,6 @@
 import os
 import tempfile
+from unittest import mock
 
 import numpy as np
 import onnx
@@ -92,6 +93,30 @@ def test_models_onnx_export_loop(mock_formula_image):
     assert not ort_logits[:, num_steps:].any()
     ort_latex = model.postprocessor(torch.from_numpy(ort_logits))[0][0]
     assert ort_latex == model.postprocessor(torch.from_numpy(ref_logits))[0][0]
+
+
+def test_models_export_loop_eager(mock_formula_image, eager_export_loops):
+    # The chunked decoding exported as ONNX loops (cf. `test_models_onnx_export_loop`), run in Python
+    predictor = formula.formula_predictor("formulanet", pretrained=True)
+    model = formula.formulanet(pretrained=True, exportable=True).eval()
+    model.max_decode_length = 64
+    model.export_chunk_size = 16  # several loops, the last ones after the end of the formula
+    batch = predictor.pre_processor([read_img_as_numpy(mock_formula_image)])
+    batch = (batch[0] if isinstance(batch, tuple) else batch)[0]
+    with torch.inference_mode():
+        loop_logits = model(batch)["logits"]
+        assert eager_export_loops[0] > 0  # the loops ran
+        with mock.patch.object(torch.compiler, "is_exporting", lambda: False):
+            # Reference: the decoding of PyTorch, which stops at the end of the formula
+            model.exportable = False
+            ref_logits = model(batch, return_model_output=True)["out_map"]
+    num_steps = ref_logits.shape[1]
+    assert num_steps < model.max_decode_length + 1
+    assert loop_logits.shape == (1, model.max_decode_length + 1, len(LATEX_TOKENS) + 1)
+    assert torch.allclose(loop_logits[:, :num_steps], ref_logits, atol=1e-4)
+    # The steps after the end of the formula are not decoded
+    assert not loop_logits[:, num_steps:].any()
+    assert model.postprocessor(loop_logits)[0][0] == model.postprocessor(ref_logits)[0][0]
 
 
 @pytest.mark.parametrize("arch_name", ["formulanet"])
