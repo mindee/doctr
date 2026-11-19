@@ -125,7 +125,8 @@ def test_layout_zoo(arch_name):
         ["lw_detr_m", (3, 512, 512)],
     ],
 )
-@pytest.mark.parametrize("dynamo", [False, True])
+# Coverage tracing slows the (pure Python) dynamo export down ~3x: its code paths are covered by the other tests
+@pytest.mark.parametrize("dynamo", [False, pytest.param(True, marks=pytest.mark.no_cover)])
 def test_models_onnx_export(arch_name, input_shape, dynamo):
     if dynamo:
         pytest.importorskip("onnxscript")

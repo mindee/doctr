@@ -123,7 +123,8 @@ def test_table_structure_zoo(arch_name, assume_straight_pages):
         ["tablecenternet", (3, 1024, 1024)],
     ],
 )
-@pytest.mark.parametrize("dynamo", [False, True])
+# Coverage tracing slows the (pure Python) dynamo export down ~3x: its code paths are covered by the other tests
+@pytest.mark.parametrize("dynamo", [False, pytest.param(True, marks=pytest.mark.no_cover)])
 def test_models_onnx_export(arch_name, input_shape, dynamo):
     if dynamo:
         pytest.importorskip("onnxscript")

@@ -276,7 +276,8 @@ def test_recognition_zoo(arch_name, input_shape):
         ["viptr_tiny", (3, 32, 128)],
     ],
 )
-@pytest.mark.parametrize("dynamo", [False, True])
+# Coverage tracing slows the (pure Python) dynamo export down ~3x: its code paths are covered by the other tests
+@pytest.mark.parametrize("dynamo", [False, pytest.param(True, marks=pytest.mark.no_cover)])
 def test_models_onnx_export(arch_name, input_shape, dynamo):
     if dynamo:
         pytest.importorskip("onnxscript")

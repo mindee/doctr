@@ -249,7 +249,8 @@ def test_page_orientation_model(mock_payslip):
         ["hgnetv2_b4", (3, 32, 32), (126,)],
     ],
 )
-@pytest.mark.parametrize("dynamo", [False, True])
+# Coverage tracing slows the (pure Python) dynamo export down ~3x: its code paths are covered by the other tests
+@pytest.mark.parametrize("dynamo", [False, pytest.param(True, marks=pytest.mark.no_cover)])
 def test_models_onnx_export(arch_name, input_shape, output_size, dynamo):
     if dynamo:
         pytest.importorskip("onnxscript")
