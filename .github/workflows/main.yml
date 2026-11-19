@@ -51,7 +51,6 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           extras: viz,html,testing
-          cache-compile: "true"
       - name: Run unittests
         run: pytest tests/pytorch/ -rs --cov --cov-report=xml:coverage-pt.xml
       - uses: actions/upload-artifact@v7
@@ -60,10 +59,33 @@ jobs:
           path: ./coverage-pt.xml
           if-no-files-found: error
 
+  pytest-optimization:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.11"]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
+        with:
+          python-version: ${{ matrix.python }}
+          extras: viz,html,testing
+          cache-compile: "true"
+      - name: Run unittests
+        run: pytest tests/optimization/ -rs --cov --cov-report=xml:coverage-optimization.xml
+      - uses: actions/upload-artifact@v7
+        with:
+          name: coverage-optimization
+          path: ./coverage-optimization.xml
+          if-no-files-found: error
+
   codecov-upload:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [ pytest-common, pytest-torch ]
+    needs: [ pytest-common, pytest-torch, pytest-optimization ]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/download-artifact@v8
