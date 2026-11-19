@@ -308,8 +308,7 @@ class PARSeq(_PARSeq, nn.Module):
             torch.tril(torch.ones((max_length, max_length), device=features.device), diagonal=0).to(dtype=torch.bool)
         ).int()
 
-        # `torch.compiler.is_exporting` is missing from older versions of PyTorch, which cannot export loops anyway
-        if max_len is None and getattr(torch.compiler, "is_exporting", lambda: False)():
+        if max_len is None and torch.compiler.is_exporting():
             return self._decode_autoregressive_loop(features, ys, pos_queries, query_mask)
 
         # Incremental decoding: project the image features once and the content one token at a time (cached)

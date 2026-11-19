@@ -322,8 +322,7 @@ class FormulaNet(_FormulaNet, nn.Module):
             the logits of the generated tokens, of shape (N, L, vocab_size + 1)
         """
         steps = min(self.max_decode_length if max_len is None else max_len, self.max_length) + 1  # tokens + EOS
-        # `torch.compiler.is_exporting` is missing from older versions of PyTorch, which cannot export loops anyway
-        if getattr(torch.compiler, "is_exporting", lambda: False)():
+        if torch.compiler.is_exporting():
             return self._decode_greedy_loop(memory, steps)
         memory_kv = [layer.cross_attn.project_kv(memory) for layer in self._decoder_layers()]
         caches: list[tuple[torch.Tensor, torch.Tensor] | None] = [None] * len(self.layers)

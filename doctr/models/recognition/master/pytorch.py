@@ -247,8 +247,7 @@ class MASTER(_MASTER, nn.Module):
         ys = torch.full((b, self.max_length), self.vocab_size + 2, dtype=torch.long, device=encoded.device)  # pad
         ys[:, 0] = self.vocab_size + 1  # sos
 
-        # `torch.compiler.is_exporting` is missing from older versions of PyTorch, which cannot export loops anyway
-        if getattr(torch.compiler, "is_exporting", lambda: False)():
+        if torch.compiler.is_exporting():
             return self._decode_loop(encoded, ys)
 
         # Incremental decoding: each step only decodes the last token, the previous ones are cached
