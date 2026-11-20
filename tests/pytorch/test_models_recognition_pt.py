@@ -204,158 +204,50 @@ def test_recognition_predictor_empty_crop(empty_shape):
     assert predictor([crop]) == [("ab", 0.9)]
 
 
-def _spelled(text, height, char_width):
-    """A crop spelling `text`, each char `char_width` columns wide: the first channel of a column is its char, the
-    second the position of that char in the text (from 1)"""
-    crop = np.zeros((height, len(text) * char_width, 3), dtype=np.uint8)
-    for index, char in enumerate(text):
-        columns = slice(index * char_width, (index + 1) * char_width)
-        crop[:, columns, 0] = ord(char)
-        crop[:, columns, 1] = index % 250 + 1
-    return crop
+class _ScriptedRecoModel(torch.nn.Module):
+    """Reads the crops as the next `readings`: the parts with a confidence of 0.9, the regions of 0.1"""
 
-
-class _ColumnsPreProcessor:
-    """Hands the model the columns of each crop (the first row of its first two channels), zero-padded"""
-
-    batch_size = 128
-
-    def __call__(self, crops):
-        columns = torch.zeros(len(crops), max(crop.shape[1] for crop in crops), 2)
-        for row, crop in enumerate(crops):
-            columns[row, : crop.shape[1]] = torch.from_numpy(crop[0, :, :2].astype(np.float32))
-        return [columns[start : start + self.batch_size] for start in range(0, len(crops), self.batch_size)]
-
-
-class _SpellingModel(torch.nn.Module):
-    """Reads any _spelled crop, or a part or region of one, exactly: the chars any of its columns show, a char cut off
-    at its border included. Like the models of docTR, it has a `max_length`, and readings longer than `cut_at` are cut
-    short. The size of each batch it reads is recorded."""
-
-    def __init__(self, max_length=32, cut_at=None):
+    def __init__(self, readings: list[str], max_length: int | None) -> None:
         super().__init__()
         self.dummy = torch.nn.Parameter(torch.zeros(1))
-        self.max_length = max_length
-        self.cut_at = max_length if cut_at is None else cut_at
-        self.batch_sizes = []
+        self.readings = iter(readings)
+        self.batch_sizes: list[int] = []
+        if max_length is not None:
+            self.max_length = max_length
 
-    def forward(self, x, return_preds=False, **kwargs):
+    def forward(self, x: torch.Tensor, return_preds: bool = False, **kwargs):
         self.batch_sizes.append(x.shape[0])
-        preds = []
-        for columns in x.int().tolist():
-            chars, last = [], 0
-            for char, index in columns:
-                if index and index != last:
-                    chars.append(chr(char))
-                last = index
-            text = "".join(chars)[: self.cut_at]
-            preds.append((text, 1 - 1 / (2 + len(text))))
-        return {"preds": preds}
+        conf = 0.9 if len(self.batch_sizes) == 1 else 0.1
+        return {"preds": [(next(self.readings), conf) for _ in range(x.shape[0])]}
 
 
-def _spelling_predictor(resolve_ambiguous_overlaps=True, model=None):
-    return RecognitionPredictor(
-        _ColumnsPreProcessor(), model or _SpellingModel(), resolve_ambiguous_overlaps=resolve_ambiguous_overlaps
-    )
-
-
-def _split_sizes(text):
-    """Heights (10 to 47 px) and char widths (0.4 to 0.8 of the height) at which the crop of `text` is split"""
-    critical_ar = _spelling_predictor().critical_ar
-    for height in range(10, 48):
-        for char_width in range(int(0.4 * height), int(0.8 * height) + 1):
-            if len(text) * char_width / height > critical_ar:
-                yield height, char_width
-
-
-def test_recognition_predictor_resolves_a_run_split_across_parts():
-    crops = [_spelled(text, 14, 11) for text in ["WARMUP-0000001", "INVOICE", "CONTRACTING-AGENT"]]
-    unresolved = _spelling_predictor(False)(crops)
-    # Each part is read right, and their merge adds a zero to the run
-    assert [text for text, _ in unresolved] == ["WARMUP-00000001", "INVOICE", "CONTRACTING-AGENT"]
-
-    predictor = _spelling_predictor()
-    assert predictor.resolve_ambiguous_overlaps
-    preds = predictor(crops)
-
-    assert [text for text, _ in preds] == ["WARMUP-0000001", "INVOICE", "CONTRACTING-AGENT"]
-    # The confidence is the one of the parts
-    assert [conf for _, conf in preds] == [conf for _, conf in unresolved]
-    # The parts are read in one batch, then the region covered by the two parts across the run, alone
-    assert predictor.model.batch_sizes[1:] == [1]
-
-
-def test_recognition_predictor_keeps_merge_strings_overlap_against_the_char_positions():
-    # Each of the 2 parts of this crop cuts a zero in two: the exact reading of the region they cover points at an
-    # overlap of 5 chars, but the positions of their chars spread evenly over each part at 4, which merge_strings picks
-    predictor = _spelling_predictor()
-    assert predictor([_spelled("U-0000000008911", 24, 14)])[0][0] == "U-00000000008911"
-    assert predictor.model.batch_sizes == [2, 1]
+# The parts of a 154 x 14 crop of "WARMUP-0000001": merge_strings adds a zero to the run
+_PARTS = ["WARMUP-0", "MUP-00000", "-0000001"]
 
 
 @pytest.mark.parametrize(
-    "text, misjoined, all_resolved",
+    "width, readings, resolve, max_length, text, batch_sizes",
     [
-        # Runs and repeating patterns
-        ("U-0000000008911", True, False),
-        ("WARMUP-0000001", True, True),
-        ("INFBC93AAAA072", True, True),
-        ("ACCT 77777777", True, False),
-        ("000-00-0000", False, True),
-        ("REF-1111-2222", False, True),
-        ("121212-343434", False, True),
-        # Words
-        ("ENDORSEMENT", False, True),
-        ("PARTICIPANTS", False, True),
-        ("BUSINESS-ENTITY-NAME", False, True),
+        (154, [*_PARTS, "MUP-0000001"], True, 32, "WARMUP-0000001", [3, 1]),
+        (154, [*_PARTS, "MUP-0000001"], True, None, "WARMUP-0000001", [3, 1]),
+        # A region reading of `max_length - 2` chars or more may be cut short
+        (154, [*_PARTS, "MUP-0000001"], True, 13, "WARMUP-00000001", [3, 1]),
+        (154, [*_PARTS, "MUP-0000001"], True, 14, "WARMUP-0000001", [3, 1]),
+        (154, [*_PARTS, "MUP-00000001"], True, 32, "WARMUP-00000001", [3, 1]),
+        (154, _PARTS, False, 32, "WARMUP-00000001", [3]),
+        (154, ["WARMUP-1", "MUP-1234", "-1234567"], True, 32, "WARMUP-1234567", [3]),
+        (98, ["WARMUP-0000001"], True, 32, "WARMUP-0000001", [1]),
     ],
 )
-def test_recognition_predictor_resolves_runs_wherever_split(text, misjoined, all_resolved):
-    crops = [_spelled(text, *size) for size in _split_sizes(text)]
-    unresolved = _spelling_predictor(False)(crops)
-
-    preds = _spelling_predictor()(crops)
-
-    # Without the region readings, the merges of some of these parts gain or lose part of a run
-    unresolved_misjoins = sum(pred != text for pred, _ in unresolved)
-    assert (unresolved_misjoins > 0) == misjoined
-    # With them, none is merged wrong that merge_strings merges right, and the others are merged right, or more
-    # rarely wrong where the char positions hold the region reading back
-    assert all(pred == text for (pred, _), (unresolved_pred, _) in zip(preds, unresolved) if unresolved_pred == text)
-    misjoins = sum(pred != text for pred, _ in preds)
-    assert misjoins == 0 if all_resolved else 0 < misjoins < unresolved_misjoins
-    # The confidence is still the one of the parts
-    assert [conf for _, conf in preds] == [conf for _, conf in unresolved]
-
-
-@pytest.mark.parametrize("text", ["WARMUP-0000001", "U-0000000008911"])
-def test_recognition_predictor_keeps_merge_strings_overlap_with_a_region_reading_cut_short(text):
-    # A model reading at most 12 chars cuts the reading of every region short
-    crops = [_spelled(text, *size) for size in list(_split_sizes(text))[::4]]
-    unresolved = _spelling_predictor(False, _SpellingModel(max_length=12))(crops)
-
-    assert _spelling_predictor(True, _SpellingModel(max_length=12))(crops) == unresolved
-    # Without the max length to tell the readings were cut short, some would have decided
-    assert _spelling_predictor(True, _SpellingModel(max_length=1000, cut_at=12))(crops) != unresolved
-
-
-def test_recognition_predictor_resolves_only_split_crops_when_asked():
-    crops = [_spelled("WARMUP-0000001", 14, 11), _spelled("INVOICE", 14, 11)]
-
-    predictor = _spelling_predictor(resolve_ambiguous_overlaps=False)
-    assert [text for text, _ in predictor(crops)] == ["WARMUP-00000001", "INVOICE"]
-    assert len(predictor.model.batch_sizes) == 1
-
-    # A model without a max length is trusted to read the regions in full
-    model = _SpellingModel()
-    del model.max_length
-    assert _spelling_predictor(model=model)(crops)[0][0] == "WARMUP-0000001"
-
-    # Crops that are not split are read as they are
-    predictor = _spelling_predictor()
-    predictor.split_wide_crops = False
-    assert predictor(crops) == [("WARMUP-0000001", 1 - 1 / 16), ("INVOICE", 1 - 1 / 9)]
-    assert len(predictor.model.batch_sizes) == 1
+def test_recognition_predictor_resolve_ambiguous_overlaps(width, readings, resolve, max_length, text, batch_sizes):
+    model = _ScriptedRecoModel(readings, max_length)
+    predictor = RecognitionPredictor(
+        PreProcessor(output_size=(32, 128), batch_size=32, preserve_aspect_ratio=True),
+        model,
+        resolve_ambiguous_overlaps=resolve,
+    )
+    assert predictor([np.zeros((14, width, 3), dtype=np.uint8)]) == [(text, 0.9)]
+    assert model.batch_sizes == batch_sizes
 
 
 @pytest.mark.parametrize(

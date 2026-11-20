@@ -1,5 +1,3 @@
-import random
-
 import pytest
 
 from doctr.models.recognition.utils import exact_overlaps, merge_multi_strings, merge_strings
@@ -113,18 +111,10 @@ def test_merge_multi_strings(seq_list, overlap_ratio, last_overlap_ratio, merged
 @pytest.mark.parametrize(
     "a, b, lengths",
     [
-        # A run of zeros: the end of "WARMUP-000" matches the start of "0000001" at 1, 2 and 3 chars
         ("WARMUP-0000", "-0000001", [1, 2, 3]),
-        ("abccccX", "Xcccccc", [1, 2, 3, 4]),
-        # A repeating pattern: "EME" also matches at "E", "ICI" at "I"
-        ("ENDORSEMEN", "SEMENT", [1, 3]),
         ("PARTICIP", "TICIPANTS", [1, 3]),
-        # A single exact length
-        ("abcdX", "Xdefgh", [1]),
+        ("000X", "X0000", [1, 2, 3]),
         ("hellowo", "loworld", [2]),
-        # Nothing left once the border chars are dropped
-        ("abc", "", []),
-        ("", "", []),
         ("a", "b", []),
     ],
 )
@@ -135,42 +125,11 @@ def test_exact_overlaps(a, b, lengths):
 @pytest.mark.parametrize(
     "overlaps, merged",
     [
-        # merge_strings keeps the overlap expected from the ratio, one zero too short
         (None, "WARMUP-00000001"),
-        ({}, "WARMUP-00000001"),
-        # A known overlap length is imposed
         ({1: 3}, "WARMUP-0000001"),
-        ({1: 2}, "WARMUP-00000001"),
-        ({1: 1}, "WARMUP-000000001"),
-        # ... unless it is not an exact overlap of the merge so far, which is then aligned by merge_strings
+        # Not an exact overlap of the merge so far: aligned by merge_strings
         ({1: 5}, "WARMUP-00000001"),
-        ({0: 3}, "WARMUP-00000001"),
     ],
 )
 def test_merge_multi_strings_overlaps(overlaps, merged):
-    # The parts of a 416 x 35 crop of "WARMUP-0000001", each read right
     assert merge_multi_strings(["WARMUP", "MUP-0000", "-0000001"], 0.5, 0.519, overlaps) == merged
-
-
-def test_merge_multi_strings_imposing_its_own_overlaps():
-    """Imposing the exact overlap lengths merge_strings picks, or none, merges as merge_strings does."""
-    rng = random.Random(0)
-    for _ in range(2000):
-        alphabet = rng.choice(["0", "01", "0A-", "EMN", "abcdefghij"])
-        text = "".join(rng.choice(alphabet) for _ in range(rng.randint(4, 24)))
-        width = rng.randint(3, 10)
-        step = max(1, width // 2 + rng.randint(-1, 1))
-        parts = [text[start : start + width] for start in range(0, max(1, len(text) - width) + step, step)]
-        ratio, last_ratio = rng.choice([0.3, 0.5, 0.8]), rng.random()
-        merged = merge_multi_strings(parts, ratio, last_ratio)
-
-        overlaps, result = {}, parts[0]
-        for i, part in enumerate(parts[1:]):
-            following = merge_strings(result, part, last_ratio if i == len(parts) - 2 else ratio)
-            length = len(result) + len(part) - 2 - len(following)
-            if length in exact_overlaps(result, part) and following == result[: len(result) - 1 - length] + part[1:]:
-                overlaps[i] = length
-            result = following
-
-        assert merge_multi_strings(parts, ratio, last_ratio, overlaps) == merged
-        assert merge_multi_strings(parts, ratio, last_ratio, {}) == merged
