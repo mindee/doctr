@@ -50,6 +50,7 @@ The core package is kept light. A few features need extra dependencies, which yo
 | `viz`     | `matplotlib`, `mplcursors`    | Displaying predictions with {meth}`Document.show() <doctr.io.Document.show>`                       |
 | `html`    | `weasyprint`                  | Reading web pages with {meth}`DocumentFile.from_url() <doctr.io.DocumentFile.from_url>`            |
 | `contrib` | `onnxruntime`                 | The [artefact detector](../user_guide/artefacts.md) of the `contrib` module                     |
+| `rtl`     | `khatt`                       | Arabic and Hebrew words drawn joined and in order by {meth}`Page.synthesize() <doctr.io.Page.synthesize>` |
 
 ```bash
 # One extra
