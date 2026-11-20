@@ -160,6 +160,19 @@ predictor.reco_predictor.split_confidence_aggregation = "mean"
 ```
 :::
 
+## Very wide crops
+
+A word crop more than 8 times wider than it is high (a long word, an ID, a URL) is split into overlapping parts that
+are read separately, and their readings are merged where they overlap. Across a repeated stretch (a run of one
+character as in `0000001`, or a pattern such as `ICI` in `PARTICIPANTS`), the readings of two neighboring parts match
+equally well at several overlap lengths. The region these two parts cover is then read once more, and the overlap
+length is chosen from that reading and from where the characters sit in each part. To merge the parts by the expected
+overlap alone, without that extra reading:
+
+```python
+predictor.reco_predictor.resolve_ambiguous_overlaps = False
+```
+
 ## Restrict the output characters
 
 If you know which languages to expect, restrict the recognition model to their characters with

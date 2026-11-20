@@ -204,6 +204,52 @@ def test_recognition_predictor_empty_crop(empty_shape):
     assert predictor([crop]) == [("ab", 0.9)]
 
 
+class _ScriptedRecoModel(torch.nn.Module):
+    """Reads the crops as the next `readings`: the parts with a confidence of 0.9, the regions of 0.1"""
+
+    def __init__(self, readings: list[str], max_length: int | None) -> None:
+        super().__init__()
+        self.dummy = torch.nn.Parameter(torch.zeros(1))
+        self.readings = iter(readings)
+        self.batch_sizes: list[int] = []
+        if max_length is not None:
+            self.max_length = max_length
+
+    def forward(self, x: torch.Tensor, return_preds: bool = False, **kwargs):
+        self.batch_sizes.append(x.shape[0])
+        conf = 0.9 if len(self.batch_sizes) == 1 else 0.1
+        return {"preds": [(next(self.readings), conf) for _ in range(x.shape[0])]}
+
+
+# The parts of a 154 x 14 crop of "WARMUP-0000001": merge_strings adds a zero to the run
+_PARTS = ["WARMUP-0", "MUP-00000", "-0000001"]
+
+
+@pytest.mark.parametrize(
+    "width, readings, resolve, max_length, text, batch_sizes",
+    [
+        (154, [*_PARTS, "MUP-0000001"], True, 32, "WARMUP-0000001", [3, 1]),
+        (154, [*_PARTS, "MUP-0000001"], True, None, "WARMUP-0000001", [3, 1]),
+        # A region reading of `max_length - 2` chars or more may be cut short
+        (154, [*_PARTS, "MUP-0000001"], True, 13, "WARMUP-00000001", [3, 1]),
+        (154, [*_PARTS, "MUP-0000001"], True, 14, "WARMUP-0000001", [3, 1]),
+        (154, [*_PARTS, "MUP-00000001"], True, 32, "WARMUP-00000001", [3, 1]),
+        (154, _PARTS, False, 32, "WARMUP-00000001", [3]),
+        (154, ["WARMUP-1", "MUP-1234", "-1234567"], True, 32, "WARMUP-1234567", [3]),
+        (98, ["WARMUP-0000001"], True, 32, "WARMUP-0000001", [1]),
+    ],
+)
+def test_recognition_predictor_resolve_ambiguous_overlaps(width, readings, resolve, max_length, text, batch_sizes):
+    model = _ScriptedRecoModel(readings, max_length)
+    predictor = RecognitionPredictor(
+        PreProcessor(output_size=(32, 128), batch_size=32, preserve_aspect_ratio=True),
+        model,
+        resolve_ambiguous_overlaps=resolve,
+    )
+    assert predictor([np.zeros((14, width, 3), dtype=np.uint8)]) == [(text, 0.9)]
+    assert model.batch_sizes == batch_sizes
+
+
 @pytest.mark.parametrize(
     "arch_name", ["crnn_mobilenet_v3_small", "sar_resnet31", "master", "vitstr_small", "parseq", "viptr_tiny"]
 )

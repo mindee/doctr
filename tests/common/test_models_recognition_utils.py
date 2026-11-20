@@ -1,6 +1,6 @@
 import pytest
 
-from doctr.models.recognition.utils import merge_multi_strings, merge_strings
+from doctr.models.recognition.utils import exact_overlaps, merge_multi_strings, merge_strings
 
 
 @pytest.mark.parametrize(
@@ -106,3 +106,30 @@ def test_merge_strings(a, b, overlap_ratio, merged):
 )
 def test_merge_multi_strings(seq_list, overlap_ratio, last_overlap_ratio, merged):
     assert merged == merge_multi_strings(seq_list, overlap_ratio, last_overlap_ratio)
+
+
+@pytest.mark.parametrize(
+    "a, b, lengths",
+    [
+        ("WARMUP-0000", "-0000001", [1, 2, 3]),
+        ("PARTICIP", "TICIPANTS", [1, 3]),
+        ("000X", "X0000", [1, 2, 3]),
+        ("hellowo", "loworld", [2]),
+        ("a", "b", []),
+    ],
+)
+def test_exact_overlaps(a, b, lengths):
+    assert exact_overlaps(a, b) == lengths
+
+
+@pytest.mark.parametrize(
+    "overlaps, merged",
+    [
+        (None, "WARMUP-00000001"),
+        ({1: 3}, "WARMUP-0000001"),
+        # Not an exact overlap of the merge so far: aligned by merge_strings
+        ({1: 5}, "WARMUP-00000001"),
+    ],
+)
+def test_merge_multi_strings_overlaps(overlaps, merged):
+    assert merge_multi_strings(["WARMUP", "MUP-0000", "-0000001"], 0.5, 0.519, overlaps) == merged
