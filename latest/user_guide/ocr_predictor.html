@@ -840,6 +840,18 @@ frames. An empty prediction has a confidence of <code class="docutils literal no
 </div>
 </div>
 </details></section>
+<section id="very-wide-crops">
+<h2>Very wide crops<a class="headerlink" href="#very-wide-crops" title="Link to this heading">#</a></h2>
+<p>A word crop more than 8 times wider than it is high (a long word, an ID, a URL) is split into overlapping parts that
+are read separately, and their readings are merged where they overlap. Across a repeated stretch (a run of one
+character as in <code class="docutils literal notranslate"><span class="pre">0000001</span></code>, or a pattern such as <code class="docutils literal notranslate"><span class="pre">ICI</span></code> in <code class="docutils literal notranslate"><span class="pre">PARTICIPANTS</span></code>), the readings of two neighboring parts match
+equally well at several overlap lengths. The region these two parts cover is then read once more, and the overlap
+length is chosen from that reading and from where the characters sit in each part. To merge the parts by the expected
+overlap alone, without that extra reading:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">predictor</span><span class="o">.</span><span class="n">reco_predictor</span><span class="o">.</span><span class="n">resolve_ambiguous_overlaps</span> <span class="o">=</span> <span class="kc">False</span>
+</pre></div>
+</div>
+</section>
 <section id="restrict-the-output-characters">
 <h2>Restrict the output characters<a class="headerlink" href="#restrict-the-output-characters" title="Link to this heading">#</a></h2>
 <p>If you know which languages to expect, restrict the recognition model to their characters with
@@ -1078,6 +1090,7 @@ the index of each skipped page and the error instead:</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#options-at-a-glance">Options at a glance</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tune-the-text-detection">Tune the text detection</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#confidence-scores">Confidence scores</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#very-wide-crops">Very wide crops</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#restrict-the-output-characters">Restrict the output characters</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hooks">Hooks</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#process-many-documents">Process many documents</a></li>
