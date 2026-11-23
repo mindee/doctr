@@ -9,7 +9,8 @@ from pathlib import Path
 from setuptools import setup
 
 PKG_NAME = "python-doctr"
-VERSION = os.getenv("BUILD_VERSION", "1.1.1a0")
+# Release tags are named vX.Y.Z
+VERSION = os.getenv("BUILD_VERSION", "1.1.1a0").removeprefix("v")
 
 
 if __name__ == "__main__":
