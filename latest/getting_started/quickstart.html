@@ -696,8 +696,8 @@ hOCR (XML)</label><div class="sd-tab-content docutils" id="sd-tab-item-3-content
 </div>
 <p><a class="reference internal" href="../user_guide/exporting.html"><span class="std std-doc">Exporting results</span></a> covers every format and its options.</p>
 </section>
-<section id="go-further-layout-tables">
-<span id="7-go-further-layout--tables"></span><h2>7. Go further: layout &amp; tables<a class="headerlink" href="#go-further-layout-tables" title="Link to this heading">#</a></h2>
+<section id="go-further-layout-tables-formulas">
+<span id="7-go-further-layout-tables--formulas"></span><h2>7. Go further: layout, tables &amp; formulas<a class="headerlink" href="#go-further-layout-tables-formulas" title="Link to this heading">#</a></h2>
 <p>Add <code class="docutils literal notranslate"><span class="pre">detect_tables=True</span></code> and docTR also finds the layout of the page and reconstructs its tables. Here is the
 Markdown export of the same invoice:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">detect_tables</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -733,6 +733,8 @@ Total due
 ...
 </pre></div>
 </div>
+<p>Reading scientific papers? Add <code class="docutils literal notranslate"><span class="pre">detect_formulas=True</span></code> as well and the formulas are read as LaTeX, rendered as <code class="docutils literal notranslate"><span class="pre">$$...$$</span></code>
+display math in the Markdown export. <a class="reference internal" href="../user_guide/layout_and_tables.html"><span class="std std-doc">Layout analysis, tables &amp; formulas</span></a> covers both.</p>
 <div class="tip admonition">
 <p class="admonition-title">Prefer the command line?</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">doctr-cli</span></code> command runs the same pipeline without writing any code:</p>
@@ -831,7 +833,7 @@ Total due
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#explore-the-structure">4. Explore the structure</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualize-the-predictions">5. Visualize the predictions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#export-the-results">6. Export the results</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#go-further-layout-tables">7. Go further: layout &amp; tables</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#go-further-layout-tables-formulas">7. Go further: layout, tables &amp; formulas</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#next-steps">Next steps</a></li>
 </ul>
   </nav></div>

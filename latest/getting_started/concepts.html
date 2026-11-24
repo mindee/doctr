@@ -557,9 +557,10 @@ and the way docTR expresses <strong>positions</strong>. Ten minutes here will ma
 <li><p><strong>Text recognition</strong> transcribes each detected word from its crop (<em>what does it say?</em>).</p></li>
 </ol>
 <p>The predictions are then assembled into a structured document. Optional stages plug into the same pipeline when
-you need them: orientation handling for rotated pages, layout analysis, and table structure recognition.</p>
-<div class="doctr-diagram" role="img" aria-label="docTR pipeline: your files go through text detection and text recognition, are assembled by the document builder into a Document. Optional stages: orientation handling, layout analysis and table structure recognition.">
-<svg viewBox="0 0 1000 300" xmlns="http://www.w3.org/2000/svg">
+you need them: orientation handling for rotated pages, layout analysis, table structure recognition and formula
+recognition.</p>
+<div class="doctr-diagram" role="img" aria-label="docTR pipeline: your files go through text detection and text recognition, are assembled by the document builder into a Document. Optional stages: orientation handling, layout analysis, table structure recognition and formula recognition.">
+<svg viewBox="0 0 1000 390" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <marker id="doctr-ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path class="arrow-head" d="M 0 0 L 10 5 L 0 10 z"/>
@@ -586,10 +587,10 @@ you need them: orientation handling for rotated pages, layout analysis, and tabl
   <text class="sub" x="672" y="82" text-anchor="middle">Lines, blocks and</text>
   <text class="sub" x="672" y="99" text-anchor="middle">reading order</text>
 
-  <rect class="box out" x="795" y="30" width="195" height="92" rx="12"/>
-  <text class="title on-dark" x="892" y="60" text-anchor="middle">Document</text>
-  <text class="sub on-dark" x="892" y="82" text-anchor="middle">JSON · text · Markdown</text>
-  <text class="sub on-dark" x="892" y="99" text-anchor="middle">HTML · AsciiDoc · hOCR</text>
+  <rect class="box out" x="795" y="30" width="165" height="92" rx="12"/>
+  <text class="title on-dark" x="877" y="60" text-anchor="middle">Document</text>
+  <text class="sub on-dark" x="877" y="82" text-anchor="middle">JSON · text · Markdown</text>
+  <text class="sub on-dark" x="877" y="99" text-anchor="middle">HTML · AsciiDoc · hOCR</text>
 
   <line class="arrow" x1="140" y1="76" x2="176" y2="76" marker-end="url(#doctr-ah)"/>
   <line class="arrow" x1="345" y1="76" x2="381" y2="76" marker-end="url(#doctr-ah)"/>
@@ -607,16 +608,23 @@ you need them: orientation handling for rotated pages, layout analysis, and tabl
   <text class="sub" x="672" y="230" text-anchor="middle">Titles, tables, figures…</text>
   <text class="mono" x="672" y="249" text-anchor="middle">detect_layout=True</text>
 
-  <rect class="box opt" x="795" y="182" width="195" height="80" rx="12"/>
-  <text class="title" x="892" y="210" text-anchor="middle">Table structure</text>
-  <text class="sub" x="892" y="230" text-anchor="middle">Rows, columns and cells</text>
-  <text class="mono" x="892" y="249" text-anchor="middle">detect_tables=True</text>
+  <rect class="box opt" x="795" y="182" width="165" height="80" rx="12"/>
+  <text class="title" x="877" y="210" text-anchor="middle">Table structure</text>
+  <text class="sub" x="877" y="230" text-anchor="middle">Rows, columns and cells</text>
+  <text class="mono" x="877" y="249" text-anchor="middle">detect_tables=True</text>
+
+  <rect class="box opt" x="795" y="292" width="165" height="80" rx="12"/>
+  <text class="title" x="877" y="320" text-anchor="middle">Formula recognition</text>
+  <text class="sub" x="877" y="340" text-anchor="middle">Formulas as LaTeX</text>
+  <text class="mono" x="877" y="359" text-anchor="middle">detect_formulas=True</text>
 
   <line class="arrow" x1="262" y1="182" x2="262" y2="126" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
   <line class="arrow" x1="467" y1="182" x2="467" y2="126" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
   <line class="arrow" x1="672" y1="182" x2="672" y2="126" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
-  <line class="arrow" x1="892" y1="182" x2="892" y2="126" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
+  <line class="arrow" x1="877" y1="182" x2="877" y2="126" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
   <line class="arrow" x1="755" y1="222" x2="791" y2="222" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
+  <path class="arrow" d="M 672 262 V 332 H 791" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
+  <path class="arrow" d="M 960 332 H 982 V 76 H 964" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
 
   <!-- Legend -->
   <line class="arrow" x1="10" y1="200" x2="40" y2="200"/>
@@ -687,6 +695,10 @@ around the neural network so you can feed it raw pages.</p>
 <td><p><a class="reference internal" href="../api/models.html#doctr.models.table_structure.table_predictor" title="doctr.models.table_structure.table_predictor"><code class="xref py py-func docutils literal notranslate"><span class="pre">table_predictor()</span></code></a></p></td>
 <td><p>cells with row/column spans per table</p></td>
 </tr>
+<tr class="row-even"><td><p>Formula recognition</p></td>
+<td><p><a class="reference internal" href="../api/models.html#doctr.models.formula.formula_predictor" title="doctr.models.formula.formula_predictor"><code class="xref py py-func docutils literal notranslate"><span class="pre">formula_predictor()</span></code></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(latex,</span> <span class="pre">confidence)</span></code> per formula crop</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -698,6 +710,11 @@ around the neural network so you can feed it raw pages.</p>
 <span class="n">predictor</span><span class="o">.</span><span class="n">det_predictor</span>  <span class="c1"># text detection (pre-processor + model + post-processor)</span>
 <span class="n">predictor</span><span class="o">.</span><span class="n">reco_predictor</span>  <span class="c1"># text recognition</span>
 <span class="n">predictor</span><span class="o">.</span><span class="n">doc_builder</span>  <span class="c1"># assembles words into lines, blocks and pages</span>
+
+<span class="c1"># Optional stages, None unless enabled (e.g. `detect_formulas=True`)</span>
+<span class="n">predictor</span><span class="o">.</span><span class="n">layout_predictor</span>  <span class="c1"># layout analysis</span>
+<span class="n">predictor</span><span class="o">.</span><span class="n">table_predictor</span>  <span class="c1"># table structure recognition</span>
+<span class="n">predictor</span><span class="o">.</span><span class="n">formula_predictor</span>  <span class="c1"># formula recognition</span>
 </pre></div>
 </div>
 <div class="admonition important">
@@ -717,8 +734,9 @@ read.</p>
     │   │   └── words: list[<span class="k">Word</span>]      <span class="c"># value, confidence, geometry</span>
     │   └── artefacts: list[<span class="k">Artefact</span>]  <span class="c"># non-textual elements</span>
     ├── layout: list[<span class="k">LayoutElement</span>]    <span class="c"># with detect_layout=True</span>
-    └── tables: list[<span class="k">Table</span>]            <span class="c"># with detect_tables=True</span>
-        └── cells: list[<span class="k">TableCell</span>]</div><div class="pst-scrollable-table-container"><table class="table">
+    ├── tables: list[<span class="k">Table</span>]            <span class="c"># with detect_tables=True</span>
+    │   └── cells: list[<span class="k">TableCell</span>]
+    └── formulas: list[<span class="k">Formula</span>]        <span class="c"># with detect_formulas=True</span></div><div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Element</p></th>
 <th class="head"><p>What it represents</p></th>
@@ -743,7 +761,10 @@ read.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="../api/io.html#doctr.io.Table" title="doctr.io.Table"><code class="xref py py-class docutils literal notranslate"><span class="pre">Table</span></code></a> / <a class="reference internal" href="../api/io.html#doctr.io.TableCell" title="doctr.io.TableCell"><code class="xref py py-class docutils literal notranslate"><span class="pre">TableCell</span></code></a></p></td>
 <td><p>A recognized table, as cells spanning rows and columns</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../api/io.html#doctr.io.Page" title="doctr.io.Page"><code class="xref py py-class docutils literal notranslate"><span class="pre">Page</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/io.html#doctr.io.Formula" title="doctr.io.Formula"><code class="xref py py-class docutils literal notranslate"><span class="pre">Formula</span></code></a></p></td>
+<td><p>A recognized formula, with its LaTeX source as <code class="docutils literal notranslate"><span class="pre">value</span></code> (not part of the <code class="docutils literal notranslate"><span class="pre">blocks</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/io.html#doctr.io.Page" title="doctr.io.Page"><code class="xref py py-class docutils literal notranslate"><span class="pre">Page</span></code></a></p></td>
 <td><p>Everything found on one page, plus its <code class="docutils literal notranslate"><span class="pre">dimensions</span></code>, <code class="docutils literal notranslate"><span class="pre">orientation</span></code> and <code class="docutils literal notranslate"><span class="pre">language</span></code></p></td>
 </tr>
 </tbody>

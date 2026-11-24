@@ -490,7 +490,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Beyond plain text</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="layout_and_tables.html">Layout analysis &amp; tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layout_and_tables.html">Layout analysis, tables &amp; formulas</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rotated_documents.html">Rotated documents</a></li>
 <li class="toctree-l1"><a class="reference internal" href="kie.html">Key information extraction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="standalone_predictors.html">Task-specific predictors</a></li>
@@ -717,7 +717,7 @@ many random accesses to the same PDF, a <code class="docutils literal notranslat
 </pre></div>
 </div>
 <p>The <a class="reference internal" href="standalone_predictors.html#long-inputs"><span class="std std-ref">task-specific predictors</span></a> (detection, recognition, layout, table
-structure, orientation) accept page sources as well, and process them chunk by chunk too.</p>
+structure, formula, orientation) accept page sources as well, and process them chunk by chunk too.</p>
 <p>To write the results as you go instead of keeping them all, iterate over
 <a class="reference internal" href="../api/models.html#doctr.models.predictor.OCRPredictor.stream" title="doctr.models.predictor.OCRPredictor.stream"><code class="xref py py-meth docutils literal notranslate"><span class="pre">stream()</span></code></a>: it yields the pages one by one, as soon as they are processed.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"result.txt"</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>

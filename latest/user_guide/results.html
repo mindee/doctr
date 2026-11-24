@@ -490,7 +490,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Beyond plain text</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="layout_and_tables.html">Layout analysis &amp; tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layout_and_tables.html">Layout analysis, tables &amp; formulas</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rotated_documents.html">Rotated documents</a></li>
 <li class="toctree-l1"><a class="reference internal" href="kie.html">Key information extraction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="standalone_predictors.html">Task-specific predictors</a></li>
@@ -585,6 +585,7 @@ into pixels, visualize the predictions, and save them for later.</p>
 <span class="n">page</span><span class="o">.</span><span class="n">language</span>  <span class="c1"># {"value": ..., "confidence": ...} with detect_language=True</span>
 <span class="n">page</span><span class="o">.</span><span class="n">layout</span>  <span class="c1"># list of LayoutElement with detect_layout=True</span>
 <span class="n">page</span><span class="o">.</span><span class="n">tables</span>  <span class="c1"># list of Table with detect_tables=True</span>
+<span class="n">page</span><span class="o">.</span><span class="n">formulas</span>  <span class="c1"># list of Formula with detect_formulas=True</span>
 </pre></div>
 </div>
 <p>Most of the time, you want a flat list of words. A small generator does the job:</p>
@@ -769,7 +770,8 @@ need them, e.g. to call <code class="docutils literal notranslate"><span class="
 <span class="w">        </span><span class="p">}</span>
 <span class="w">      </span><span class="p">],</span>
 <span class="w">      </span><span class="nt">"layout"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
-<span class="w">      </span><span class="nt">"tables"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="w">      </span><span class="nt">"tables"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+<span class="w">      </span><span class="nt">"formulas"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">]</span>
 <span class="p">}</span>

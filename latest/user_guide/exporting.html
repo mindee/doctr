@@ -76,7 +76,7 @@
     <link rel="icon" href="../_static/favicon.ico"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Layout analysis &amp; tables" href="layout_and_tables.html" />
+    <link rel="next" title="Layout analysis, tables &amp; formulas" href="layout_and_tables.html" />
     <link rel="prev" title="Working with results" href="results.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
@@ -490,7 +490,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Beyond plain text</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="layout_and_tables.html">Layout analysis &amp; tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layout_and_tables.html">Layout analysis, tables &amp; formulas</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rotated_documents.html">Rotated documents</a></li>
 <li class="toctree-l1"><a class="reference internal" href="kie.html">Key information extraction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="standalone_predictors.html">Task-specific predictors</a></li>
@@ -641,6 +641,8 @@ headers and footers can be left out:</p>
 headers as headings, list items as lists, and to place the page furniture (headers, footers, footnotes).</p></li>
 <li><p><strong>With table recognition</strong> (<code class="docutils literal notranslate"><span class="pre">detect_tables=True</span></code>), tables are rendered as real tables. The HTML export keeps
 merged cells (<code class="docutils literal notranslate"><span class="pre">rowspan</span></code> / <code class="docutils literal notranslate"><span class="pre">colspan</span></code>); the other formats place the text of a merged cell at its top-left position.</p></li>
+<li><p><strong>With formula recognition</strong> (<code class="docutils literal notranslate"><span class="pre">detect_formulas=True</span></code>), formulas are rendered as display math (<code class="docutils literal notranslate"><span class="pre">$$...$$</span></code> in
+Markdown, a <code class="docutils literal notranslate"><span class="pre">[latexmath]</span></code> block in AsciiDoc, see <a class="reference internal" href="layout_and_tables.html#formula-recognition"><span class="std std-ref">Formula recognition</span></a>).</p></li>
 </ul>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
@@ -730,14 +732,14 @@ turn docTR results into <strong>searchable PDFs</strong>.</p>
 <ul class="simple">
 <li><p>follows the <strong>columns</strong> of multi-column layouts instead of reading straight across the page,</p></li>
 <li><p>infers the <strong>reading direction</strong> from the recognized text (right-to-left for Arabic or Hebrew, for instance),</p></li>
-<li><p>uses the <strong>layout regions</strong>, when available, to order blocks, headings, tables and figures and to place the
+<li><p>uses the <strong>layout regions</strong>, when available, to order blocks, headings, tables, formulas and figures and to place the
 page furniture.</p></li>
 </ul>
 <p>Force the direction when automatic detection is not what you want:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span><span class="o">.</span><span class="n">export_as_markdown</span><span class="p">(</span><span class="n">direction</span><span class="o">=</span><span class="s2">"rtl"</span><span class="p">)</span>  <span class="c1"># 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'</span>
 </pre></div>
 </div>
-<p>To get the elements of a page (blocks, tables and optionally figures) in reading order, for your own exporter:</p>
+<p>To get the elements of a page (blocks, tables, formulas and optionally figures) in reading order, for your own exporter:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">pages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">items_in_reading_order</span><span class="p">(</span><span class="n">include_figures</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">render</span><span class="p">()[:</span><span class="mi">40</span><span class="p">])</span>
 </pre></div>
@@ -747,7 +749,7 @@ sort the <code class="docutils literal notranslate"><span class="pre">Document</
 </section>
 <section id="figures">
 <h2>Figures<a class="headerlink" href="#figures" title="Link to this heading">#</a></h2>
-<p>When the layout model runs (<code class="docutils literal notranslate"><span class="pre">detect_layout=True</span></code> or <code class="docutils literal notranslate"><span class="pre">detect_tables=True</span></code>), the regions it labels as figures
+<p>When the layout model runs (<code class="docutils literal notranslate"><span class="pre">detect_layout=True</span></code>, <code class="docutils literal notranslate"><span class="pre">detect_tables=True</span></code> or <code class="docutils literal notranslate"><span class="pre">detect_formulas=True</span></code>), the regions it labels as figures
 (pictures, charts…) take part in the reading order. The Markdown, AsciiDoc and HTML exports render them according
 to their <code class="docutils literal notranslate"><span class="pre">images</span></code> argument:</p>
 <div class="pst-scrollable-table-container"><table class="table">
@@ -829,7 +831,7 @@ contains figures, and hOCR positions them as <code class="docutils literal notra
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Layout analysis &amp; tables</p>
+        <p class="prev-next-title">Layout analysis, tables &amp; formulas</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

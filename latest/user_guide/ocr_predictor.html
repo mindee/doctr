@@ -490,7 +490,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Beyond plain text</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="layout_and_tables.html">Layout analysis &amp; tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layout_and_tables.html">Layout analysis, tables &amp; formulas</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rotated_documents.html">Rotated documents</a></li>
 <li class="toctree-l1"><a class="reference internal" href="kie.html">Key information extraction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="standalone_predictors.html">Task-specific predictors</a></li>
@@ -691,14 +691,18 @@ Extra predictions</label><div class="sd-tab-content docutils" id="sd-tab-item-1-
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
 <td><p>Recognize the structure of tables (<code class="docutils literal notranslate"><span class="pre">page.tables</span></code>); enables the layout model</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ignore_regions</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">detect_formulas</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Read formulas as LaTeX (<code class="docutils literal notranslate"><span class="pre">page.formulas</span></code>); enables the layout model</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ignore_regions</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
 <td><p>Layout classes to mask out before OCR, e.g. <code class="docutils literal notranslate"><span class="pre">[&quot;Picture&quot;]</span></code>; requires the layout model (<code class="docutils literal notranslate"><span class="pre">detect_layout=True</span></code>)</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>See <a class="reference internal" href="layout_and_tables.html"><span class="std std-doc">Layout analysis &amp; tables</span></a>.</p>
+<p>See <a class="reference internal" href="layout_and_tables.html"><span class="std std-doc">Layout analysis, tables &amp; formulas</span></a>.</p>
 </div>
 <input id="sd-tab-item-2" name="sd-tab-set-0" type="radio">
 <label aria-controls="sd-tab-item-2-content" class="sd-tab-label" for="sd-tab-item-2">

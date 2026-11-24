@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta content="docTR: state-of-the-art OCR for PDFs and images in a few lines of Python. Text detection, text recognition, layout analysis and table structure recognition, powered by PyTorch." name="description" />
+<meta content="docTR: state-of-the-art OCR for PDFs and images in a few lines of Python. Text detection, text recognition, layout analysis, table structure and formula recognition, powered by PyTorch." name="description" />
 
     <title>docTR: Document Text Recognition &#8212; docTR documentation</title>
   
@@ -503,7 +503,7 @@
       <p class="doctr-hero__title">OCR made <span>seamless</span> &amp; accessible to anyone</p>
       <p class="doctr-hero__lead">
         docTR reads PDFs and images and gives you back every word with its position, organized into
-        lines, blocks, layout regions and tables. Run state-of-the-art models in three lines of Python,
+        lines, blocks, layout regions, tables and formulas. Run state-of-the-art models in three lines of Python,
         fine-tune them on your own documents and ship them anywhere.
       </p>
       <div class="doctr-hero__actions">
@@ -539,7 +539,7 @@ Date: 26/10/2026
     </div>
   </div>
   <div class="doctr-stats">
-    <div><strong>4 tasks</strong><span>detection &middot; recognition &middot; layout &middot; tables</span></div>
+    <div><strong>5 tasks</strong><span>detection &middot; recognition &middot; layout &middot; tables &middot; formulas</span></div>
     <div><strong>20+</strong><span>pretrained architectures</span></div>
     <div><strong>100+</strong><span>built-in vocabularies</span></div>
     <div><strong>6</strong><span>export formats</span></div>
@@ -561,10 +561,11 @@ Date: 26/10/2026
 <div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
 <div class="sd-card-body docutils">
 <div class="sd-card-title sd-font-weight-bold docutils">
-<svg version="1.1" width="1.1em" height="1.1em" class="sd-octicon sd-octicon-table" viewBox="0 0 16 16" aria-hidden="true"><path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v12.5A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25ZM6.5 6.5v8h7.75a.25.25 0 0 0 .25-.25V6.5Zm8-1.5V1.75a.25.25 0 0 0-.25-.25H6.5V5Zm-13 1.5v7.75c0 .138.112.25.25.25H5v-8ZM5 5V1.5H1.75a.25.25 0 0 0-.25.25V5Z"></path></svg> Layout &amp; tables</div>
-<p class="sd-card-text">Detect titles, paragraphs, figures and tables, and turn tables into a row/column grid that loads straight into pandas.</p>
+<svg version="1.1" width="1.1em" height="1.1em" class="sd-octicon sd-octicon-table" viewBox="0 0 16 16" aria-hidden="true"><path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v12.5A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25ZM6.5 6.5v8h7.75a.25.25 0 0 0 .25-.25V6.5Zm8-1.5V1.75a.25.25 0 0 0-.25-.25H6.5V5Zm-13 1.5v7.75c0 .138.112.25.25.25H5v-8ZM5 5V1.5H1.75a.25.25 0 0 0-.25.25V5Z"></path></svg> Layout, tables &amp; formulas</div>
+<p class="sd-card-text">Detect titles, paragraphs, figures and tables, turn tables into a row/column grid that loads straight into pandas,
+and read formulas as LaTeX.</p>
 </div>
-<a class="sd-stretched-link sd-hide-link-text reference internal" href="user_guide/layout_and_tables.html"><span class="doc">Layout analysis &amp; tables</span></a></div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="user_guide/layout_and_tables.html"><span class="doc">Layout analysis, tables &amp; formulas</span></a></div>
 </div>
 <div class="sd-col sd-d-flex-row docutils">
 <div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
@@ -605,8 +606,8 @@ Date: 26/10/2026
 </div>
 </div>
 <h2 class="doctr-section-title">How it works</h2>
-<p class="doctr-section-lead">An OCR predictor chains specialized models. Each stage is a regular PyTorch module you can replace with your own.</p><div class="doctr-diagram" role="img" aria-label="docTR pipeline: your files go through text detection and text recognition, are assembled by the document builder into a Document. Optional stages: orientation handling, layout analysis and table structure recognition.">
-<svg viewBox="0 0 1000 300" xmlns="http://www.w3.org/2000/svg">
+<p class="doctr-section-lead">An OCR predictor chains specialized models. Each stage is a regular PyTorch module you can replace with your own.</p><div class="doctr-diagram" role="img" aria-label="docTR pipeline: your files go through text detection and text recognition, are assembled by the document builder into a Document. Optional stages: orientation handling, layout analysis, table structure recognition and formula recognition.">
+<svg viewBox="0 0 1000 390" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <marker id="doctr-ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path class="arrow-head" d="M 0 0 L 10 5 L 0 10 z"/>
@@ -633,10 +634,10 @@ Date: 26/10/2026
   <text class="sub" x="672" y="82" text-anchor="middle">Lines, blocks and</text>
   <text class="sub" x="672" y="99" text-anchor="middle">reading order</text>
 
-  <rect class="box out" x="795" y="30" width="195" height="92" rx="12"/>
-  <text class="title on-dark" x="892" y="60" text-anchor="middle">Document</text>
-  <text class="sub on-dark" x="892" y="82" text-anchor="middle">JSON · text · Markdown</text>
-  <text class="sub on-dark" x="892" y="99" text-anchor="middle">HTML · AsciiDoc · hOCR</text>
+  <rect class="box out" x="795" y="30" width="165" height="92" rx="12"/>
+  <text class="title on-dark" x="877" y="60" text-anchor="middle">Document</text>
+  <text class="sub on-dark" x="877" y="82" text-anchor="middle">JSON · text · Markdown</text>
+  <text class="sub on-dark" x="877" y="99" text-anchor="middle">HTML · AsciiDoc · hOCR</text>
 
   <line class="arrow" x1="140" y1="76" x2="176" y2="76" marker-end="url(#doctr-ah)"/>
   <line class="arrow" x1="345" y1="76" x2="381" y2="76" marker-end="url(#doctr-ah)"/>
@@ -654,16 +655,23 @@ Date: 26/10/2026
   <text class="sub" x="672" y="230" text-anchor="middle">Titles, tables, figures…</text>
   <text class="mono" x="672" y="249" text-anchor="middle">detect_layout=True</text>
 
-  <rect class="box opt" x="795" y="182" width="195" height="80" rx="12"/>
-  <text class="title" x="892" y="210" text-anchor="middle">Table structure</text>
-  <text class="sub" x="892" y="230" text-anchor="middle">Rows, columns and cells</text>
-  <text class="mono" x="892" y="249" text-anchor="middle">detect_tables=True</text>
+  <rect class="box opt" x="795" y="182" width="165" height="80" rx="12"/>
+  <text class="title" x="877" y="210" text-anchor="middle">Table structure</text>
+  <text class="sub" x="877" y="230" text-anchor="middle">Rows, columns and cells</text>
+  <text class="mono" x="877" y="249" text-anchor="middle">detect_tables=True</text>
+
+  <rect class="box opt" x="795" y="292" width="165" height="80" rx="12"/>
+  <text class="title" x="877" y="320" text-anchor="middle">Formula recognition</text>
+  <text class="sub" x="877" y="340" text-anchor="middle">Formulas as LaTeX</text>
+  <text class="mono" x="877" y="359" text-anchor="middle">detect_formulas=True</text>
 
   <line class="arrow" x1="262" y1="182" x2="262" y2="126" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
   <line class="arrow" x1="467" y1="182" x2="467" y2="126" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
   <line class="arrow" x1="672" y1="182" x2="672" y2="126" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
-  <line class="arrow" x1="892" y1="182" x2="892" y2="126" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
+  <line class="arrow" x1="877" y1="182" x2="877" y2="126" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
   <line class="arrow" x1="755" y1="222" x2="791" y2="222" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
+  <path class="arrow" d="M 672 262 V 332 H 791" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
+  <path class="arrow" d="M 960 332 H 982 V 76 H 964" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
 
   <!-- Legend -->
   <line class="arrow" x1="10" y1="200" x2="40" y2="200"/>
