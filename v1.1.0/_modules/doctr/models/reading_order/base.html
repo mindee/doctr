@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" data-theme="auto">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>doctr.models.reading_order.base &#8212; docTR documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "auto";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "auto";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=6a604523" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/css/doctr.css?v=376da089" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../../../../_static/documentation_options.js?v=b426288c"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../_static/copybutton.js?v=08e7b316"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../../../../_static/design-tabs.js?v=fcb327ea"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('consent', 'default', {
+                    'ad_storage': 'denied',
+                    'ad_user_data': 'denied',
+                    'ad_personalization': 'denied',
+                    'analytics_storage': 'denied'
+                });
+            </script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-40DVRMX8T4"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-40DVRMX8T4');
+            </script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/doctr/models/reading_order/base';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.24.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = '_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.1.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = true;</script>
+    <script src="../../../../_static/js/doctr.js?v=0ea358fd"></script>
+    <link rel="icon" href="../../../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.0.2a0" />
+  
+    
+    <script src="../../../../_static/searchtools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="auto">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../../_static/logo-light.png" class="logo__image only-light" alt="docTR - Home"/>
+    <img src="../../../../_static/logo-dark.png" class="logo__image only-dark pst-js-only" alt="docTR - Home"/>
+  
+  
+</a></div>
+    
+      <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../getting_started/installing.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../getting_started/quickstart.html">
+    Quickstart
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../notebooks.html">
+    docTR Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../using_doctr/using_models.html">
+    Choosing the right model
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../using_doctr/using_datasets.html">
+    Choose a ready to use dataset
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../using_doctr/using_contrib_modules.html">
+    Integrate contributions into your pipeline
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../using_doctr/sharing_models.html">
+    Share your model with the community
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../using_doctr/using_model_export.html">
+    Preparing your model for inference
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../using_doctr/custom_models_training.html">
+    Train your own model
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../using_doctr/running_on_aws.html">
+    AWS Lambda
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../using_doctr/using_cli.html">
+    Using the CLI for Optical Character Recognition
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../community/resources.html">
+    Community Resources
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../community/tools.html">
+    Community Tools
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../modules/contrib.html">
+    doctr.contrib
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../modules/datasets.html">
+    doctr.datasets
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../modules/io.html">
+    doctr.io
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../modules/models.html">
+    doctr.models
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../modules/transforms.html">
+    doctr.transforms
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../modules/utils.html">
+    doctr.utils
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../contributing/code_of_conduct.html">
+    Contributor Covenant Code of Conduct
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../contributing/contributing.html">
+    Contributing to docTR
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mindee/doctr" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/python-doctr/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-python fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://huggingface.co/spaces/mindee/doctr" title="Live demo on Hugging Face" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-wand-magic-sparkles fa-lg" aria-hidden="true"></i><span class="visually-hidden">Live demo on Hugging Face</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../getting_started/installing.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../getting_started/quickstart.html">
+    Quickstart
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../notebooks.html">
+    docTR Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../using_doctr/using_models.html">
+    Choosing the right model
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../using_doctr/using_datasets.html">
+    Choose a ready to use dataset
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../using_doctr/using_contrib_modules.html">
+    Integrate contributions into your pipeline
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../using_doctr/sharing_models.html">
+    Share your model with the community
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../using_doctr/using_model_export.html">
+    Preparing your model for inference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../using_doctr/custom_models_training.html">
+    Train your own model
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../using_doctr/running_on_aws.html">
+    AWS Lambda
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../using_doctr/using_cli.html">
+    Using the CLI for Optical Character Recognition
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../community/resources.html">
+    Community Resources
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../community/tools.html">
+    Community Tools
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../modules/contrib.html">
+    doctr.contrib
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../modules/datasets.html">
+    doctr.datasets
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../modules/io.html">
+    doctr.io
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../modules/models.html">
+    doctr.models
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../modules/transforms.html">
+    doctr.transforms
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../modules/utils.html">
+    doctr.utils
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../contributing/code_of_conduct.html">
+    Contributor Covenant Code of Conduct
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../contributing/contributing.html">
+    Contributing to docTR
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mindee/doctr" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/python-doctr/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-python fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://huggingface.co/spaces/mindee/doctr" title="Live demo on Hugging Face" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-wand-magic-sparkles fa-lg" aria-hidden="true"></i><span class="visually-hidden">Live demo on Hugging Face</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">doctr.models.reading_order.base</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for doctr.models.reading_order.base</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (C) 2021-2026, Mindee.</span>
+
+<span class="c1"># This program is licensed under the Apache License 2.0.</span>
+<span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">unicodedata</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.sparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">csr_matrix</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.sparse.csgraph</span><span class="w"> </span><span class="kn">import</span> <span class="n">connected_components</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">estimate_page_angle</span><span class="p">,</span> <span class="n">order_points</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils.repr</span><span class="w"> </span><span class="kn">import</span> <span class="n">NestedObject</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"ReadingOrderPredictor"</span><span class="p">,</span>
+    <span class="s2">"assign_layout_labels"</span><span class="p">,</span>
+    <span class="s2">"deskew_reading_geometries"</span><span class="p">,</span>
+    <span class="s2">"detect_text_direction"</span><span class="p">,</span>
+    <span class="s2">"layout_label_role"</span><span class="p">,</span>
+    <span class="s2">"normalize_layout_label"</span><span class="p">,</span>
+    <span class="s2">"resolve_reading_segments"</span><span class="p">,</span>
+    <span class="s2">"sort_reading_order"</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1"># Directions supported by the ordering functions</span>
+<span class="n">SUPPORTED_DIRECTIONS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"auto"</span><span class="p">,</span> <span class="s2">"ltr"</span><span class="p">,</span> <span class="s2">"rtl"</span><span class="p">,</span> <span class="s2">"ttb-rtl"</span><span class="p">,</span> <span class="s2">"ttb-ltr"</span><span class="p">)</span>
+
+<span class="c1"># ISO 639 codes of languages predominantly written right-to-left (used as a fallback hint when no text is</span>
+<span class="c1"># available, e.g. from the `langdetect` prediction attached to a page)</span>
+<span class="n">RTL_LANGUAGES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"ar"</span><span class="p">,</span> <span class="s2">"arc"</span><span class="p">,</span> <span class="s2">"ckb"</span><span class="p">,</span> <span class="s2">"dv"</span><span class="p">,</span> <span class="s2">"fa"</span><span class="p">,</span> <span class="s2">"he"</span><span class="p">,</span> <span class="s2">"iw"</span><span class="p">,</span> <span class="s2">"ks"</span><span class="p">,</span> <span class="s2">"ku"</span><span class="p">,</span> <span class="s2">"nqo"</span><span class="p">,</span> <span class="s2">"ps"</span><span class="p">,</span> <span class="s2">"sd"</span><span class="p">,</span> <span class="s2">"syr"</span><span class="p">,</span> <span class="s2">"ug"</span><span class="p">,</span> <span class="s2">"ur"</span><span class="p">,</span> <span class="s2">"yi"</span><span class="p">}</span>
+
+<span class="c1"># Unicode bidirectional categories of strong right-to-left characters (Hebrew-like &amp; Arabic-like)</span>
+<span class="n">_RTL_BIDI_CATEGORIES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"R"</span><span class="p">,</span> <span class="s2">"AL"</span><span class="p">}</span>
+
+<span class="c1"># Normalized layout labels (DocLayNet-style) grouped by their role in the reading order</span>
+<span class="n">_HEADER_LABELS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"page_header"</span><span class="p">,</span> <span class="s2">"header"</span><span class="p">,</span> <span class="s2">"running_header"</span><span class="p">}</span>
+<span class="n">_FOOTER_LABELS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"page_footer"</span><span class="p">,</span> <span class="s2">"footer"</span><span class="p">,</span> <span class="s2">"running_footer"</span><span class="p">}</span>
+<span class="n">_FOOTNOTE_LABELS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"footnote"</span><span class="p">}</span>
+<span class="n">_CAPTION_LABELS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"caption"</span><span class="p">}</span>
+<span class="n">_FLOAT_LABELS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"table"</span><span class="p">,</span> <span class="s2">"picture"</span><span class="p">,</span> <span class="s2">"figure"</span><span class="p">,</span> <span class="s2">"image"</span><span class="p">,</span> <span class="s2">"chart"</span><span class="p">,</span> <span class="s2">"graphic"</span><span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize_layout_label</span><span class="p">(</span><span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Normalize a layout label to lower snake case (e.g. 'Page-header' -&gt; 'page_header')</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        label: the layout label to normalize (None is mapped to an empty string)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        the normalized label</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">""</span>
+    <span class="k">return</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">c</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">isalnum</span><span class="p">()</span> <span class="k">else</span> <span class="s2">"_"</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">label</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">layout_label_role</span><span class="p">(</span><span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Resolve the role of a layout label in the reading order.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        label: the layout label (e.g. a DocLayNet class such as 'Page-header' or 'Caption')</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        one of 'header', 'footer', 'footnote', 'caption', 'float' or 'body'</span>
+<span class="sd">    """</span>
+    <span class="n">norm</span> <span class="o">=</span> <span class="n">normalize_layout_label</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">norm</span> <span class="ow">in</span> <span class="n">_HEADER_LABELS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"header"</span>
+    <span class="k">if</span> <span class="n">norm</span> <span class="ow">in</span> <span class="n">_FOOTER_LABELS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"footer"</span>
+    <span class="k">if</span> <span class="n">norm</span> <span class="ow">in</span> <span class="n">_FOOTNOTE_LABELS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"footnote"</span>
+    <span class="k">if</span> <span class="n">norm</span> <span class="ow">in</span> <span class="n">_CAPTION_LABELS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"caption"</span>
+    <span class="k">if</span> <span class="n">norm</span> <span class="ow">in</span> <span class="n">_FLOAT_LABELS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"float"</span>
+    <span class="k">return</span> <span class="s2">"body"</span>
+
+
+<div class="viewcode-block" id="detect_text_direction">
+<a class="viewcode-back" href="../../../../modules/models.html#doctr.models.reading_order.detect_text_direction">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">detect_text_direction</span><span class="p">(</span><span class="n">texts</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">language</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Infer the horizontal base direction of a document from its text content.</span>
+
+<span class="sd">    The detection relies on the Unicode bidirectional property of each character: strong right-to-left</span>
+<span class="sd">    characters (bidirectional categories `R` and `AL`, covering among others Hebrew, Arabic, Syriac,</span>
+<span class="sd">    Thaana, N'Ko) are counted against strong left-to-right characters (category `L`). This makes the</span>
+<span class="sd">    detection language-independent and robust to mixed content. When no strong character is found, the</span>
+<span class="sd">    optional ISO 639 language code is used as a fallback hint.</span>
+
+<span class="sd">    &gt;&gt;&gt; from doctr.utils.reading_order import detect_text_direction</span>
+<span class="sd">    &gt;&gt;&gt; detect_text_direction(["Hello", "world"])</span>
+<span class="sd">    'ltr'</span>
+<span class="sd">    &gt;&gt;&gt; detect_text_direction(["مرحبا", "بالعالم"])</span>
+<span class="sd">    'rtl'</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        texts: iterable of text strings (e.g. all the words of a page)</span>
+<span class="sd">        language: optional ISO 639 language code used as a fallback when the script is inconclusive</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        either "ltr" or "rtl"</span>
+<span class="sd">    """</span>
+    <span class="n">rtl_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">ltr_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">texts</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>
+            <span class="n">bidi</span> <span class="o">=</span> <span class="n">unicodedata</span><span class="o">.</span><span class="n">bidirectional</span><span class="p">(</span><span class="n">char</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">bidi</span> <span class="ow">in</span> <span class="n">_RTL_BIDI_CATEGORIES</span><span class="p">:</span>
+                <span class="n">rtl_count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">bidi</span> <span class="o">==</span> <span class="s2">"L"</span><span class="p">:</span>
+                <span class="n">ltr_count</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">rtl_count</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">ltr_count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">language</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">language</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"-"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">RTL_LANGUAGES</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">"rtl"</span>
+        <span class="k">return</span> <span class="s2">"ltr"</span>
+    <span class="k">return</span> <span class="s2">"rtl"</span> <span class="k">if</span> <span class="n">rtl_count</span> <span class="o">&gt;</span> <span class="n">ltr_count</span> <span class="k">else</span> <span class="s2">"ltr"</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_geometry_to_xyxy</span><span class="p">(</span><span class="n">geometry</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">pts</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()),</span> <span class="nb">float</span><span class="p">(</span><span class="n">pts</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()),</span> <span class="nb">float</span><span class="p">(</span><span class="n">pts</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span> <span class="nb">float</span><span class="p">(</span><span class="n">pts</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_to_boxes</span><span class="p">(</span><span class="n">geoms</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">geoms</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="n">geoms</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">geoms</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">geoms</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">geoms</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="n">geoms</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">geoms</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">geoms</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">geoms</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">_geometry_to_xyxy</span><span class="p">(</span><span class="n">geom</span><span class="p">)</span> <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="n">geoms</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_to_canonical_ltr</span><span class="p">(</span><span class="n">boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Map boxes to a canonical left-to-right, top-to-bottom space for the given reading direction.</span>
+
+<span class="sd">    Mirroring &amp; axis swapping are performed around the extent of the boxes themselves, so both relative and</span>
+<span class="sd">    absolute coordinates are supported.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">"ltr"</span> <span class="ow">or</span> <span class="n">boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">boxes</span>
+    <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="n">boxes</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">boxes</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">boxes</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">boxes</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">"rtl"</span><span class="p">:</span>  <span class="c1"># mirror horizontally</span>
+        <span class="n">pivot</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x0</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">x1</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">pivot</span> <span class="o">-</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">pivot</span> <span class="o">-</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">"ttb-ltr"</span><span class="p">:</span>  <span class="c1"># vertical lines, columns ordered left to right: swap axes</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">y0</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">x1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">"ttb-rtl"</span><span class="p">:</span>  <span class="c1"># vertical lines, columns ordered right to left: swap axes &amp; mirror</span>
+        <span class="n">pivot</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x0</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">x1</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">y0</span><span class="p">,</span> <span class="n">pivot</span> <span class="o">-</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">pivot</span> <span class="o">-</span> <span class="n">x0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"invalid reading direction '</span><span class="si">{</span><span class="n">direction</span><span class="si">}</span><span class="s2">', should be one of </span><span class="si">{</span><span class="n">SUPPORTED_DIRECTIONS</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_overlap_ratios</span><span class="p">(</span><span class="n">starts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ends</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Compute the pairwise 1D overlap of intervals, normalized by the length of the smaller interval"""</span>
+    <span class="n">starts</span> <span class="o">=</span> <span class="n">starts</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">ends</span> <span class="o">=</span> <span class="n">ends</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">lengths</span> <span class="o">=</span> <span class="n">ends</span> <span class="o">-</span> <span class="n">starts</span>
+    <span class="n">inter</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">ends</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">ends</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])</span>
+    <span class="n">inter</span> <span class="o">-=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">starts</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">starts</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">inter</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">inter</span><span class="p">)</span>
+    <span class="n">min_len</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">lengths</span><span class="p">,</span> <span class="n">lengths</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">])</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">min_len</span><span class="p">,</span> <span class="mf">1e-9</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">min_len</span><span class="p">)</span>
+    <span class="n">inter</span> <span class="o">/=</span> <span class="n">min_len</span>
+    <span class="k">return</span> <span class="n">inter</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_strict_rank</span><span class="p">(</span><span class="n">primary</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">secondary</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return the rank of each element in the strict total order given by (primary, secondary, index)"""</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">lexsort</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">primary</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">secondary</span><span class="p">,</span> <span class="n">primary</span><span class="p">))</span>
+    <span class="n">ranks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+    <span class="n">ranks</span><span class="p">[</span><span class="n">order</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">ranks</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_topological_order</span><span class="p">(</span><span class="n">boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">x_overlap_threshold</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">y_overlap_threshold</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Order boxes (already in canonical LTR space) with a column-following topological sort.</span>
+
+<span class="sd">    Two families of "reads-before" relations are used (cf. Breuel 2003):</span>
+
+<span class="sd">    * `i` precedes `j` when they overlap horizontally and `i` lies above `j`</span>
+<span class="sd">    * `i` precedes `j` when they lie on the same visual row (vertical overlap, no horizontal overlap)</span>
+<span class="sd">      and `i` is on the left of `j`</span>
+
+<span class="sd">    The relations are resolved with Kahn's algorithm; among the available elements, the traversal favors the</span>
+<span class="sd">    continuation of the current column (the closest element below the last emitted one with a horizontal</span>
+<span class="sd">    overlap), which keeps multi-column bodies intact even for non-Manhattan layouts where recursive XY-cuts</span>
+<span class="sd">    fail to find a valid split.</span>
+<span class="sd">    """</span>
+    <span class="n">num_boxes</span> <span class="o">=</span> <span class="n">boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">num_boxes</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_boxes</span><span class="p">))</span>
+
+    <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="n">boxes</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">boxes</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">boxes</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">boxes</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span>
+    <span class="n">x_overlap</span> <span class="o">=</span> <span class="n">_overlap_ratios</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">x1</span><span class="p">)</span>
+    <span class="n">y_overlap</span> <span class="o">=</span> <span class="n">_overlap_ratios</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="n">y1</span><span class="p">)</span>
+
+    <span class="c1"># Strict total orders on both axes, so that the induced relations cannot create 2-cycles</span>
+    <span class="n">x_rank</span> <span class="o">=</span> <span class="n">_strict_rank</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">x1</span><span class="p">)</span>
+    <span class="n">y_rank</span> <span class="o">=</span> <span class="n">_strict_rank</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="n">y1</span><span class="p">)</span>
+
+    <span class="c1"># i -&gt; j edges: i must be read before j. The matrices are combined in place: every intermediate is an</span>
+    <span class="c1"># N x N array, so materializing them all at once dominates the memory of this function on dense pages.</span>
+    <span class="n">x_linked</span> <span class="o">=</span> <span class="n">x_overlap</span> <span class="o">&gt;</span> <span class="n">x_overlap_threshold</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">y_rank</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">y_rank</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># i is above j</span>
+    <span class="n">edges</span> <span class="o">&amp;=</span> <span class="n">x_linked</span>
+    <span class="n">same_row</span> <span class="o">=</span> <span class="n">y_overlap</span> <span class="o">&gt;</span> <span class="n">y_overlap_threshold</span>
+    <span class="n">same_row</span> <span class="o">&amp;=</span> <span class="o">~</span><span class="n">x_linked</span>
+    <span class="n">same_row</span> <span class="o">&amp;=</span> <span class="n">x_rank</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">x_rank</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># i is on the left of j</span>
+    <span class="n">edges</span> <span class="o">|=</span> <span class="n">same_row</span>
+    <span class="k">del</span> <span class="n">same_row</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">in_degree</span> <span class="o">=</span> <span class="n">edges</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">emitted</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_boxes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">order</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">last</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="c1"># Column components: elements connected through horizontal overlap, ignoring page-spanning lines (e.g.</span>
+    <span class="c1"># titles) which would otherwise merge separate columns. This keeps the traversal inside a column even when</span>
+    <span class="c1"># the direct top-to-bottom continuation is momentarily broken by a fragmented or misaligned OCR line.</span>
+    <span class="n">page_width</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x1</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">x0</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="ow">or</span> <span class="mf">1.0</span>
+    <span class="n">spanning</span> <span class="o">=</span> <span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">page_width</span>
+
+    <span class="c1"># Reuse the horizontal-overlap matrix; keep the upper triangle only, so each pair is visited once</span>
+    <span class="n">col_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">triu</span><span class="p">(</span><span class="n">x_linked</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">col_edges</span> <span class="o">&amp;=</span> <span class="o">~</span><span class="n">spanning</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">col_edges</span> <span class="o">&amp;=</span> <span class="o">~</span><span class="n">spanning</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">component</span> <span class="o">=</span> <span class="n">connected_components</span><span class="p">(</span><span class="n">csr_matrix</span><span class="p">(</span><span class="n">col_edges</span><span class="p">),</span> <span class="n">directed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># Detect whether the page is multi-column: if a vertical line can be drawn that separates the boxes into two</span>
+    <span class="c1"># groups with a small number of crossing boxes, the page is considered multi-column. This is used to</span>
+    <span class="c1"># favor the continuation of the current column when traversing the graph, which keeps multi-column bodies intact</span>
+    <span class="c1"># even for non-Manhattan layouts where recursive XY-cuts fail to find a valid split.</span>
+    <span class="n">multi_column</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">num_boxes</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">span</span> <span class="o">=</span> <span class="n">page_width</span>
+        <span class="n">tolerance</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="mf">0.05</span> <span class="o">*</span> <span class="n">num_boxes</span><span class="p">))</span>
+        <span class="n">centers</span> <span class="o">=</span> <span class="p">(</span><span class="n">x0</span> <span class="o">+</span> <span class="n">x1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="n">x0</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="n">span</span><span class="p">,</span> <span class="n">x0</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="mf">0.75</span> <span class="o">*</span> <span class="n">span</span>
+        <span class="k">for</span> <span class="n">split</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">x1</span><span class="p">[(</span><span class="n">x1</span> <span class="o">&gt;=</span> <span class="n">lo</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">x1</span> <span class="o">&lt;=</span> <span class="n">hi</span><span class="p">)]):</span>
+            <span class="n">crossing</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">split</span><span class="p">,</span> <span class="n">split</span> <span class="o">-</span> <span class="n">x0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.02</span> <span class="o">*</span> <span class="n">span</span><span class="p">))</span>
+            <span class="n">left</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">centers</span> <span class="o">&lt;=</span> <span class="n">split</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">crossing</span> <span class="o">&lt;=</span> <span class="n">tolerance</span> <span class="ow">and</span> <span class="n">left</span> <span class="o">&gt;=</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="n">num_boxes</span> <span class="ow">and</span> <span class="n">num_boxes</span> <span class="o">-</span> <span class="n">left</span> <span class="o">&gt;=</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="n">num_boxes</span><span class="p">:</span>
+                <span class="n">multi_column</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">break</span>
+
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">order</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">num_boxes</span><span class="p">:</span>
+        <span class="n">ready</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">((</span><span class="n">in_degree</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">emitted</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ready</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># cycle safety net (can only happen with degenerate overlapping geometries)</span>
+            <span class="n">ready</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="o">~</span><span class="n">emitted</span><span class="p">)</span>
+            <span class="n">candidates</span> <span class="o">=</span> <span class="n">ready</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Favor the continuation of the current column: the closest available element located below the</span>
+            <span class="c1"># last emitted one with a horizontal overlap</span>
+            <span class="n">candidates</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">ready</span><span class="p">[(</span><span class="n">x_overlap</span><span class="p">[</span><span class="n">last</span><span class="p">,</span> <span class="n">ready</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">x_overlap_threshold</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">y0</span><span class="p">[</span><span class="n">ready</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">y0</span><span class="p">[</span><span class="n">last</span><span class="p">])]</span>
+                <span class="k">if</span> <span class="n">last</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">multi_column</span>
+                <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">candidates</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">last</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">candidates</span> <span class="o">=</span> <span class="n">ready</span><span class="p">[</span><span class="n">y_overlap</span><span class="p">[</span><span class="n">last</span><span class="p">,</span> <span class="n">ready</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">y_overlap_threshold</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">candidates</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">last</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">spanning</span><span class="p">[</span><span class="n">last</span><span class="p">]:</span>
+                <span class="c1"># Continuation broken (gap, fragment): stay in the same column before switching to another</span>
+                <span class="n">same_column</span> <span class="o">=</span> <span class="n">ready</span><span class="p">[</span><span class="n">component</span><span class="p">[</span><span class="n">ready</span><span class="p">]</span> <span class="o">==</span> <span class="n">component</span><span class="p">[</span><span class="n">last</span><span class="p">]]</span>
+                <span class="n">candidates</span> <span class="o">=</span> <span class="n">same_column</span> <span class="k">if</span> <span class="n">same_column</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="n">ready</span>
+            <span class="k">elif</span> <span class="n">candidates</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">candidates</span> <span class="o">=</span> <span class="n">ready</span>
+        <span class="c1"># Topmost first, then leftmost (in canonical space)</span>
+        <span class="n">next_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">candidates</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">lexsort</span><span class="p">((</span><span class="n">x0</span><span class="p">[</span><span class="n">candidates</span><span class="p">],</span> <span class="n">y0</span><span class="p">[</span><span class="n">candidates</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]])</span>
+        <span class="n">order</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">next_idx</span><span class="p">)</span>
+        <span class="n">emitted</span><span class="p">[</span><span class="n">next_idx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">in_degree</span> <span class="o">=</span> <span class="n">in_degree</span> <span class="o">-</span> <span class="n">edges</span><span class="p">[</span><span class="n">next_idx</span><span class="p">]</span>
+        <span class="n">last</span> <span class="o">=</span> <span class="n">next_idx</span>
+
+    <span class="k">return</span> <span class="n">order</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_attach_captions</span><span class="p">(</span>
+    <span class="n">order</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+    <span class="n">caption_idcs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+    <span class="n">boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">labels</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">max_distance</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Insert captions right before (resp. after) the closest float they sit above (resp. below).</span>
+
+<span class="sd">    Captions without a float within reach keep their natural spatial position in the body.</span>
+<span class="sd">    """</span>
+    <span class="n">float_idcs</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">order</span> <span class="k">if</span> <span class="n">labels</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="ow">in</span> <span class="n">_FLOAT_LABELS</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">cap</span> <span class="ow">in</span> <span class="n">caption_idcs</span><span class="p">:</span>
+        <span class="n">cx0</span><span class="p">,</span> <span class="n">cy0</span><span class="p">,</span> <span class="n">cx1</span><span class="p">,</span> <span class="n">cy1</span> <span class="o">=</span> <span class="n">boxes</span><span class="p">[</span><span class="n">cap</span><span class="p">]</span>
+        <span class="n">best_target</span><span class="p">,</span> <span class="n">best_dist</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"inf"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">float_idcs</span><span class="p">:</span>
+            <span class="n">tx0</span><span class="p">,</span> <span class="n">ty0</span><span class="p">,</span> <span class="n">tx1</span><span class="p">,</span> <span class="n">ty1</span> <span class="o">=</span> <span class="n">boxes</span><span class="p">[</span><span class="n">target</span><span class="p">]</span>
+            <span class="n">x_gap</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">tx0</span> <span class="o">-</span> <span class="n">cx1</span><span class="p">,</span> <span class="n">cx0</span> <span class="o">-</span> <span class="n">tx1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">y_gap</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">ty0</span> <span class="o">-</span> <span class="n">cy1</span><span class="p">,</span> <span class="n">cy0</span> <span class="o">-</span> <span class="n">ty1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+            <span class="c1"># Captions are expected right above/below (or overlapping) their float: penalize horizontal shifts</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">y_gap</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x_gap</span>
+            <span class="k">if</span> <span class="n">dist</span> <span class="o">&lt;</span> <span class="n">best_dist</span><span class="p">:</span>
+                <span class="n">best_target</span><span class="p">,</span> <span class="n">best_dist</span> <span class="o">=</span> <span class="n">target</span><span class="p">,</span> <span class="n">dist</span>
+        <span class="k">if</span> <span class="n">best_target</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">best_dist</span> <span class="o">&lt;=</span> <span class="n">max_distance</span><span class="p">:</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="n">order</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">best_target</span><span class="p">)</span>
+            <span class="c1"># A caption located above (the center of) its float is read before it, otherwise after</span>
+            <span class="n">above</span> <span class="o">=</span> <span class="p">(</span><span class="n">cy0</span> <span class="o">+</span> <span class="n">cy1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">boxes</span><span class="p">[</span><span class="n">best_target</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">boxes</span><span class="p">[</span><span class="n">best_target</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="n">order</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">pos</span> <span class="k">if</span> <span class="n">above</span> <span class="k">else</span> <span class="n">pos</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">cap</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># fallback: insert at the natural spatial position</span>
+            <span class="n">cap_y0</span> <span class="o">=</span> <span class="n">boxes</span><span class="p">[</span><span class="n">cap</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">order</span><span class="p">)</span> <span class="k">if</span> <span class="n">boxes</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">cap_y0</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">order</span><span class="p">))</span>
+            <span class="n">order</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">cap</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">order</span>
+
+
+<div class="viewcode-block" id="deskew_reading_geometries">
+<a class="viewcode-back" href="../../../../modules/models.html#doctr.models.reading_order.deskew_reading_geometries">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">deskew_reading_geometries</span><span class="p">(</span>
+    <span class="n">geoms</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">region_geoms</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">page_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">angle_geoms</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">min_angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""De-skew rotated geometries so the reading order can be computed in an upright frame.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        geoms: geometries of the elements to order, in any docTR format (cf. `sort_reading_order`)</span>
+<span class="sd">        region_geoms: optional geometries of the layout regions, de-skewed together with the elements</span>
+<span class="sd">        page_shape: the page dimensions (height, width). Required for an exact angle on non-square pages with</span>
+<span class="sd">            relative coordinates, since relative coordinates distort angles by the aspect ratio.</span>
+<span class="sd">        angle_geoms: optional reading-oriented 4-point polygons used to estimate the page angle</span>
+<span class="sd">        min_angle: minimum estimated angle (in degrees) to trigger the de-skew. Ordering is affected as soon</span>
+<span class="sd">            as the drift along a line approaches the line height (about 1 degree for a page-wide line), and a</span>
+<span class="sd">            small rigid rotation cannot change the order of an upright page, hence the low default. Beyond 45</span>
+<span class="sd">            degrees the corner identification is ambiguous (an upstream orientation correction is needed) and</span>
+<span class="sd">            nothing is done.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        the (possibly de-skewed) element and region geometries</span>
+<span class="sd">    """</span>
+    <span class="n">region_geoms</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">region_geoms</span><span class="p">)</span> <span class="k">if</span> <span class="n">region_geoms</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">geom</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="n">geoms</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">4</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pts</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">geoms</span><span class="p">),</span> <span class="n">region_geoms</span>  <span class="c1"># straight geometries: nothing to de-skew</span>
+    <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">page_shape</span> <span class="k">if</span> <span class="n">page_shape</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">angle_source</span> <span class="o">=</span> <span class="n">angle_geoms</span> <span class="k">if</span> <span class="n">angle_geoms</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span>
+    <span class="n">angle_pts</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">geom</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="n">angle_source</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">angle_pts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">4</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">angle_pts</span><span class="p">):</span>
+        <span class="c1"># Detection polygons are already reading-oriented (cf. `estimate_page_angle`): keep their vertex order</span>
+        <span class="n">angle</span> <span class="o">=</span> <span class="n">estimate_page_angle</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">angle_pts</span><span class="p">)</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Normalize the vertex order (TL, TR, BR, BL) so the estimation does not depend on the vertex</span>
+        <span class="n">angle</span> <span class="o">=</span> <span class="n">estimate_page_angle</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">order_points</span><span class="p">(</span><span class="n">p</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pts</span><span class="p">]))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">abs</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">min_angle</span> <span class="ow">or</span> <span class="nb">abs</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">45</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">geoms</span><span class="p">),</span> <span class="n">region_geoms</span>
+    <span class="c1"># Rigid rotation zeroing the estimated angle; the center is irrelevant for ordering purposes</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+    <span class="n">rot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)]])</span>
+    <span class="n">all_pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="n">scale</span>
+    <span class="n">center</span> <span class="o">=</span> <span class="n">all_pts</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_rotate</span><span class="p">(</span><span class="n">points</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">((</span><span class="n">points</span> <span class="o">*</span> <span class="n">scale</span> <span class="o">-</span> <span class="n">center</span><span class="p">)</span> <span class="o">@</span> <span class="n">rot</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">center</span><span class="p">)</span> <span class="o">/</span> <span class="n">scale</span>
+
+    <span class="n">deskewed</span> <span class="o">=</span> <span class="p">[</span><span class="n">_rotate</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pts</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_corners</span><span class="p">(</span><span class="n">points</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="c1"># Straight ((xmin, ymin), (xmax, ymax)) regions must be expanded to their 4 corners before rotating,</span>
+        <span class="c1"># otherwise only the diagonal would be rotated and the resulting extent would be underestimated</span>
+        <span class="k">if</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">points</span>
+        <span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">),</span> <span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">)</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">points</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">],</span> <span class="p">[</span><span class="n">x1</span><span class="p">,</span> <span class="n">y0</span><span class="p">],</span> <span class="p">[</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">],</span> <span class="p">[</span><span class="n">x0</span><span class="p">,</span> <span class="n">y1</span><span class="p">]])</span>
+
+    <span class="n">region_pts</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">geom</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="n">region_geoms</span><span class="p">]</span>
+    <span class="n">regions_out</span> <span class="o">=</span> <span class="p">[</span><span class="n">_rotate</span><span class="p">(</span><span class="n">_corners</span><span class="p">(</span><span class="n">p</span><span class="p">))</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">region_pts</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">deskewed</span><span class="p">,</span> <span class="n">regions_out</span></div>
+
+
+
+<div class="viewcode-block" id="sort_reading_order">
+<a class="viewcode-back" href="../../../../modules/models.html#doctr.models.reading_order.sort_reading_order">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sort_reading_order</span><span class="p">(</span>
+    <span class="n">geoms</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"ltr"</span><span class="p">,</span>
+    <span class="n">labels</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">x_overlap_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
+    <span class="n">y_overlap_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">caption_max_distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+    <span class="n">page_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">angle_geoms</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Compute the reading order of document elements from their geometries (and optionally, layout labels).</span>
+
+<span class="sd">    &gt;&gt;&gt; from doctr.models.reading_order import sort_reading_order</span>
+<span class="sd">    &gt;&gt;&gt; # A title spanning two columns of text</span>
+<span class="sd">    &gt;&gt;&gt; geoms = [</span>
+<span class="sd">    ...     ((0.55, 0.2), (0.9, 0.8)),  # right column</span>
+<span class="sd">    ...     ((0.1, 0.05), (0.9, 0.15)),  # title</span>
+<span class="sd">    ...     ((0.1, 0.2), (0.45, 0.8)),  # left column</span>
+<span class="sd">    ... ]</span>
+<span class="sd">    &gt;&gt;&gt; sort_reading_order(geoms)</span>
+<span class="sd">    [1, 2, 0]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        geoms: sequence of geometries in any docTR format (((xmin, ymin), (xmax, ymax)) boxes, 4-point</span>
+<span class="sd">            polygons, or a (N, 4) / (N, 4, 2) numpy array), in relative or absolute coordinates</span>
+<span class="sd">        direction: reading direction, one of 'ltr' (Latin, Cyrillic, CJK horizontal, ...), 'rtl' (Arabic,</span>
+<span class="sd">            Hebrew, ...), 'ttb-rtl' (vertical lines with columns ordered right-to-left, e.g. traditional</span>
+<span class="sd">            Chinese/Japanese) or 'ttb-ltr' (vertical lines with columns ordered left-to-right)</span>
+<span class="sd">        labels: optional layout labels (one per geometry, e.g. DocLayNet classes from a docTR layout</span>
+<span class="sd">            predictor). When provided, page headers are moved first, footnotes and page footers last, and</span>
+<span class="sd">            captions are attached to the closest figure or table. Unknown or None labels are treated as body.</span>
+<span class="sd">        x_overlap_threshold: minimum relative horizontal overlap for two elements to be considered vertically</span>
+<span class="sd">            stacked (same column)</span>
+<span class="sd">        y_overlap_threshold: minimum relative vertical overlap for two non-stacked elements to be considered</span>
+<span class="sd">            on the same visual row</span>
+<span class="sd">        caption_max_distance: maximum relative distance between a caption and a float (table or figure) for</span>
+<span class="sd">            the caption to be attached to it</span>
+<span class="sd">        page_shape: the page dimensions (height, width), used to de-skew rotated pages exactly (cf.</span>
+<span class="sd">            `deskew_reading_geometries`)</span>
+<span class="sd">        angle_geoms: optional reading-oriented 4-point polygons (typically the page's word polygons) used to</span>
+<span class="sd">            estimate the page angle on rotated pages (cf. `deskew_reading_geometries`)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        the permutation of the input indices which sorts the elements in reading order</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">direction</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SUPPORTED_DIRECTIONS</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"invalid reading direction '</span><span class="si">{</span><span class="n">direction</span><span class="si">}</span><span class="s2">', should be one of </span><span class="si">{</span><span class="n">SUPPORTED_DIRECTIONS</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">geoms</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">deskew_reading_geometries</span><span class="p">(</span><span class="n">geoms</span><span class="p">,</span> <span class="n">page_shape</span><span class="o">=</span><span class="n">page_shape</span><span class="p">,</span> <span class="n">angle_geoms</span><span class="o">=</span><span class="n">angle_geoms</span><span class="p">)</span>
+    <span class="n">boxes</span> <span class="o">=</span> <span class="n">_to_boxes</span><span class="p">(</span><span class="n">geoms</span><span class="p">)</span>
+    <span class="n">num_boxes</span> <span class="o">=</span> <span class="n">boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="o">!=</span> <span class="n">num_boxes</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Incompatible number of labels (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span><span class="si">}</span><span class="s2">) and geometries (</span><span class="si">{</span><span class="n">num_boxes</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">num_boxes</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_boxes</span><span class="p">))</span>
+
+    <span class="n">canonical</span> <span class="o">=</span> <span class="n">_to_canonical_ltr</span><span class="p">(</span><span class="n">boxes</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_order</span><span class="p">(</span><span class="n">idcs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idcs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">sub_order</span> <span class="o">=</span> <span class="n">_topological_order</span><span class="p">(</span><span class="n">canonical</span><span class="p">[</span><span class="n">idcs</span><span class="p">],</span> <span class="n">x_overlap_threshold</span><span class="p">,</span> <span class="n">y_overlap_threshold</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">idcs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sub_order</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_order</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_boxes</span><span class="p">)))</span>
+
+    <span class="n">norm_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">normalize_layout_label</span><span class="p">(</span><span class="n">label</span><span class="p">)</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">]</span>
+    <span class="n">groups</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"header"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"body"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"caption"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"footnote"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"footer"</span><span class="p">:</span> <span class="p">[]}</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">norm_labels</span><span class="p">):</span>
+        <span class="n">role</span> <span class="o">=</span> <span class="n">layout_label_role</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="n">groups</span><span class="p">[</span><span class="s2">"body"</span> <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="s2">"float"</span> <span class="k">else</span> <span class="n">role</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+
+    <span class="n">body_order</span> <span class="o">=</span> <span class="n">_attach_captions</span><span class="p">(</span>
+        <span class="n">_order</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="s2">"body"</span><span class="p">]),</span> <span class="n">_order</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="s2">"caption"</span><span class="p">]),</span> <span class="n">canonical</span><span class="p">,</span> <span class="n">norm_labels</span><span class="p">,</span> <span class="n">caption_max_distance</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">_order</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="s2">"header"</span><span class="p">])</span> <span class="o">+</span> <span class="n">body_order</span> <span class="o">+</span> <span class="n">_order</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="s2">"footnote"</span><span class="p">])</span> <span class="o">+</span> <span class="n">_order</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="s2">"footer"</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="resolve_reading_segments">
+<a class="viewcode-back" href="../../../../modules/models.html#doctr.models.reading_order.resolve_reading_segments">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">resolve_reading_segments</span><span class="p">(</span>
+    <span class="n">geoms</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"ltr"</span><span class="p">,</span>
+    <span class="n">labels</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">x_overlap_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
+    <span class="n">y_overlap_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">caption_max_distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+    <span class="n">paragraph_gap</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.8</span><span class="p">,</span>
+    <span class="n">page_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">angle_geoms</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Order elements in reading order and group consecutive ones into segments (paragraphs or regions).</span>
+
+<span class="sd">    This is typically used to regroup individual lines into paragraphs once they have been put in reading</span>
+<span class="sd">    order: two consecutive elements are merged into the same segment when they share the same (possibly None)</span>
+<span class="sd">    layout label, belong to the same column and are vertically close enough.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        geoms: sequence of geometries in any docTR format (cf. `sort_reading_order`)</span>
+<span class="sd">        direction: reading direction, one of 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'</span>
+<span class="sd">        labels: optional layout labels (one per geometry), cf. `sort_reading_order`. Elements with a 'float'</span>
+<span class="sd">            role (tables, pictures) are never merged with their neighbors.</span>
+<span class="sd">        x_overlap_threshold: minimum relative horizontal overlap for two elements to be considered vertically</span>
+<span class="sd">            stacked (same column)</span>
+<span class="sd">        y_overlap_threshold: minimum relative vertical overlap for two non-stacked elements to be considered</span>
+<span class="sd">            on the same visual row</span>
+<span class="sd">        caption_max_distance: maximum relative distance between a caption and a float (table or figure) for</span>
+<span class="sd">            the caption to be attached to it</span>
+<span class="sd">        paragraph_gap: maximum vertical gap between two consecutive elements to belong to the same segment,</span>
+<span class="sd">            as a multiple of the median element height</span>
+<span class="sd">        page_shape: the page dimensions (height, width), used to de-skew rotated pages exactly (cf.</span>
+<span class="sd">            `deskew_reading_geometries`)</span>
+<span class="sd">        angle_geoms: optional reading-oriented 4-point polygons (typically the page's word polygons) used to</span>
+<span class="sd">            estimate the page angle on rotated pages (cf. `deskew_reading_geometries`)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        a partition of the input indices into reading-ordered segments (each segment being itself in</span>
+<span class="sd">        reading order)</span>
+<span class="sd">    """</span>
+    <span class="c1"># De-skew once so the ordering and the vertical-gap measurement share the same upright frame</span>
+    <span class="n">geoms</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">deskew_reading_geometries</span><span class="p">(</span><span class="n">geoms</span><span class="p">,</span> <span class="n">page_shape</span><span class="o">=</span><span class="n">page_shape</span><span class="p">,</span> <span class="n">angle_geoms</span><span class="o">=</span><span class="n">angle_geoms</span><span class="p">)</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="n">sort_reading_order</span><span class="p">(</span>
+        <span class="n">geoms</span><span class="p">,</span>
+        <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span>
+        <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span>
+        <span class="n">x_overlap_threshold</span><span class="o">=</span><span class="n">x_overlap_threshold</span><span class="p">,</span>
+        <span class="n">y_overlap_threshold</span><span class="o">=</span><span class="n">y_overlap_threshold</span><span class="p">,</span>
+        <span class="n">caption_max_distance</span><span class="o">=</span><span class="n">caption_max_distance</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">order</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">canonical</span> <span class="o">=</span> <span class="n">_to_canonical_ltr</span><span class="p">(</span><span class="n">_to_boxes</span><span class="p">(</span><span class="n">geoms</span><span class="p">),</span> <span class="n">direction</span><span class="p">)</span>
+    <span class="n">median_height</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">canonical</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">canonical</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]))</span>
+    <span class="n">norm_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">normalize_layout_label</span><span class="p">(</span><span class="n">labels</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">order</span><span class="p">))]</span>
+
+    <span class="n">segments</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[[</span><span class="n">order</span><span class="p">[</span><span class="mi">0</span><span class="p">]]]</span>
+    <span class="k">for</span> <span class="n">prev</span><span class="p">,</span> <span class="n">cur</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">order</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">order</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+        <span class="n">x_gap</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">canonical</span><span class="p">[</span><span class="n">prev</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">canonical</span><span class="p">[</span><span class="n">cur</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span> <span class="o">-</span> <span class="nb">max</span><span class="p">(</span><span class="n">canonical</span><span class="p">[</span><span class="n">prev</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">canonical</span><span class="p">[</span><span class="n">cur</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">x_overlap</span> <span class="o">=</span> <span class="n">x_gap</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span>
+            <span class="nb">min</span><span class="p">(</span><span class="n">canonical</span><span class="p">[</span><span class="n">prev</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">canonical</span><span class="p">[</span><span class="n">prev</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">canonical</span><span class="p">[</span><span class="n">cur</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">canonical</span><span class="p">[</span><span class="n">cur</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="mf">1e-9</span>
+        <span class="p">)</span>
+        <span class="n">same_segment</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">norm_labels</span><span class="p">[</span><span class="n">prev</span><span class="p">]</span> <span class="o">==</span> <span class="n">norm_labels</span><span class="p">[</span><span class="n">cur</span><span class="p">]</span>
+            <span class="ow">and</span> <span class="n">layout_label_role</span><span class="p">(</span><span class="n">norm_labels</span><span class="p">[</span><span class="n">cur</span><span class="p">])</span> <span class="o">!=</span> <span class="s2">"float"</span>
+            <span class="ow">and</span> <span class="n">x_overlap</span> <span class="o">&gt;</span> <span class="n">x_overlap_threshold</span>
+            <span class="ow">and</span> <span class="n">canonical</span><span class="p">[</span><span class="n">cur</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">canonical</span><span class="p">[</span><span class="n">prev</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">paragraph_gap</span> <span class="o">*</span> <span class="n">median_height</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">same_segment</span><span class="p">:</span>
+            <span class="n">segments</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">cur</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">segments</span></div>
+
+
+
+<div class="viewcode-block" id="assign_layout_labels">
+<a class="viewcode-back" href="../../../../modules/models.html#doctr.models.reading_order.assign_layout_labels">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">assign_layout_labels</span><span class="p">(</span>
+    <span class="n">geoms</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">layout_geoms</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">layout_labels</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">min_coverage</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">page_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">angle_geoms</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Assign a layout label to each element based on its overlap with the detected layout regions.</span>
+
+<span class="sd">    Each element receives the label of the region covering the largest share of its area, provided this share</span>
+<span class="sd">    reaches `min_coverage`; otherwise its label is None (treated as regular body content).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        geoms: geometries of the elements to label, in any docTR format</span>
+<span class="sd">        layout_geoms: geometries of the layout regions, in any docTR format</span>
+<span class="sd">        layout_labels: labels of the layout regions (e.g. `[region.type for region in page.layout]`)</span>
+<span class="sd">        min_coverage: minimum share of an element's area a region must cover to assign its label</span>
+<span class="sd">        page_shape: the page dimensions (height, width), used to de-skew rotated pages exactly (cf.</span>
+<span class="sd">            `deskew_reading_geometries`)</span>
+<span class="sd">        angle_geoms: optional reading-oriented 4-point polygons (typically the page's word polygons) used to</span>
+<span class="sd">            estimate the page angle on rotated pages (cf. `deskew_reading_geometries`)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        the label of each element (None when no region covers it enough)</span>
+<span class="sd">    """</span>
+    <span class="c1"># De-skew elements and regions together so the coverage is measured on tight boxes in the same frame</span>
+    <span class="n">geoms</span><span class="p">,</span> <span class="n">layout_geoms</span> <span class="o">=</span> <span class="n">deskew_reading_geometries</span><span class="p">(</span><span class="n">geoms</span><span class="p">,</span> <span class="n">layout_geoms</span><span class="p">,</span> <span class="n">page_shape</span><span class="o">=</span><span class="n">page_shape</span><span class="p">,</span> <span class="n">angle_geoms</span><span class="o">=</span><span class="n">angle_geoms</span><span class="p">)</span>
+    <span class="n">boxes</span><span class="p">,</span> <span class="n">regions</span> <span class="o">=</span> <span class="n">_to_boxes</span><span class="p">(</span><span class="n">geoms</span><span class="p">),</span> <span class="n">_to_boxes</span><span class="p">(</span><span class="n">layout_geoms</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">layout_labels</span><span class="p">)</span> <span class="o">!=</span> <span class="n">regions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Incompatible number of labels (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">layout_labels</span><span class="p">)</span><span class="si">}</span><span class="s2">) and regions (</span><span class="si">{</span><span class="n">regions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">regions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">inter_w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">boxes</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">regions</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">])</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">boxes</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">regions</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">])</span>
+    <span class="n">inter_h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">boxes</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">regions</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">3</span><span class="p">])</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">boxes</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">regions</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">inter</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">inter_w</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">inter_h</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">areas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">((</span><span class="n">boxes</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">boxes</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">boxes</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">boxes</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]),</span> <span class="mf">1e-9</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">coverage</span> <span class="o">=</span> <span class="n">inter</span> <span class="o">/</span> <span class="n">areas</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
+
+    <span class="n">best</span> <span class="o">=</span> <span class="n">coverage</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">layout_labels</span><span class="p">[</span><span class="n">reg_idx</span><span class="p">])</span> <span class="k">if</span> <span class="n">coverage</span><span class="p">[</span><span class="n">box_idx</span><span class="p">,</span> <span class="n">reg_idx</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_coverage</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">box_idx</span><span class="p">,</span> <span class="n">reg_idx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">best</span><span class="p">)</span>
+    <span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="ReadingOrderPredictor">
+<a class="viewcode-back" href="../../../../modules/models.html#doctr.models.reading_order.ReadingOrderPredictor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReadingOrderPredictor</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Language-independent reading order estimation for document elements.</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models.reading_order import ReadingOrderPredictor</span>
+<span class="sd">    &gt;&gt;&gt; predictor = ReadingOrderPredictor()</span>
+<span class="sd">    &gt;&gt;&gt; geoms = np.array([[0.55, 0.2, 0.9, 0.8], [0.1, 0.05, 0.9, 0.15], [0.1, 0.2, 0.45, 0.8]])</span>
+<span class="sd">    &gt;&gt;&gt; predictor(geoms, texts=["First words of each element", "of the page", "to detect the direction"])</span>
+<span class="sd">    [1, 2, 0]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        direction: reading direction, one of 'auto' (inferred from the text content), 'ltr', 'rtl', 'ttb-rtl'</span>
+<span class="sd">            or 'ttb-ltr' (cf. `sort_reading_order`). Automatic detection covers horizontal scripts only.</span>
+<span class="sd">        x_overlap_threshold: minimum relative horizontal overlap for two elements to be considered vertically</span>
+<span class="sd">            stacked (same column)</span>
+<span class="sd">        y_overlap_threshold: minimum relative vertical overlap for two non-stacked elements to be considered</span>
+<span class="sd">            on the same visual row</span>
+<span class="sd">        caption_max_distance: maximum relative distance between a caption and a float (table or figure) for</span>
+<span class="sd">            the caption to be attached to it</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span>
+        <span class="n">x_overlap_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
+        <span class="n">y_overlap_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">caption_max_distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">direction</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SUPPORTED_DIRECTIONS</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"invalid reading direction '</span><span class="si">{</span><span class="n">direction</span><span class="si">}</span><span class="s2">', should be one of </span><span class="si">{</span><span class="n">SUPPORTED_DIRECTIONS</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">direction</span> <span class="o">=</span> <span class="n">direction</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_overlap_threshold</span> <span class="o">=</span> <span class="n">x_overlap_threshold</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_overlap_threshold</span> <span class="o">=</span> <span class="n">y_overlap_threshold</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">caption_max_distance</span> <span class="o">=</span> <span class="n">caption_max_distance</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">resolve_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">texts</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">language</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Resolve the effective reading direction for the given content.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            texts: text content used for the automatic detection (ignored when the direction is explicit)</span>
+<span class="sd">            language: optional ISO 639 language code used as a fallback hint</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            the effective reading direction ('ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr')</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">direction</span> <span class="o">!=</span> <span class="s2">"auto"</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">direction</span>
+        <span class="k">return</span> <span class="n">detect_text_direction</span><span class="p">(</span><span class="n">texts</span> <span class="k">if</span> <span class="n">texts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[],</span> <span class="n">language</span><span class="o">=</span><span class="n">language</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"direction='</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">direction</span><span class="si">}</span><span class="s2">'"</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">geoms</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">texts</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">labels</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">language</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">page_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">angle_geoms</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Compute the reading order of document elements.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            geoms: sequence of geometries in any docTR format (cf. `sort_reading_order`)</span>
+<span class="sd">            texts: optional text content of each element (or any text of the page), used for the automatic</span>
+<span class="sd">                direction detection</span>
+<span class="sd">            labels: optional layout labels (one per geometry), used to handle page furniture &amp; captions</span>
+<span class="sd">            language: optional ISO 639 language code used as a fallback hint for the direction detection</span>
+<span class="sd">            page_shape: the page dimensions (height, width), used to de-skew rotated pages exactly on</span>
+<span class="sd">                non-square pages</span>
+<span class="sd">            angle_geoms: optional reading-oriented 4-point polygons (typically the page's word polygons) used</span>
+<span class="sd">                to estimate the page angle on rotated pages</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            the permutation of the input indices which sorts the elements in reading order</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">sort_reading_order</span><span class="p">(</span>
+            <span class="n">geoms</span><span class="p">,</span>
+            <span class="n">direction</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">resolve_direction</span><span class="p">(</span><span class="n">texts</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="n">language</span><span class="p">),</span>
+            <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span>
+            <span class="n">x_overlap_threshold</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">x_overlap_threshold</span><span class="p">,</span>
+            <span class="n">y_overlap_threshold</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">y_overlap_threshold</span><span class="p">,</span>
+            <span class="n">caption_max_distance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">caption_max_distance</span><span class="p">,</span>
+            <span class="n">page_shape</span><span class="o">=</span><span class="n">page_shape</span><span class="p">,</span>
+            <span class="n">angle_geoms</span><span class="o">=</span><span class="n">angle_geoms</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2021-2026, Mindee.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+    <div class="footer-items__center">
+      
+        <div class="footer-item"><p class="maintainers">
+  Created by <a href="https://mindee.com">Mindee</a> &middot; developed and maintained by
+  <a href="https://www.text2knowledge.de">t2k GmbH</a> and the docTR community
+</p></div>
+      
+    </div>
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="license">
+  Released under the <a href="https://github.com/mindee/doctr/blob/main/LICENSE">Apache 2.0 License</a>
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
