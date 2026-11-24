@@ -25,6 +25,7 @@ page.orientation  # {"value": ..., "confidence": ...} with detect_orientation=Tr
 page.language  # {"value": ..., "confidence": ...} with detect_language=True
 page.layout  # list of LayoutElement with detect_layout=True
 page.tables  # list of Table with detect_tables=True
+page.formulas  # list of Formula with detect_formulas=True
 ```
 
 Most of the time, you want a flat list of words. A small generator does the job:
@@ -226,7 +227,8 @@ need them, e.g. to call `show()`.
         }
       ],
       "layout": [],
-      "tables": []
+      "tables": [],
+      "formulas": []
     }
   ]
 }

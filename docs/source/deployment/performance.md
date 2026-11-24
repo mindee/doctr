@@ -34,7 +34,7 @@ predictor = ocr_predictor(pretrained=True).to(device)
 ::::
 
 The same applies to every predictor: `detection_predictor`, `recognition_predictor`, `layout_predictor`,
-`table_predictor`, `crop_orientation_predictor` and `page_orientation_predictor`.
+`table_predictor`, `formula_predictor`, `crop_orientation_predictor` and `page_orientation_predictor`.
 
 ## Half precision
 

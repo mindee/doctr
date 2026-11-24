@@ -1,4 +1,4 @@
-# Layout analysis & tables
+# Layout analysis, tables & formulas
 
 Text alone loses the structure of a document. docTR can also tell *what* each region of a page is (a title, a
 paragraph, a table, a figure...), rebuild tables as rows and columns and read formulas as LaTeX.

@@ -52,6 +52,8 @@ The structure of these exports depends on what the predictor detected:
   headers as headings, list items as lists, and to place the page furniture (headers, footers, footnotes).
 - **With table recognition** (`detect_tables=True`), tables are rendered as real tables. The HTML export keeps
   merged cells (`rowspan` / `colspan`); the other formats place the text of a merged cell at its top-left position.
+- **With formula recognition** (`detect_formulas=True`), formulas are rendered as display math (`$$...$$` in
+  Markdown, a `[latexmath]` block in AsciiDoc, see [](layout_and_tables.md#formula-recognition)).
 
 ::::{tab-set}
 
@@ -145,7 +147,7 @@ Every export path shares the same linearization of the page, computed once and m
 
 - follows the **columns** of multi-column layouts instead of reading straight across the page,
 - infers the **reading direction** from the recognized text (right-to-left for Arabic or Hebrew, for instance),
-- uses the **layout regions**, when available, to order blocks, headings, tables and figures and to place the
+- uses the **layout regions**, when available, to order blocks, headings, tables, formulas and figures and to place the
   page furniture.
 
 Force the direction when automatic detection is not what you want:
@@ -154,7 +156,7 @@ Force the direction when automatic detection is not what you want:
 result.export_as_markdown(direction="rtl")  # 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'
 ```
 
-To get the elements of a page (blocks, tables and optionally figures) in reading order, for your own exporter:
+To get the elements of a page (blocks, tables, formulas and optionally figures) in reading order, for your own exporter:
 
 ```python
 for item in result.pages[0].items_in_reading_order(include_figures=True):
@@ -166,7 +168,7 @@ sort the `Document` tree itself, build the predictor with `keep_reading_order=Tr
 
 ## Figures
 
-When the layout model runs (`detect_layout=True` or `detect_tables=True`), the regions it labels as figures
+When the layout model runs (`detect_layout=True`, `detect_tables=True` or `detect_formulas=True`), the regions it labels as figures
 (pictures, charts...) take part in the reading order. The Markdown, AsciiDoc and HTML exports render them according
 to their `images` argument:
 
