@@ -170,7 +170,7 @@ source_idx, page_idx = doc.locate(42)
 ```
 
 The [task-specific predictors](standalone_predictors.md#long-inputs) (detection, recognition, layout, table
-structure, orientation) accept page sources as well, and process them chunk by chunk too.
+structure, formula, orientation) accept page sources as well, and process them chunk by chunk too.
 
 To write the results as you go instead of keeping them all, iterate over
 {meth}`~doctr.models.predictor.OCRPredictor.stream`: it yields the pages one by one, as soon as they are processed.

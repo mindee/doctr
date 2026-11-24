@@ -42,7 +42,7 @@ Text, JSON, Markdown, AsciiDoc, HTML and hOCR, in reading order.
 ::::{grid} 1 2 2 2
 :gutter: 3
 
-:::{grid-item-card} {octicon}`table;1.1em` Layout analysis & tables
+:::{grid-item-card} {octicon}`table;1.1em` Layout, tables & formulas
 :link: layout_and_tables
 :link-type: doc
 
@@ -67,7 +67,7 @@ Detect several classes of fields (dates, amounts...) and read them in one pass.
 :link: standalone_predictors
 :link-type: doc
 
-Use the detection, recognition, layout, table and orientation models on their own.
+Use the detection, recognition, layout, table, formula and orientation models on their own.
 :::
 
 :::{grid-item-card} {octicon}`image;1.1em` Artefact detection

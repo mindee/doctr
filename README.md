@@ -82,6 +82,30 @@ for region in result.pages[0].layout:
     print(region.type, region.confidence, region.geometry)
 ```
 
+### Recognizing tables and formulas
+
+With `detect_tables=True`, the tables found by the layout model are rebuilt as a grid of rows, columns and cells. With `detect_formulas=True`, formulas are read as LaTeX. Both are rendered in the exports, e.g. as Markdown tables and `$$...$$` display math:
+
+```python
+from doctr.io import DocumentFile
+from doctr.models import ocr_predictor
+
+model = ocr_predictor(pretrained=True, detect_tables=True, detect_formulas=True)
+doc = DocumentFile.from_pdf("path/to/your/doc.pdf")
+result = model(doc)
+
+page = result.pages[0]
+# Tables: a row/column grid of strings
+for table in page.tables:
+    print(table.num_rows, table.num_cols, table.to_grid())
+# Formulas: the LaTeX source and its confidence
+for formula in page.formulas:
+    print(formula.value, formula.confidence)
+
+# Markdown export with tables and display math
+print(result.export_as_markdown())
+```
+
 ### Dealing with rotated documents
 
 Should you use docTR on documents that include rotated pages, or pages with multiple box orientations,

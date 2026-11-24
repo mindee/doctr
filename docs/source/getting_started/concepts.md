@@ -11,7 +11,8 @@ OCR is split into two consecutive tasks, each solved by a dedicated deep learnin
 2. **Text recognition** transcribes each detected word from its crop (*what does it say?*).
 
 The predictions are then assembled into a structured document. Optional stages plug into the same pipeline when
-you need them: orientation handling for rotated pages, layout analysis, and table structure recognition.
+you need them: orientation handling for rotated pages, layout analysis, table structure recognition and formula
+recognition.
 
 ```{raw} html
 :file: ../_includes/pipeline.html
@@ -39,6 +40,7 @@ docTR exposes a factory function for every task. Each one accepts an architectur
 | Text recognition only       | {func}`~doctr.models.recognition.recognition_predictor`                   | `(text, confidence)` per crop              |
 | Layout analysis             | {func}`~doctr.models.layout.layout_predictor`                        | labelled regions per page                 |
 | Table structure recognition | {func}`~doctr.models.table_structure.table_predictor`                         | cells with row/column spans per table     |
+| Formula recognition         | {func}`~doctr.models.formula.formula_predictor`                               | `(latex, confidence)` per formula crop    |
 
 The end-to-end {func}`~doctr.models.ocr_predictor` composes the task predictors, which stay reachable as attributes:
 
@@ -50,6 +52,11 @@ predictor = ocr_predictor(pretrained=True)
 predictor.det_predictor  # text detection (pre-processor + model + post-processor)
 predictor.reco_predictor  # text recognition
 predictor.doc_builder  # assembles words into lines, blocks and pages
+
+# Optional stages, None unless enabled (e.g. `detect_formulas=True`)
+predictor.layout_predictor  # layout analysis
+predictor.table_predictor  # table structure recognition
+predictor.formula_predictor  # formula recognition
 ```
 
 :::{important}
@@ -70,8 +77,9 @@ read.
     │   │   └── words: list[<span class="k">Word</span>]      <span class="c"># value, confidence, geometry</span>
     │   └── artefacts: list[<span class="k">Artefact</span>]  <span class="c"># non-textual elements</span>
     ├── layout: list[<span class="k">LayoutElement</span>]    <span class="c"># with detect_layout=True</span>
-    └── tables: list[<span class="k">Table</span>]            <span class="c"># with detect_tables=True</span>
-        └── cells: list[<span class="k">TableCell</span>]</div>
+    ├── tables: list[<span class="k">Table</span>]            <span class="c"># with detect_tables=True</span>
+    │   └── cells: list[<span class="k">TableCell</span>]
+    └── formulas: list[<span class="k">Formula</span>]        <span class="c"># with detect_formulas=True</span></div>
 ```
 
 | Element                                  | What it represents                                                                                   |
@@ -82,6 +90,7 @@ read.
 | {class}`~doctr.io.Artefact`                | A non-textual element: a picture, a logo, a QR code, a signature...                                   |
 | {class}`~doctr.io.LayoutElement`           | A region found by the layout model: `Title`, `Text`, `Table`, `Picture`, `Page-header`...             |
 | {class}`~doctr.io.Table` / {class}`~doctr.io.TableCell` | A recognized table, as cells spanning rows and columns                                    |
+| {class}`~doctr.io.Formula`                 | A recognized formula, with its LaTeX source as `value` (not part of the `blocks`)                     |
 | {class}`~doctr.io.Page`                    | Everything found on one page, plus its `dimensions`, `orientation` and `language`                     |
 
 Every element can be **rendered** to text with `.render()` and **exported** to a JSON-serializable dict with

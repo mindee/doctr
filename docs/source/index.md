@@ -1,7 +1,7 @@
 ---
 myst:
   html_meta:
-    description: "docTR: state-of-the-art OCR for PDFs and images in a few lines of Python. Text detection, text recognition, layout analysis and table structure recognition, powered by PyTorch."
+    description: "docTR: state-of-the-art OCR for PDFs and images in a few lines of Python. Text detection, text recognition, layout analysis, table structure and formula recognition, powered by PyTorch."
 ---
 
 # docTR: Document Text Recognition
@@ -14,7 +14,7 @@ myst:
       <p class="doctr-hero__title">OCR made <span>seamless</span> &amp; accessible to anyone</p>
       <p class="doctr-hero__lead">
         docTR reads PDFs and images and gives you back every word with its position, organized into
-        lines, blocks, layout regions and tables. Run state-of-the-art models in three lines of Python,
+        lines, blocks, layout regions, tables and formulas. Run state-of-the-art models in three lines of Python,
         fine-tune them on your own documents and ship them anywhere.
       </p>
       <div class="doctr-hero__actions">
@@ -50,7 +50,7 @@ Date: 26/10/2026
     </div>
   </div>
   <div class="doctr-stats">
-    <div><strong>4 tasks</strong><span>detection &middot; recognition &middot; layout &middot; tables</span></div>
+    <div><strong>5 tasks</strong><span>detection &middot; recognition &middot; layout &middot; tables &middot; formulas</span></div>
     <div><strong>20+</strong><span>pretrained architectures</span></div>
     <div><strong>100+</strong><span>built-in vocabularies</span></div>
     <div><strong>6</strong><span>export formats</span></div>
@@ -74,11 +74,12 @@ Date: 26/10/2026
 A text detection model finds the words, a recognition model reads them. Mix and match 9 detection and 9 recognition architectures.
 :::
 
-:::{grid-item-card} {octicon}`table;1.1em` Layout & tables
+:::{grid-item-card} {octicon}`table;1.1em` Layout, tables & formulas
 :link: user_guide/layout_and_tables
 :link-type: doc
 
-Detect titles, paragraphs, figures and tables, and turn tables into a row/column grid that loads straight into pandas.
+Detect titles, paragraphs, figures and tables, turn tables into a row/column grid that loads straight into pandas,
+and read formulas as LaTeX.
 :::
 
 :::{grid-item-card} {octicon}`sync;1.1em` Rotated documents

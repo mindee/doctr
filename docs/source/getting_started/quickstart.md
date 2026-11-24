@@ -169,7 +169,7 @@ xml_pages = result.export_as_xml()
 
 [](../user_guide/exporting.md) covers every format and its options.
 
-## 7. Go further: layout & tables
+## 7. Go further: layout, tables & formulas
 
 Add `detect_tables=True` and docTR also finds the layout of the page and reconstructs its tables. Here is the
 Markdown export of the same invoice:
@@ -208,6 +208,9 @@ Total due
 1,250.00 EUR
 ...
 ```
+
+Reading scientific papers? Add `detect_formulas=True` as well and the formulas are read as LaTeX, rendered as `$$...$$`
+display math in the Markdown export. [](../user_guide/layout_and_tables.md) covers both.
 
 :::{admonition} Prefer the command line?
 :class: tip

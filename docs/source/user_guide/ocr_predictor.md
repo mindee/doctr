@@ -72,6 +72,7 @@ See [](rotated_documents.md) for a detailed guide.
 | `detect_layout`      | `False`      | Run a layout model and attach its regions to each page (`page.layout`)                           |
 | `layout_arch`        | `"lw_detr_s"`| Layout architecture name or model instance                                                          |
 | `detect_tables`      | `False`      | Recognize the structure of tables (`page.tables`); enables the layout model                         |
+| `detect_formulas`    | `False`      | Read formulas as LaTeX (`page.formulas`); enables the layout model                                  |
 | `ignore_regions`     | `None`       | Layout classes to mask out before OCR, e.g. `["Picture"]`; requires the layout model (`detect_layout=True`) |
 
 See [](layout_and_tables.md).
