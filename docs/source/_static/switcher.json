@@ -5,10 +5,15 @@
     "url": "https://mindee.github.io/doctr/latest/"
   },
   {
-    "name": "v1.1.0 (stable)",
-    "version": "v1.1.0",
+    "name": "v1.2.0 (stable)",
+    "version": "v1.2.0",
     "url": "https://mindee.github.io/doctr/",
     "preferred": true
+  },
+  {
+    "name": "v1.1.0",
+    "version": "v1.1.0",
+    "url": "https://mindee.github.io/doctr/v1.1.0/"
   },
   {
     "name": "v1.0.1",
