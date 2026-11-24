@@ -4,6 +4,7 @@ Every release of docTR, with a link to its detailed release notes on GitHub. All
 
 | Version | Release date | Release notes |
 | --- | --- | --- |
+| **v1.2.0** | 2026-11-24 | [v1.2.0 on GitHub](https://github.com/mindee/doctr/releases/tag/v1.2.0) |
 | **v1.1.0** | 2026-08-21 | [v1.1.0 on GitHub](https://github.com/mindee/doctr/releases/tag/v1.1.0) |
 | **v1.0.1** | 2026-02-04 | [v1.0.1 on GitHub](https://github.com/mindee/doctr/releases/tag/v1.0.1) |
 | **v1.0.0** | 2025-07-09 | [v1.0.0 on GitHub](https://github.com/mindee/doctr/releases/tag/v1.0.0) |
