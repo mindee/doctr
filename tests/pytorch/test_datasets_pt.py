@@ -150,6 +150,72 @@ def test_rotation_dataset(mock_image_folder):
     assert isinstance(targets, list) and all(isinstance(elt, np.ndarray) for elt in targets)
 
 
+def test_font_style_dataset(mock_image_folder, tmpdir_factory):
+    input_size = (64, 256)
+    style = {
+        "text": "jedi",
+        "bold": True,
+        "italic": False,
+        "underline": "double",
+        "strikethrough": False,
+        "color": "red",
+        "highlight": None,
+        "category": "SERIF",
+        "family": "Lora",
+    }
+    labels = {f"mock_image_file_{idx}.jpeg": style for idx in range(5)}
+    label_file = tmpdir_factory.mktemp("labels").join("labels.json")
+    with open(label_file, "w") as f:
+        json.dump(labels, f)
+
+    ds = datasets.FontStyleDataset(
+        img_folder=mock_image_folder, labels_path=str(label_file), img_transforms=Resize(input_size)
+    )
+    assert len(ds) == 5
+    img, target = ds[0].image, ds[0].target
+    assert isinstance(img, torch.Tensor) and img.shape[-2:] == input_size
+    attributes = datasets.FONT_STYLE_ATTRIBUTES
+    # handwritten (False) is derived from the font category when the label has no "handwritten" key
+    expected = [1, 0, 2, 0, attributes["color"].index("red"), 0, 0, 1, attributes["family"].index("Lora")]
+    assert isinstance(target, np.ndarray) and target.dtype == np.int64 and target.tolist() == expected
+    # The resize with padding leaves the class targets unchanged
+    ds_pad = datasets.FontStyleDataset(
+        img_folder=mock_image_folder,
+        labels_path=str(label_file),
+        img_transforms=Resize(input_size, preserve_aspect_ratio=True, symmetric_pad=True),
+    )
+    assert ds_pad[0].target.tolist() == expected
+
+    loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
+    images, targets = next(iter(loader))
+    assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
+    assert np.stack(targets).shape == (2, len(attributes))
+
+    # Merge
+    ds.merge_dataset(ds_pad)
+    assert len(ds) == 10 and ds[9].target.tolist() == expected
+
+    # handwritten: derived from a handwriting font category, or given explicitly
+    handwritten_idx = list(attributes).index("handwritten")
+    assert datasets.encode_font_style({**style, "category": "HANDWRITING"})[handwritten_idx] == 1
+    assert datasets.encode_font_style({**style, "handwritten": True})[handwritten_idx] == 1
+    with pytest.raises(KeyError):
+        datasets.encode_font_style({k: v for k, v in style.items() if k != "category"})
+
+    # Invalid labels
+    for invalid in ({**style, "family": "Comic Sans"}, {k: v for k, v in style.items() if k != "bold"}):
+        bad_file = tmpdir_factory.mktemp("labels").join("labels.json")
+        with open(bad_file, "w") as f:
+            json.dump({"mock_image_file_0.jpeg": invalid}, f)
+        with pytest.raises(ValueError):
+            datasets.FontStyleDataset(img_folder=mock_image_folder, labels_path=str(bad_file))
+    missing_file = tmpdir_factory.mktemp("labels").join("labels.json")
+    with open(missing_file, "w") as f:
+        json.dump({"missing.jpeg": style}, f)
+    with pytest.raises(FileNotFoundError):
+        datasets.FontStyleDataset(img_folder=mock_image_folder, labels_path=str(missing_file))
+
+
 def test_detection_dataset(mock_image_folder, mock_detection_label):
     input_size = (1024, 1024)
 

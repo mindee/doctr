@@ -48,6 +48,18 @@ loaded automatically when needed.
 | `mobilenet_v3_small_page_orientation`    | The orientation of a page: 0°, 90°, 180°, 270°   | {func}`~doctr.models.classification.page_orientation_predictor`             |
 | `mobilenet_v3_small_crop_orientation`    | The orientation of a word crop: 0°, 90°, 180°, 270° | {func}`~doctr.models.classification.crop_orientation_predictor`          |
 
+## Font style classifier
+
+A lightweight MobileNetV3 classifier predicts the font style of each word crop. It is loaded by the OCR and KIE
+predictors with `detect_font_style=True` (see [](../user_guide/results.md#font-style)).
+
+| Architecture                       | Predicts                                                                                   | Factory                                                    |
+| ---------------------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| `mobilenet_v3_small_font_style`    | Bold, italic, underline, strikethrough, text & highlight colors, handwriting, category, family | {func}`~doctr.models.classification.font_style_predictor` |
+
+The predicted classes of each attribute are listed in `doctr.datasets.FONT_STYLE_ATTRIBUTES`: the font family is the
+closest one among 339 families (e.g. `Arial`, `Roboto`, `Tinos` (Times), `Latin Modern Roman`...).
+
 ## About the benchmarks
 
 - **Datasets**: unless stated otherwise, models are evaluated on both the training and test sets of

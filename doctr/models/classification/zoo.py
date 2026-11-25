@@ -5,13 +5,15 @@
 
 from typing import Any
 
+from torch import nn
+
 from doctr.models.utils import _CompiledModule
 
 from .. import classification
 from ..preprocessor import PreProcessor
-from .predictor import OrientationPredictor
+from .predictor import FontStylePredictor, OrientationPredictor
 
-__all__ = ["crop_orientation_predictor", "page_orientation_predictor"]
+__all__ = ["crop_orientation_predictor", "page_orientation_predictor", "font_style_predictor"]
 
 ARCHS: list[str] = [
     "magc_resnet31",
@@ -39,6 +41,8 @@ ARCHS: list[str] = [
 ]
 
 ORIENTATION_ARCHS: list[str] = ["mobilenet_v3_small_crop_orientation", "mobilenet_v3_small_page_orientation"]
+
+FONT_STYLE_ARCHS: list[str] = ["mobilenet_v3_small_font_style"]
 
 
 def _orientation_predictor(
@@ -124,3 +128,53 @@ def page_orientation_predictor(
         OrientationPredictor
     """
     return _orientation_predictor(arch=arch, pretrained=pretrained, batch_size=batch_size, model_type="page", **kwargs)
+
+
+def font_style_predictor(
+    arch: Any = "mobilenet_v3_small_font_style", pretrained: bool = False, batch_size: int = 128, **kwargs: Any
+) -> FontStylePredictor:
+    """Font style classification of word crops: bold, italic, underline, strikethrough, text and highlight colors,
+    handwriting, font category and closest font family.
+
+    >>> import numpy as np
+    >>> from doctr.models import font_style_predictor
+    >>> model = font_style_predictor(arch='mobilenet_v3_small_font_style', pretrained=True)
+    >>> input_crop = (255 * np.random.rand(32, 128, 3)).astype(np.uint8)
+    >>> out = model([input_crop])
+
+    Args:
+        arch: name of the architecture to use (e.g. 'mobilenet_v3_small_font_style'), or a classification model
+            whose `cfg["classes"]` maps each style attribute to its classes (e.g. trained with
+            `references/classification/train_font_style.py`)
+        pretrained: If True, returns a model pre-trained on our font style dataset
+        batch_size: number of samples the model processes in parallel
+        chunk_size: maximum number of crops decoded and processed at once (1024 by default): longer inputs are
+            processed chunk by chunk
+        margin: margin added by the OCR predictor on each side of a word box to crop it for this model, relative to
+            the short side of the box (by default, the `crop_margin` of the model configuration)
+        **kwargs: keyword arguments to be passed to the FontStylePredictor
+
+    Returns:
+        FontStylePredictor
+    """
+    if isinstance(arch, str):
+        if arch not in FONT_STYLE_ARCHS:
+            raise ValueError(f"unknown architecture '{arch}'")
+        _model = classification.__dict__[arch](pretrained=pretrained)
+    else:
+        if not isinstance(arch, (nn.Module, _CompiledModule)):
+            raise ValueError(f"unknown architecture: {type(arch)}")
+        _model = arch
+
+    kwargs["mean"] = kwargs.get("mean", _model.cfg["mean"])
+    kwargs["std"] = kwargs.get("std", _model.cfg["std"])
+    chunk_size = kwargs.pop("chunk_size", 1024)
+    # The margin around the word boxes the model was trained with
+    margin = kwargs.pop("margin", _model.cfg.get("crop_margin", 0.0))
+    input_shape = _model.cfg["input_shape"][1:]
+    return FontStylePredictor(
+        PreProcessor(input_shape, batch_size=batch_size, preserve_aspect_ratio=True, symmetric_pad=True, **kwargs),
+        _model,
+        chunk_size=chunk_size,
+        margin=margin,
+    )

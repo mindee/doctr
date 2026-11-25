@@ -12,12 +12,15 @@ from doctr.transforms import (
     GaussianBlur,
     GaussianNoise,
     ImageTorchvisionTransform,
+    JPEGCompression,
     OneOf,
     RandomApply,
+    RandomColorCast,
     RandomCrop,
     RandomGlare,
     RandomHorizontalFlip,
     RandomLighting,
+    RandomLowResolution,
     RandomPad,
     RandomPerspective,
     RandomResize,
@@ -969,3 +972,63 @@ def test_random_perspective(use_polygons):
     out = RandomPerspective(0.25)(Sample(image=img, target={"a": boxes, "b": boxes.copy(), "c": np.zeros((0, 4))}))
     assert np.allclose(out.target["a"], out.target["b"]) and out.target["c"].shape == (0, 4)
     assert not np.allclose(out.target["a"], boxes)
+
+
+def test_random_pad_class_target():
+    # A class target (e.g. font style) is not a box: it is left unchanged
+    target = np.array([1, 0, 2], dtype=np.int64)
+    out = RandomPad(max_ratio=0.5, p=1.0)(Sample(image=torch.rand((3, 20, 50)), target=target))
+    assert out.target is target
+
+
+def test_random_low_resolution():
+    transfo = RandomLowResolution(height_range=(14, 20), p=1.0)
+    assert repr(transfo) == "RandomLowResolution(height_range=(14, 20), p=1.0)"
+    with pytest.raises(ValueError):
+        RandomLowResolution(height_range=(20, 14))
+    boxes = np.array([[0.1, 0.2, 0.5, 0.6]], dtype=np.float32)
+    for dtype in (torch.float32, torch.uint8):
+        img = torch.rand((3, 64, 256)) if dtype == torch.float32 else torch.randint(0, 256, (3, 64, 256), dtype=dtype)
+        out = transfo(Sample(image=img, target=boxes, mask=torch.ones((64, 256), dtype=torch.bool)))
+        h, w = out.image.shape[-2:]
+        # Shrunk with its aspect ratio, the relative boxes are unchanged
+        assert 14 <= h <= 20 and abs(w - 256 * h / 64) <= 1 and out.image.dtype == dtype
+        assert out.target is boxes and out.mask.shape == (h, w) and out.mask.dtype == torch.bool
+    # Images already smaller are left unchanged, as with p=0
+    small = Sample(image=torch.rand((3, 10, 40)))
+    assert transfo(small) is small
+    big = Sample(image=torch.rand((3, 64, 64)))
+    assert RandomLowResolution(p=0.0)(big) is big
+
+
+def test_jpeg_compression():
+    transfo = JPEGCompression(quality_range=(30, 30), p=1.0)
+    assert repr(transfo) == "JPEGCompression(quality_range=(30, 30), p=1.0)"
+    with pytest.raises(ValueError):
+        JPEGCompression(quality_range=(0, 50))
+    torch.manual_seed(0)
+    img = torch.rand((3, 32, 64))
+    out = transfo(Sample(image=img))
+    assert out.image.shape == img.shape and out.image.dtype == torch.float32
+    assert 0 <= out.image.min() and out.image.max() <= 1 and not torch.equal(out.image, img)
+    img_uint8 = (img * 255).to(torch.uint8)
+    out = transfo(Sample(image=img_uint8))
+    assert out.image.dtype == torch.uint8 and out.image.shape == img.shape
+    # A flat image survives the compression
+    flat = torch.full((3, 32, 64), 0.5)
+    assert torch.allclose(JPEGCompression((90, 90), p=1.0)(Sample(image=flat)).image, flat, atol=2 / 255)
+
+
+def test_random_color_cast():
+    transfo = RandomColorCast(max_gain=0.05, p=1.0)
+    assert repr(transfo) == "RandomColorCast(max_gain=0.05, p=1.0)"
+    with pytest.raises(ValueError):
+        RandomColorCast(max_gain=-0.1)
+    img = torch.full((3, 16, 16), 0.8)
+    out = transfo(Sample(image=img)).image
+    gains = out[:, 0, 0] / 0.8
+    assert torch.all((gains >= 0.95 - 1e-6) & (gains <= 1.05 + 1e-6))
+    # Each channel has a single gain
+    assert torch.allclose(out, out[:, :1, :1].expand_as(out))
+    out = transfo(Sample(image=torch.full((3, 16, 16), 255, dtype=torch.uint8))).image
+    assert out.dtype == torch.uint8 and out.min() >= 242

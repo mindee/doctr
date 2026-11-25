@@ -15,6 +15,7 @@ class KIEIn(BaseModel):
     preserve_aspect_ratio: bool = Field(default=True, examples=[True])
     detect_orientation: bool = Field(default=False, examples=[False])
     detect_language: bool = Field(default=False, examples=[False])
+    detect_font_style: bool = Field(default=False, examples=[False])
     detect_layout: bool = Field(default=False, examples=[False])
     layout_arch: str = Field(default="lw_detr_s", examples=["lw_detr_s"])
     symmetric_pad: bool = Field(default=True, examples=[True])
@@ -67,6 +68,10 @@ class OCRWord(BaseModel):
     objectness_score: float = Field(..., examples=[0.99])
     confidence: float = Field(..., examples=[0.99])
     crop_orientation: dict[str, Any] = Field(..., examples=[{"value": 0, "confidence": None}])
+    font_style: dict[str, dict[str, Any]] | None = Field(
+        default=None,
+        examples=[{"bold": {"value": True, "confidence": 0.98}, "family": {"value": "Lato", "confidence": 0.61}}],
+    )
 
 
 class OCRLine(BaseModel):
@@ -260,7 +265,7 @@ class OCROut(BaseModel):
 
 class KIEElement(BaseModel):
     class_name: str = Field(..., examples=["example"])
-    items: list[dict[str, str | list[float] | float | dict[str, Any]]] = Field(
+    items: list[dict[str, str | list[float] | float | dict[str, Any] | None]] = Field(
         ...,
         examples=[
             {

@@ -13,6 +13,7 @@ from doctr.io.elements import Document, KIEPage, Page
 from doctr.io.sources import PageSource, _UnreadablePage
 from doctr.models.builder import DocumentBuilder
 from doctr.utils.geometry import (
+    expand_boxes,
     extract_crops,
     extract_rcrops,
     remove_image_padding,
@@ -22,8 +23,8 @@ from doctr.utils.geometry import (
 from doctr.utils.multithreading import prefetch_chunks
 
 from .._utils import estimate_orientation, mask_boxes, rectify_crops, rectify_loc_preds
-from ..classification import crop_orientation_predictor, page_orientation_predictor
-from ..classification.predictor import OrientationPredictor
+from ..classification import crop_orientation_predictor, font_style_predictor, page_orientation_predictor
+from ..classification.predictor import FontStylePredictor, OrientationPredictor
 from ..detection.predictor import DetectionPredictor
 
 __all__ = ["_OCRPredictor"]
@@ -61,10 +62,14 @@ class _OCRPredictor:
         page_chunk_size: the maximum number of pages processed at once for lazy page sources
             (cf. `DocumentFile.from_pdf(..., lazy=True)`), iterators and :meth:`stream`, so that the memory footprint
             does not grow with the number of pages. Lists and tuples of pages are processed in a single pass.
+        detect_font_style: if True, the font style of each word (bold, italic, underline, strikethrough, colors, font
+            category, handwriting and closest font family) is classified and added to the predictions. Doing so will
+            slightly deteriorate the overall latency.
         **kwargs: keyword args of `DocumentBuilder`
     """
 
     crop_orientation_predictor: OrientationPredictor | None
+    font_style_predictor: FontStylePredictor | None
     # Set by the framework-specific predictors
     det_predictor: DetectionPredictor
     page_orientation_predictor: OrientationPredictor | None
@@ -79,6 +84,7 @@ class _OCRPredictor:
         ignore_regions: Collection[str] | None = None,
         preserve_original_coords: bool = False,
         page_chunk_size: int = 32,
+        detect_font_style: bool = False,
         **kwargs: Any,
     ) -> None:
         if page_chunk_size < 1:
@@ -99,6 +105,7 @@ class _OCRPredictor:
             if detect_orientation or straighten_pages or not assume_straight_pages
             else None
         )
+        self.font_style_predictor = font_style_predictor(pretrained=True) if detect_font_style else None
         self.doc_builder = DocumentBuilder(**kwargs)
 
         self.preserve_aspect_ratio = preserve_aspect_ratio
@@ -383,7 +390,7 @@ class _OCRPredictor:
         self,
         crops: list[list[np.ndarray]],
         loc_preds: list[np.ndarray],
-    ) -> tuple[list[list[np.ndarray]], list[np.ndarray], list[tuple[int, float]]]:
+    ) -> tuple[list[list[np.ndarray]], list[np.ndarray], list[tuple[int, float]], list[list[int]]]:
         page_counts = [len(page_crops) for page_crops in crops]
         flat_crops = [crop for page_crops in crops for crop in page_crops]
         flat_orientations, flat_classes, flat_probs = self.crop_orientation_predictor(flat_crops)  # type: ignore[misc]
@@ -396,7 +403,36 @@ class _OCRPredictor:
         ]
         # Flatten to list of tuples with (value, confidence)
         crop_orientations = [(orientation, prob) for orientation, prob in zip(flat_classes, flat_probs)]
-        return rect_crops, rect_loc_preds, crop_orientations  # type: ignore[return-value]
+        return rect_crops, rect_loc_preds, crop_orientations, orientations  # type: ignore[return-value]
+
+    def _predict_font_styles(
+        self,
+        pages: list[np.ndarray],
+        loc_preds: list[np.ndarray],
+        orientations: list[list[int]] | None = None,
+    ) -> list[list[dict[str, Any]]] | None:
+        """Classify the font style of the words of each page. The words are cropped again with the margin of the font
+        style predictor (the recognition crops are tight, which may cut out the underline of a word), and rectified
+        like the recognition crops.
+
+        Args:
+            pages: the pages
+            loc_preds: the boxes of the words of each page, as passed to the crop extraction (before rectification)
+            orientations: the orientation class index of each word crop of each page, None for straight pages
+
+        Returns:
+            the font style of each word of each page, None when the font style is not detected
+        """
+        if self.font_style_predictor is None:
+            return None
+        margin = getattr(self.font_style_predictor, "margin", 0.0)
+        boxes = [expand_boxes(page_boxes, page.shape[:2], margin) for page, page_boxes in zip(pages, loc_preds)]
+        crops = self._generate_crops(pages, boxes, self.assume_straight_pages, self._page_orientation_disabled)
+        if orientations is not None:
+            crops = [rectify_crops(page_crops, page_orient) for page_crops, page_orient in zip(crops, orientations)]
+        styles = self.font_style_predictor([crop for page_crops in crops for crop in page_crops])
+        bounds = np.cumsum([0, *[len(page_crops) for page_crops in crops]])
+        return [styles[start:end] for start, end in zip(bounds[:-1], bounds[1:])]
 
     @staticmethod
     def _process_predictions(

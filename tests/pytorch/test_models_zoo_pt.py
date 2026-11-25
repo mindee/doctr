@@ -210,6 +210,97 @@ def test_predictors_keep_objectness_scores_aligned(predictor_cls, assume_straigh
 
 @pytest.mark.parametrize("assume_straight_pages", [True, False])
 @pytest.mark.parametrize("predictor_cls", [OCRPredictor, KIEPredictor])
+def test_predictors_font_style(predictor_cls, assume_straight_pages):
+    # Boxes of different widths: the font style stub reads back the width of each crop
+    boxes = np.array([[0.1, 0.1, 0.3, 0.2, 0.9], [0.5, 0.5, 0.6, 0.6, 0.8], [0.1, 0.7, 0.9, 0.8, 0.7]], np.float32)
+    if not assume_straight_pages:
+        boxes = np.array(
+            [[[x0, y0], [x1, y0], [x1, y1], [x0, y1], [s, s]] for x0, y0, x1, y1, s in boxes], dtype=np.float32
+        )
+
+    class _FixedDetPredictor(nn.Module):
+        def forward(self, pages, **kwargs):
+            return [{CLASS_NAME: boxes.copy()} for _ in pages]
+
+    class _DummyRecoPredictor(nn.Module):
+        def forward(self, crops, **kwargs):
+            return [(f"word{idx}", 1.0) for idx in range(len(crops))]
+
+    class _WidthFontStylePredictor(nn.Module):
+        def forward(self, crops):
+            return [{"bold": {"value": crop.shape[1], "confidence": 1.0}} for crop in crops]
+
+    kwargs = dict(
+        assume_straight_pages=assume_straight_pages, disable_page_orientation=True, disable_crop_orientation=True
+    )
+    page_img = np.full((100, 200, 3), 255, dtype=np.uint8)
+
+    predictor = predictor_cls(_FixedDetPredictor(), _DummyRecoPredictor(), **kwargs)
+    assert predictor.font_style_predictor is None
+    page = predictor([page_img]).pages[0]
+    words = page.predictions[CLASS_NAME] if predictor_cls is KIEPredictor else page.blocks[0].lines[0].words
+    assert all(word.font_style is None for word in words)
+
+    predictor = predictor_cls(_FixedDetPredictor(), _DummyRecoPredictor(), detect_font_style=True, **kwargs)
+    assert isinstance(predictor.font_style_predictor, models.classification.predictor.FontStylePredictor)
+    predictor.font_style_predictor = _WidthFontStylePredictor()
+    out = predictor([page_img, page_img])
+    for page in out.pages:
+        if predictor_cls is KIEPredictor:
+            words = page.predictions[CLASS_NAME]
+        else:
+            words = [word for block in page.blocks for line in block.lines for word in line.words]
+        assert len(words) == 3
+        # Each word gets the font style of its own crop
+        for word in words:
+            geometry = np.asarray(word.geometry)
+            assert word.style("bold") == pytest.approx(200 * (geometry[:, 0].max() - geometry[:, 0].min()), abs=2)
+
+
+@pytest.mark.parametrize("assume_straight_pages", [True, False])
+@pytest.mark.parametrize("predictor_cls", [OCRPredictor, KIEPredictor])
+def test_predictors_font_style_margin(predictor_cls, assume_straight_pages):
+    # A dark line right under the box of the word: only a crop with a margin sees it
+    page_img = np.full((100, 200, 3), 255, dtype=np.uint8)
+    page_img[22:24, 20:60] = 0
+    boxes = np.array([[0.1, 0.1, 0.3, 0.2, 0.9]], np.float32)
+    if not assume_straight_pages:
+        boxes = np.array([[[0.1, 0.1], [0.3, 0.1], [0.3, 0.2], [0.1, 0.2], [0.9, 0.9]]], dtype=np.float32)
+
+    class _FixedDetPredictor(nn.Module):
+        def forward(self, pages, **kwargs):
+            return [{CLASS_NAME: boxes.copy()} for _ in pages]
+
+    class _DummyRecoPredictor(nn.Module):
+        def forward(self, crops, **kwargs):
+            # the recognition crops stay tight
+            assert all(crop.min() == 255 for crop in crops)
+            return [("word", 1.0) for _ in crops]
+
+    class _DarkFontStylePredictor(nn.Module):
+        margin = 0.0
+
+        def forward(self, crops):
+            return [{"underline": {"value": bool(crop.min() < 128), "confidence": 1.0}} for crop in crops]
+
+    predictor = predictor_cls(
+        _FixedDetPredictor(),
+        _DummyRecoPredictor(),
+        assume_straight_pages=assume_straight_pages,
+        disable_page_orientation=True,
+        disable_crop_orientation=True,
+        detect_font_style=True,
+    )
+    predictor.font_style_predictor = _DarkFontStylePredictor()
+    for margin, expected in ((0.0, False), (0.3, True)):
+        predictor.font_style_predictor.margin = margin
+        page = predictor([page_img]).pages[0]
+        words = page.predictions[CLASS_NAME] if predictor_cls is KIEPredictor else page.blocks[0].lines[0].words
+        assert [word.style("underline") for word in words] == [expected]
+
+
+@pytest.mark.parametrize("assume_straight_pages", [True, False])
+@pytest.mark.parametrize("predictor_cls", [OCRPredictor, KIEPredictor])
 def test_predictors_hooks_run_before_cropping(predictor_cls, assume_straight_pages):
     # Each box covers a region of the page filled with its own gray level, read back by the recognition stub
     levels = [10, 100, 200]

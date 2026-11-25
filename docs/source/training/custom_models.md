@@ -160,6 +160,25 @@ predictor.page_orientation_predictor = page_orientation_predictor(page_model)
 predictor.crop_orientation_predictor = crop_orientation_predictor(crop_model)
 ```
 
+## Font style classifier
+
+The font style classifier is used with `detect_font_style=True`. Replace the default one after building the
+predictor:
+
+```python
+from doctr.models import font_style_predictor, mobilenet_v3_small_font_style, ocr_predictor
+
+style_model = mobilenet_v3_small_font_style(pretrained=False)
+style_model.from_pretrained("path/to/font_style.pt")
+
+predictor = ocr_predictor(pretrained=True, detect_font_style=True)
+predictor.font_style_predictor = font_style_predictor(style_model)
+```
+
+Any classification backbone works, as long as its `cfg["classes"]` maps each style attribute to its classes, in the
+order of the model outputs, and its `cfg["input_shape"]` is the input size it was trained with (both set by the
+training script).
+
 ## Custom pre-processing
 
 To change how images are resized and normalized (e.g. a model trained with another input size or other

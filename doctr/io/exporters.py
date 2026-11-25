@@ -412,6 +412,39 @@ def ordered_line_words(line: "Line", direction: str = "ltr", auto: bool = False)
     return list(line.words)
 
 
+# The font style attributes rendered by the text exporters, and the values rendered as plain text
+_STYLE_ATTRIBUTES = ("bold", "italic", "underline", "strikethrough", "highlight", "color")
+# The default text color is not marked up, nor white text, which would be invisible on a white page
+_PLAIN_COLORS = {"black", "white"}
+
+
+def _word_style(word: Any) -> tuple[Any, ...]:
+    """The font style attributes of a word rendered by the text exporters (all None when not detected)"""
+    font_style = getattr(word, "font_style", None) or {}
+    return tuple((font_style.get(attribute) or {}).get("value") for attribute in _STYLE_ATTRIBUTES)
+
+
+def _style_runs(words: list[Any]) -> list[tuple[list[Any], dict[str, Any]]]:
+    """Group consecutive words sharing the same font style, so that a styled phrase is marked up only once
+
+    Args:
+        words: the words, in reading order
+
+    Returns:
+        the runs of words, each with its font style {"bold": bool | None, "underline": str | None, ...}
+    """
+    runs: list[tuple[list[Any], dict[str, Any]]] = []
+    previous = None
+    for word in words:
+        style = _word_style(word)
+        if runs and style == previous:
+            runs[-1][0].append(word)
+        else:
+            runs.append(([word], dict(zip(_STYLE_ATTRIBUTES, style))))
+        previous = style
+    return runs
+
+
 def predictions_in_reading_order(page: "KIEPage", predictions: list[Any], direction: str = "auto") -> list[Any]:
     """Sort the predictions of a single KIE detection class in reading order.
 
@@ -584,6 +617,32 @@ class _PageFigures:
         return captions
 
 
+def _html_decorations(text: str, style: dict[str, Any], color: bool) -> str:
+    """Wrap a styled run in the HTML elements of its underline, text color and highlight
+
+    Args:
+        text: the run, already escaped and marked up
+        style: the font style of the run
+        color: whether the text color is rendered
+
+    Returns:
+        the decorated run
+    """
+    if style.get("underline") == "single":
+        text = f"<u>{text}</u>"
+    elif style.get("underline") == "double":
+        text = f'<u style="text-decoration-style: double">{text}</u>'
+    if color and style.get("color") and style["color"] not in _PLAIN_COLORS:
+        text = f'<span style="color: {style["color"]}">{text}</span>'
+    highlight = style.get("highlight")
+    if highlight and highlight != "none":
+        # `<mark>` is yellow by default
+        text = (
+            f"<mark>{text}</mark>" if highlight == "yellow" else f'<mark style="background: {highlight}">{text}</mark>'
+        )
+    return text
+
+
 class _PageTextExporter:
     """Shared logic of the reading-order-aware text exporters
 
@@ -649,10 +708,31 @@ class _PageTextExporter:
         """Render the header of a detection class in a KIE export"""
         raise NotImplementedError
 
+    def render_styled(self, text: str, style: dict[str, Any]) -> str:
+        """Mark up a run of words sharing the same font style (cf. `Word.font_style`) in the target format
+
+        Args:
+            text: the text of the run, already escaped
+            style: the font style of the run, {"bold": bool | None, "italic": ..., "underline": "none" | "single" |
+                "double" | None, "strikethrough": ..., "highlight": "none" | color name | None, "color": ...}
+
+        Returns:
+            the marked up text
+        """
+        return text
+
+    def _words_text(self, words: list[Any], escape: bool) -> str:
+        """Render words in reading order, marking up their font style when it was detected"""
+        runs = []
+        for run_words, style in _style_runs(words):
+            text = " ".join(word.render() for word in run_words)
+            text = self.escape_text(text) if escape else text
+            runs.append(self.render_styled(text, style) if text.strip() else text)
+        return " ".join(runs)
+
     def _line_text(self, line: "Line", direction: str, escape: bool) -> str:
         """Render the text of a line, ordering the words according to the reading direction."""
-        text = " ".join(word.render() for word in ordered_line_words(line, direction))
-        return self.escape_text(text) if escape else text
+        return self._words_text(ordered_line_words(line, direction), escape)
 
     def _block_lines(self, block: "Block", direction: str, escape: bool, auto: bool) -> list[str]:
         """Render the non-empty lines of a block"""
@@ -816,7 +896,12 @@ class _PageTextExporter:
             if len(predictions) == 0:
                 continue
             values = "\n".join(
-                self.bullet + (self.finalize_line(self.escape_text(prediction.value)) if escape else prediction.value)
+                self.bullet
+                + (
+                    self.finalize_line(self._words_text([prediction], escape))
+                    if escape
+                    else self._words_text([prediction], escape)
+                )
                 for prediction in predictions_in_reading_order(page, predictions, direction)
             )
             parts.append(f"{self.class_header(class_name, escape)}\n\n{values}")
@@ -921,6 +1006,15 @@ class MarkdownExporter(_PageTextExporter):
     def class_header(self, class_name: str, escape: bool = True) -> str:
         return f"**{self.escape_text(class_name) if escape else class_name}**"
 
+    def render_styled(self, text: str, style: dict[str, Any]) -> str:
+        """Bold, italic and strikethrough (GFM) as Markdown emphasis, underline and highlight as inline HTML
+        (Markdown has no syntax for them). The text color is not rendered."""
+        emphasis = "**" * bool(style.get("bold")) + "*" * bool(style.get("italic"))
+        text = f"{emphasis}{text}{emphasis[::-1]}"
+        if style.get("strikethrough"):
+            text = f"~~{text}~~"
+        return _html_decorations(text, style, color=False)
+
 
 class AsciiDocExporter(_PageTextExporter):
     """Export OCR results to AsciiDoc, with the content sorted in reading order.
@@ -981,6 +1075,26 @@ class AsciiDocExporter(_PageTextExporter):
     def class_header(self, class_name: str, escape: bool = True) -> str:
         return f"*{self.escape_text(class_name) if escape else class_name}*"
 
+    def render_styled(self, text: str, style: dict[str, Any]) -> str:
+        """Bold and italic as unconstrained AsciiDoc quotes, the other attributes as roles of an inline span
+        (`underline`, `line-through`, the text color and `<color>-background`, as in the Asciidoctor stylesheet)"""
+        if style.get("italic"):
+            text = f"__{text}__"
+        if style.get("bold"):
+            text = f"**{text}**"
+        roles = []
+        if style.get("underline") in ("single", "double"):
+            roles.append("underline")
+            if style["underline"] == "double":
+                roles.append("double-underline")
+        if style.get("strikethrough"):
+            roles.append("line-through")
+        if style.get("color") and style["color"] not in _PLAIN_COLORS:
+            roles.append(style["color"])
+        if style.get("highlight") and style["highlight"] != "none":
+            roles.append(f"{style['highlight']}-background")
+        return f"[{''.join('.' + role for role in roles)}]#{text}#" if roles else text
+
 
 class HTMLExporter(_PageTextExporter):
     """Export OCR results to semantic HTML, with the content sorted in reading order.
@@ -1007,6 +1121,17 @@ class HTMLExporter(_PageTextExporter):
 
     def escape_text(self, text: str) -> str:
         return _html_escape(text, quote=False)
+
+    def render_styled(self, text: str, style: dict[str, Any]) -> str:
+        """`<strong>`, `<em>`, `<s>`, `<u>` (double: `text-decoration-style: double`), `<mark>` for the highlight and
+        a `<span>` for the text color"""
+        if style.get("italic"):
+            text = f"<em>{text}</em>"
+        if style.get("bold"):
+            text = f"<strong>{text}</strong>"
+        if style.get("strikethrough"):
+            text = f"<s>{text}</s>"
+        return _html_decorations(text, style, color=True)
 
     def render_heading(self, norm_label: str, lines: list[str], escape: bool = True) -> str:
         tag = self.headings[norm_label]
@@ -1092,7 +1217,7 @@ class HTMLExporter(_PageTextExporter):
             if len(predictions) == 0:
                 continue
             values = "\n".join(
-                f"<li>{self.escape_text(prediction.value) if escape else prediction.value}</li>"
+                f"<li>{self._words_text([prediction], escape)}</li>"
                 for prediction in predictions_in_reading_order(page, predictions, direction)
             )
             header = self.escape_text(class_name) if escape else class_name
@@ -1145,6 +1270,25 @@ def _hocr_text_size(geometry: BoundingBox, height: int, dpi: int = 72) -> tuple[
     (_, ymin), (_, ymax) = geometry
     x_size = int(round((ymax - ymin) * height))
     return x_size, int(round(x_size * 72 / dpi))
+
+
+def _hocr_font(word: Any) -> str:
+    """The hOCR `x_font` property of a word (its closest font family), empty when the font style is not detected"""
+    family = (getattr(word, "font_style", None) or {}).get("family", {}).get("value")
+    if not family:
+        return ""
+    family = family.replace("\\", "\\\\").replace('"', '\\"')
+    return f'; x_font "{family}"'
+
+
+def _set_hocr_word_text(word_div: ETElement, word: Any) -> None:
+    """Write the text of an `ocrx_word`, inside `<strong>` / `<em>` when the word is bold / italic (cf. hOCR spec)"""
+    font_style = getattr(word, "font_style", None) or {}
+    parent = word_div
+    for attribute, tag in (("bold", "strong"), ("italic", "em")):
+        if (font_style.get(attribute) or {}).get("value"):
+            parent = SubElement(parent, tag)
+    parent.text = word.value
 
 
 class XMLExporter:
@@ -1392,11 +1536,11 @@ class XMLExporter:
                             "id": f"word_{word_count}",
                             "title": (
                                 f"{_hocr_bbox(word.geometry, width, height)}; "
-                                f"x_wconf {int(round(word.confidence * 100))}"
+                                f"x_wconf {int(round(word.confidence * 100))}{_hocr_font(word)}"
                             ),
                         },
                     )
-                    word_div.text = word.value
+                    _set_hocr_word_text(word_div, word)
                     word_count += 1
         return ET.tostring(page_hocr, encoding="utf-8", method="xml"), ET.ElementTree(page_hocr)
 
@@ -1478,10 +1622,13 @@ class XMLExporter:
                     attrib={
                         "class": "ocrx_word",
                         "id": f"{class_name}_word_{prediction_count}",
-                        "title": f"{prediction_bbox}; x_wconf {int(round(prediction.confidence * 100))}",
+                        "title": (
+                            f"{prediction_bbox}; x_wconf {int(round(prediction.confidence * 100))}"
+                            f"{_hocr_font(prediction)}"
+                        ),
                     },
                 )
-                word_div.text = prediction.value
+                _set_hocr_word_text(word_div, prediction)
                 prediction_count += 1
         return ET.tostring(page_hocr, encoding="utf-8", method="xml"), ET.ElementTree(page_hocr)
 

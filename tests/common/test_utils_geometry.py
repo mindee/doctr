@@ -469,3 +469,33 @@ def test_straighten_page_grayscale(angle):
     assert gray_straightened.shape == (*straightened.shape[:2], 1)
     assert np.array_equal(gray_straightened, straightened[..., :1])
     assert np.array_equal(gray_m_inv, m_inv)
+
+
+def test_expand_boxes():
+    shape = (1000, 2000)
+    boxes = np.array([[0.1, 0.1, 0.2, 0.12]], dtype=np.float32)  # 200 x 20 px
+    # 20% of the short side (4 px) on each side
+    expanded = geometry.expand_boxes(boxes, shape, 0.2)
+    np.testing.assert_allclose(expanded, [[0.098, 0.096, 0.202, 0.124]], atol=1e-6)
+    assert expanded.dtype == boxes.dtype
+    # Clipped to the image, unchanged without margin or boxes
+    assert geometry.expand_boxes(np.array([[0.0, 0.0, 0.1, 0.02]], np.float32), shape, 0.5).min() == 0
+    assert geometry.expand_boxes(boxes, shape, 0.0) is boxes
+    assert geometry.expand_boxes(np.zeros((0, 4), np.float32), shape, 0.2).shape == (0, 4)
+    # Polygons: the same expansion whatever the orientation and the order of the points
+    polys = np.array([[[0.1, 0.1], [0.2, 0.1], [0.2, 0.12], [0.1, 0.12]]], dtype=np.float32)
+    expected = np.array([[[0.098, 0.096], [0.202, 0.096], [0.202, 0.124], [0.098, 0.124]]])
+    np.testing.assert_allclose(geometry.expand_boxes(polys, shape, 0.2), expected, atol=1e-6)
+    rolled = np.roll(polys, 1, axis=1)
+    np.testing.assert_allclose(geometry.expand_boxes(rolled, shape, 0.2), np.roll(expected, 1, axis=1), atol=1e-6)
+    # A vertical box grows by its width
+    vertical = np.array([[[0.5, 0.1], [0.51, 0.1], [0.51, 0.3], [0.5, 0.3]]], dtype=np.float32)  # 20 x 200 px
+    np.testing.assert_allclose(
+        geometry.expand_boxes(vertical, shape, 0.2),
+        [[[0.498, 0.096], [0.512, 0.096], [0.512, 0.304], [0.498, 0.304]]],
+        atol=1e-6,
+    )
+    with pytest.raises(ValueError):
+        geometry.expand_boxes(boxes, shape, -0.1)
+    with pytest.raises(ValueError):
+        geometry.expand_boxes(np.zeros((1, 5), np.float32), shape, 0.1)

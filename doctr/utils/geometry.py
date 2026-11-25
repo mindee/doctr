@@ -23,6 +23,7 @@ __all__ = [
     "straighten_page",
     "estimate_page_angle",
     "convert_to_relative_coords",
+    "expand_boxes",
     "rotate_abs_geoms",
     "extract_crops",
     "extract_rcrops",
@@ -517,6 +518,47 @@ def convert_to_relative_coords(geoms: np.ndarray, img_shape: tuple[int, int]) ->
         return boxes.clip(0, 1)
 
     raise ValueError(f"invalid format for arg `geoms`: {geoms.shape}")
+
+
+def expand_boxes(boxes: np.ndarray, img_shape: tuple[int, int], margin: float) -> np.ndarray:
+    """Expand relative boxes on all sides by a margin relative to their short side, whatever their orientation
+
+    >>> import numpy as np
+    >>> from doctr.utils.geometry import expand_boxes
+    >>> expand_boxes(np.array([[0.1, 0.1, 0.2, 0.12]]), (1000, 2000), 0.2)  # 4 px on each side of a 200 x 20 px box
+
+    Args:
+        boxes: relative straight boxes (N, 4) or polygons (N, 4, 2)
+        img_shape: the height and width of the image
+        margin: the margin added on each side, relative to the short side of each box (0.1 = 10% of the height of a
+            horizontal word box)
+
+    Returns:
+        the expanded boxes, clipped to the image
+    """
+    if margin < 0:
+        raise ValueError("`margin` must be non-negative")
+    if margin == 0 or boxes.shape[0] == 0:
+        return boxes
+    scale = np.array([img_shape[1], img_shape[0]], dtype=np.float32)
+    if boxes.ndim == 2 and boxes.shape[1] == 4:
+        xy = boxes.reshape(-1, 2, 2) * scale
+        pad = margin * (xy[:, 1] - xy[:, 0]).min(axis=1, keepdims=True)
+        out = np.concatenate([xy[:, 0] - pad, xy[:, 1] + pad], axis=1) / np.tile(scale, 2)
+        return np.clip(out, 0, 1).astype(boxes.dtype)
+    if boxes.ndim == 3 and boxes.shape[1:] == (4, 2):
+        pts = boxes * scale
+        prev_edges = pts - np.roll(pts, 1, axis=1)
+        next_edges = pts - np.roll(pts, -1, axis=1)
+        short = np.minimum(np.linalg.norm(prev_edges, axis=2), np.linalg.norm(next_edges, axis=2)).min(axis=1)
+
+        def _unit(v: np.ndarray) -> np.ndarray:
+            return v / np.maximum(np.linalg.norm(v, axis=2, keepdims=True), 1e-6)
+
+        # Each corner moves away from its two adjacent edges
+        out = pts + margin * short[:, None, None] * (_unit(prev_edges) + _unit(next_edges))
+        return np.clip(out / scale, 0, 1).astype(boxes.dtype)
+    raise ValueError(f"invalid format for arg `boxes`: {boxes.shape}")
 
 
 def extract_crops(img: np.ndarray, boxes: np.ndarray) -> list[np.ndarray]:

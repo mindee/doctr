@@ -39,6 +39,9 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             page. Doing so will slightly deteriorate the overall latency.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
+        detect_font_style: if True, the font style of each word (bold, italic, underline, strikethrough, colors, font
+            category, handwriting and closest font family) is classified and added to the predictions. Doing so will
+            slightly deteriorate the overall latency.
         preserve_original_coords: if True and straighten_pages is True, the returned bounding boxes are mapped back
             to the original page coordinate space. Useful for redaction and annotation.
         layout_predictor: optional layout detection module
@@ -63,6 +66,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         symmetric_pad: bool = True,
         detect_orientation: bool = False,
         detect_language: bool = False,
+        detect_font_style: bool = False,
         preserve_original_coords: bool = False,
         layout_predictor: LayoutPredictor | None = None,
         table_predictor: TablePredictor | None = None,
@@ -80,6 +84,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             symmetric_pad,
             detect_orientation,
             preserve_original_coords=preserve_original_coords,
+            detect_font_style=detect_font_style,
             **kwargs,
         )
         self.detect_orientation = detect_orientation
@@ -199,10 +204,12 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             assume_horizontal=self._page_orientation_disabled,
         )
 
+        # The word boxes before rectification, from which the font style crops are extracted
+        crop_loc_preds, orientation_idxs = loc_preds, None
         # Rectify crop orientation and get crop orientation predictions
         crop_orientations: Any = []
         if not self.assume_straight_pages:
-            crops, loc_preds, _crop_orientations = self._rectify_crops(crops, loc_preds)
+            crops, loc_preds, _crop_orientations, orientation_idxs = self._rectify_crops(crops, loc_preds)
             crop_orientations = [
                 {"value": orientation[0], "confidence": orientation[1]} for orientation in _crop_orientations
             ]
@@ -213,6 +220,8 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             crop_orientations = [{"value": 0, "confidence": None} for _ in word_preds]
 
         boxes, text_preds, crop_orientations = self._process_predictions(loc_preds, word_preds, crop_orientations)
+        # Classify the font style of the words
+        font_styles = self._predict_font_styles(pages, crop_loc_preds, orientation_idxs)
 
         if self.detect_language:
             languages = [get_language(" ".join([item[0] for item in text_pred])) for text_pred in text_preds]
@@ -245,6 +254,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             regions,
             tables,
             formulas,
+            font_styles,
         )
 
         if self.straighten_pages and self.preserve_original_coords:

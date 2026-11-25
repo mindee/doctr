@@ -168,7 +168,8 @@ should yield
                     ],
                     "objectness_score": 0.5,
                     "confidence": 1.0,
-                    "crop_orientation": {"value": 0, "confidence": null}
+                    "crop_orientation": {"value": 0, "confidence": null},
+                    "font_style": null
                   },
                   {
                     "value": "world!",
@@ -180,7 +181,8 @@ should yield
                     ],
                     "objectness_score": 0.5,
                     "confidence": 1.0,
-                    "crop_orientation": {"value": 0, "confidence": null}
+                    "crop_orientation": {"value": 0, "confidence": null},
+                    "font_style": null
                   }
                 ]
               }

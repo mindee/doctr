@@ -144,6 +144,24 @@ train_set/
 └── ...
 ```
 :::
+
+:::{tab-item} Font style
+`images/` contains **word crops** and `labels.json` their style attributes (other keys, such as the text, are
+ignored). The classes of each attribute are listed in `doctr.datasets.FONT_STYLE_ATTRIBUTES`:
+
+```{code-block} javascript
+:caption: labels.json
+
+{
+  "img_1.jpg": {
+    "bold": true, "italic": false, "underline": "double", "strikethrough": false,
+    "color": "red", "highlight": null, "category": "SERIF", "family": "Lora"
+  }
+}
+```
+
+A split can also be a folder of such folders (e.g. dataset shards), which are concatenated.
+:::
 ::::
 
 ## Train
@@ -211,6 +229,17 @@ python references/classification/train_orientation.py mobilenet_v3_small_page_or
 ```
 
 [Full guide](https://github.com/mindee/doctr/tree/main/references/classification#readme).
+
+### Font style classifier
+
+```bash
+python references/classification/train_font_style.py mobilenet_v3_small_font_style \
+  --train_path path/to/train_set --val_path path/to/val_set --epochs 100 \
+  --class-weights underline strikethrough color highlight handwritten category family --label-smoothing 0.1
+```
+
+The script reports the accuracy and macro F1 score of each attribute, and keeps the checkpoint with the best mean
+macro F1. [Full guide](https://github.com/mindee/doctr/tree/main/references/classification#readme).
 
 ## Hardware
 

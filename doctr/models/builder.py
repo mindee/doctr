@@ -562,6 +562,7 @@ class DocumentBuilder(NestedObject):
         crop_orientations: list[dict[str, Any]],
         shape: tuple[int, int] | None = None,
         layout: list[LayoutElement] | None = None,
+        font_styles: list[dict[str, Any]] | None = None,
     ) -> list[Block]:
         """Gather independent words in structured blocks
 
@@ -574,6 +575,7 @@ class DocumentBuilder(NestedObject):
             shape: the page dimensions (height, width), used to de-skew rotated pages exactly when
                 resolving lines
             layout: optional layout regions of the page
+            font_styles: optional, the font style of each word of the page
 
         Returns:
             list of block elements
@@ -607,7 +609,13 @@ class DocumentBuilder(NestedObject):
                 if boxes.ndim == 3
                 else ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3]))
             )
-            return Word(*word_preds[idx], geometry, float(objectness_scores[idx]), crop_orientations[idx])  # type: ignore[arg-type]
+            return Word(
+                *word_preds[idx],
+                geometry,  # type: ignore[arg-type]
+                float(objectness_scores[idx]),
+                crop_orientations[idx],
+                font_styles[idx] if font_styles is not None else None,
+            )
 
         return [Block([Line([_word(idx) for idx in line]) for line in block]) for block in blocks]
 
@@ -679,6 +687,7 @@ class DocumentBuilder(NestedObject):
         regions: list[dict[str, Any] | None] | None = None,
         tables: Sequence[dict[str, Any] | list[dict[str, Any]] | None] | None = None,
         formulas: Sequence[list[dict[str, Any]] | None] | None = None,
+        font_styles: list[list[dict[str, Any]]] | None = None,
     ) -> Document:
         """Re-arrange detected words into structured blocks
 
@@ -703,6 +712,8 @@ class DocumentBuilder(NestedObject):
                 the `blocks` output of that page.
             formulas: optional, list of N elements, where each element is the list of formulas recognized on a page
                 `{"geometry", "value", "confidence", "score"}` (cf. `FormulaPredictor.predict_regions`)
+            font_styles: optional, list of N elements, where each element is the list of the font styles of the
+                words of a page (cf. `FontStylePredictor`)
 
         Returns:
             document object
@@ -718,6 +729,7 @@ class DocumentBuilder(NestedObject):
         _regions = regions if isinstance(regions, list) else [None] * len(boxes)
         _tables = tables if isinstance(tables, list) else [None] * len(boxes)
         _formulas = formulas if isinstance(formulas, list) else [None] * len(boxes)
+        _font_styles = font_styles if isinstance(font_styles, list) else [None] * len(boxes)
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
             if boxes[0].ndim == 3:
@@ -738,6 +750,7 @@ class DocumentBuilder(NestedObject):
             page_regions,
             page_table,
             page_formulas,
+            word_font_styles,
         ) in zip(  # noqa: E501
             pages,
             range(len(boxes)),
@@ -751,6 +764,7 @@ class DocumentBuilder(NestedObject):
             _regions,
             _tables,
             _formulas,
+            _font_styles,
         ):
             # Build the page tables and flag the words that belong to a table
             page_tables, consumed = self._build_tables(page_boxes, word_preds, page_table, shape)
@@ -761,6 +775,8 @@ class DocumentBuilder(NestedObject):
                 loc_scores = loc_scores[keep]
                 word_preds = [wp for wp, k in zip(word_preds, keep) if k]
                 word_crop_orientations = [co for co, k in zip(word_crop_orientations, keep) if k]
+                if word_font_styles is not None:
+                    word_font_styles = [fs for fs, k in zip(word_font_styles, keep) if k]
 
             page_layout = self._build_layout_elements(page_regions)
             page_blocks = self._build_blocks(
@@ -770,6 +786,7 @@ class DocumentBuilder(NestedObject):
                 word_crop_orientations,
                 shape,
                 page_layout,
+                word_font_styles,
             )
             _page = Page(
                 page,
@@ -818,6 +835,7 @@ class KIEDocumentBuilder(DocumentBuilder):
         regions: list[dict[str, Any] | None] | None = None,
         tables: Sequence[dict[str, Any] | list[dict[str, Any]] | None] | None = None,
         formulas: Sequence[list[dict[str, Any]] | None] | None = None,
+        font_styles: list[dict[str, list[dict[str, Any]]]] | None = None,
     ) -> KIEDocument:
         """Re-arrange detected words into structured predictions
 
@@ -842,6 +860,8 @@ class KIEDocumentBuilder(DocumentBuilder):
                 the `blocks` output of that page. Unused for KIE documents, as tables are not supported in KIE.
             formulas: optional, list of N elements, where each element is the list of formulas recognized on a page.
                 Unused for KIE documents, as formulas are not supported in KIE.
+            font_styles: optional, list of N dictionaries, where each element is the list of the font styles of the
+                predictions of a class
 
         Returns:
             document object
@@ -854,6 +874,7 @@ class KIEDocumentBuilder(DocumentBuilder):
         _orientations = orientations if isinstance(orientations, list) else [None] * len(boxes)
         _languages = languages if isinstance(languages, list) else [None] * len(boxes)
         _regions = regions if isinstance(regions, list) else [None] * len(boxes)
+        _font_styles = font_styles if isinstance(font_styles, list) else [None] * len(boxes)
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
             if next(iter(boxes[0].values())).ndim == 3:
@@ -877,6 +898,7 @@ class KIEDocumentBuilder(DocumentBuilder):
                         word_preds[k],
                         word_crop_orientations[k],
                         shape,
+                        page_font_styles[k] if page_font_styles is not None else None,
                     )
                     for k in page_boxes.keys()
                 },
@@ -886,7 +908,7 @@ class KIEDocumentBuilder(DocumentBuilder):
                 language,
                 self._build_layout_elements(page_regions),
             )
-            for page, _idx, shape, page_boxes, loc_scores, word_preds, word_crop_orientations, orientation, language, page_regions in zip(  # noqa: E501
+            for page, _idx, shape, page_boxes, loc_scores, word_preds, word_crop_orientations, orientation, language, page_regions, page_font_styles in zip(  # noqa: E501
                 pages,
                 range(len(boxes)),
                 page_shapes,
@@ -897,6 +919,7 @@ class KIEDocumentBuilder(DocumentBuilder):
                 _orientations,
                 _languages,
                 _regions,
+                _font_styles,
             )
         ]
 
@@ -909,6 +932,7 @@ class KIEDocumentBuilder(DocumentBuilder):
         word_preds: list[tuple[str, float]],
         crop_orientations: list[dict[str, Any]],
         shape: tuple[int, int] | None = None,
+        font_styles: list[dict[str, Any]] | None = None,
     ) -> list[Prediction]:
         """Gather independent words in structured blocks
 
@@ -918,6 +942,7 @@ class KIEDocumentBuilder(DocumentBuilder):
             word_preds: list of all detected words of the page, of shape N
             crop_orientations: list of orientations for each word crop
             shape: the page dimensions (height, width), used to de-skew rotated pages exactly
+            font_styles: optional, the font style of each prediction
 
         Returns:
             list of block elements
@@ -938,6 +963,7 @@ class KIEDocumentBuilder(DocumentBuilder):
                 geometry=tuple(tuple(pt) for pt in boxes[idx].tolist()),  # type: ignore[arg-type]
                 objectness_score=float(objectness_scores[idx]),
                 crop_orientation=crop_orientations[idx],
+                font_style=font_styles[idx] if font_styles is not None else None,
             )
             if boxes.ndim == 3
             else Prediction(
@@ -946,6 +972,7 @@ class KIEDocumentBuilder(DocumentBuilder):
                 geometry=((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3])),
                 objectness_score=float(objectness_scores[idx]),
                 crop_orientation=crop_orientations[idx],
+                font_style=font_styles[idx] if font_styles is not None else None,
             )
             for idx in idxs
         ]

@@ -267,6 +267,7 @@ def _build_predictor(args: argparse.Namespace) -> Any:
         "detect_orientation": args.detect_orientation,
         "straighten_pages": args.straighten_pages,
         "detect_language": args.detect_language,
+        "detect_font_style": args.detect_font_style,
         "detect_layout": detect_layout,
         "layout_arch": args.layout_arch,
         "ignore_regions": args.ignore_regions or None,
@@ -542,6 +543,12 @@ def _parse_args(argv=None):
     )
     parser.add_argument("--detect_orientation", action="store_true", help="automatically detect page orientation")
     parser.add_argument("--detect_language", action="store_true", help="detect language of the text")
+    parser.add_argument(
+        "--detect_font_style",
+        action="store_true",
+        help="classify the font style of each word (bold, italic, underline, strikethrough, colors, font family), "
+        "rendered in the Markdown, HTML, AsciiDoc and hOCR exports",
+    )
     parser.add_argument("--detect_layout", action="store_true", help="attach the detected layout regions to each page")
     parser.add_argument(
         "--detect_tables",

@@ -100,6 +100,7 @@ async def perform_ocr(request: OCRIn = Depends(), files: list[UploadFile] = [Fil
                                             objectness_score=round(word.objectness_score, 2),
                                             confidence=round(word.confidence, 2),
                                             crop_orientation=word.crop_orientation,
+                                            font_style=word.font_style,
                                         )
                                         for word in line.words
                                     ],

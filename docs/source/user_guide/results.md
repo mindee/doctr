@@ -26,6 +26,7 @@ page.language  # {"value": ..., "confidence": ...} with detect_language=True
 page.layout  # list of LayoutElement with detect_layout=True
 page.tables  # list of Table with detect_tables=True
 page.formulas  # list of Formula with detect_formulas=True
+word.font_style  # {"bold": {"value": ..., "confidence": ...}, ...} with detect_font_style=True
 ```
 
 Most of the time, you want a flat list of words. A small generator does the job:
@@ -58,6 +59,30 @@ doubtful = [(page_idx, word.value, word.confidence) for page_idx, word in iter_w
 The way character probabilities are combined into `word.confidence` is configurable: see
 [confidence scores](ocr_predictor.md#confidence-scores).
 :::
+
+## Font style
+
+With `detect_font_style=True`, each word also carries its font style: emphasis, text and highlight colors, font
+category, handwriting and closest font family, each with a confidence. `word.style(attribute)` returns the predicted value:
+
+```python
+predictor = ocr_predictor(pretrained=True, detect_font_style=True)
+result = predictor(DocumentFile.from_pdf("invoice.pdf"))
+
+word.font_style
+# {"bold": {"value": True, "confidence": 0.98}, "italic": {"value": False, "confidence": 0.99},
+#  "underline": {"value": "none", "confidence": 0.97}, "strikethrough": {"value": False, "confidence": 1.0},
+#  "color": {"value": "black", "confidence": 0.95}, "highlight": {"value": "none", "confidence": 0.99},
+#  "handwritten": {"value": False, "confidence": 0.99},
+#  "category": {"value": "sans_serif", "confidence": 0.93}, "family": {"value": "Roboto", "confidence": 0.71}}
+
+emphasized = [word.value for _, word in iter_words(result) if word.style("bold") or word.style("underline") != "none"]
+```
+
+The classes of each attribute are listed in [](standalone_predictors.md#font-style-classifier). `word.font_style` is
+`None` when the font style is not detected. The Markdown, AsciiDoc, HTML and hOCR exports render the emphasis (see
+[](exporting.md#font-style)), which keeps what the document stresses visible to the downstream consumers of the text,
+such as LLMs.
 
 ## Convert coordinates to pixels
 
@@ -218,7 +243,8 @@ need them, e.g. to call `show()`.
                   "confidence": 0.99995,
                   "geometry": [[0.0706, 0.0537], [0.1603, 0.0713]],
                   "objectness_score": 0.80,
-                  "crop_orientation": {"value": 0, "confidence": null}
+                  "crop_orientation": {"value": 0, "confidence": null},
+                  "font_style": null
                 }
               ]
             }

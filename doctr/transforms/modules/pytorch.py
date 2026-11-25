@@ -9,7 +9,8 @@ from collections.abc import Sequence
 import numpy as np
 import torch
 from scipy.ndimage import gaussian_filter
-from torch.nn.functional import pad
+from torch.nn.functional import interpolate, pad
+from torchvision.io import decode_jpeg, encode_jpeg
 from torchvision.transforms import functional as F
 from torchvision.transforms import transforms as T
 
@@ -29,6 +30,9 @@ __all__ = [
     "RandomGlare",
     "RandomLighting",
     "RandomPerspective",
+    "RandomLowResolution",
+    "JPEGCompression",
+    "RandomColorCast",
 ]
 
 
@@ -190,8 +194,8 @@ class Resize(T.Resize):
                 else:
                     offset = (0, 0)
 
-                if isinstance(target, str) or (isinstance(target, np.ndarray) and target.shape == (1,)):
-                    # Special case for orientation targets and other non-box targets, which should not be resized
+                if isinstance(target, str) or (isinstance(target, np.ndarray) and target.ndim < 2):
+                    # Special case for class targets (e.g. orientation, font style), which are not boxes to resize
                     pass
                 elif isinstance(target, dict):
                     target = {
@@ -510,7 +514,8 @@ class RandomPad(torch.nn.Module):
         out[:, top : top + h, left : left + w] = img
 
         target = sample.target
-        if isinstance(target, np.ndarray):
+        # Class targets (e.g. orientation, font style) are left unchanged
+        if isinstance(target, np.ndarray) and target.ndim >= 2:
             target = self._pad_target(target, (left, top), (h, w), (new_h, new_w))
         elif isinstance(target, dict):
             target = {
@@ -627,3 +632,111 @@ class RandomPerspective(torch.nn.Module):
 
     def extra_repr(self) -> str:
         return f"distortion={self.distortion}"
+
+
+class RandomLowResolution(torch.nn.Module):
+    """Shrinks the image to a random low resolution: the words of a page rendered or scanned at 100-150 dpi are
+    only 15-30 px high, and their strokes look blurred and thick once upscaled to the input size of a model. The
+    aspect ratio is kept, and the relative boxes of the target remain valid.
+
+    >>> import torch
+    >>> from doctr.transforms import RandomLowResolution
+    >>> from doctr.utils import Sample
+    >>> transfo = RandomLowResolution(height_range=(14, 34), p=0.5)
+    >>> out = transfo(Sample(image=torch.rand((3, 64, 256))))
+
+    Args:
+        height_range: minimum and maximum height of the image after shrinking, in pixels (an image already smaller
+            is left unchanged)
+        p: probability to apply the transformation
+    """
+
+    def __init__(self, height_range: tuple[int, int] = (14, 34), p: float = 0.5) -> None:
+        super().__init__()
+        if not 1 <= height_range[0] <= height_range[1]:
+            raise ValueError("`height_range` must be a (min, max) range of positive heights")
+        self.height_range = height_range
+        self.p = p
+
+    def forward(self, sample: Sample) -> Sample:
+        if torch.rand(1) >= self.p:
+            return sample
+        img = sample.image
+        h, w = img.shape[-2:]
+        height = int(torch.randint(self.height_range[0], self.height_range[1] + 1, (1,)))
+        if height >= h:
+            return sample
+        size = (height, max(1, round(w * height / h)))
+        out = interpolate(img[None].float(), size=size, mode="bilinear", antialias=True)[0]
+        out = out.round().clamp(0, 255).to(img.dtype) if img.dtype == torch.uint8 else out.clamp(0, 1)
+        mask = None if sample.mask is None else interpolate(sample.mask[None, None].float(), size=size)[0, 0] > 0.5
+        return sample.replace(image=out, mask=mask)
+
+    def extra_repr(self) -> str:
+        return f"height_range={self.height_range}, p={self.p}"
+
+
+class JPEGCompression(torch.nn.Module):
+    """Compresses the image as a JPEG of random quality: the block and ringing artifacts of scans and photos
+
+    >>> import torch
+    >>> from doctr.transforms import JPEGCompression
+    >>> from doctr.utils import Sample
+    >>> transfo = JPEGCompression(quality_range=(35, 90), p=0.3)
+    >>> out = transfo(Sample(image=torch.rand((3, 64, 256))))
+
+    Args:
+        quality_range: minimum and maximum JPEG quality (1-100)
+        p: probability to apply the transformation
+    """
+
+    def __init__(self, quality_range: tuple[int, int] = (35, 90), p: float = 0.5) -> None:
+        super().__init__()
+        if not 1 <= quality_range[0] <= quality_range[1] <= 100:
+            raise ValueError("`quality_range` must be a (min, max) range of qualities between 1 and 100")
+        self.quality_range = quality_range
+        self.p = p
+
+    def forward(self, sample: Sample) -> Sample:
+        if torch.rand(1) >= self.p:
+            return sample
+        img = sample.image
+        quality = int(torch.randint(self.quality_range[0], self.quality_range[1] + 1, (1,)))
+        as_uint8 = img if img.dtype == torch.uint8 else (img * 255).round().clamp(0, 255).to(torch.uint8)
+        out = decode_jpeg(encode_jpeg(as_uint8.cpu(), quality=quality)).to(img.device)
+        return sample.replace(image=out if img.dtype == torch.uint8 else out.to(img.dtype) / 255)
+
+    def extra_repr(self) -> str:
+        return f"quality_range={self.quality_range}, p={self.p}"
+
+
+class RandomColorCast(torch.nn.Module):
+    """Multiplies each color channel by a random gain: the faint color cast of a scanner or of the white balance of
+    a photo. Keep the gains small when colors are labels, so that a black ink does not turn into a colored one.
+
+    >>> import torch
+    >>> from doctr.transforms import RandomColorCast
+    >>> from doctr.utils import Sample
+    >>> transfo = RandomColorCast(max_gain=0.04, p=0.3)
+    >>> out = transfo(Sample(image=torch.rand((3, 64, 256))))
+
+    Args:
+        max_gain: maximum relative change of each channel (0.04 = gains between 0.96 and 1.04)
+        p: probability to apply the transformation
+    """
+
+    def __init__(self, max_gain: float = 0.04, p: float = 0.5) -> None:
+        super().__init__()
+        if max_gain < 0:
+            raise ValueError("`max_gain` must be non-negative")
+        self.max_gain = max_gain
+        self.p = p
+
+    def forward(self, sample: Sample) -> Sample:
+        if torch.rand(1) >= self.p:
+            return sample
+        gains = 1 + self.max_gain * (2 * torch.rand(sample.image.shape[0], 1, 1) - 1)
+        return _apply_float_photometric(sample, lambda img: img * gains.to(img.device))
+
+    def extra_repr(self) -> str:
+        return f"max_gain={self.max_gain}, p={self.p}"

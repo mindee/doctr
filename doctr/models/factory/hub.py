@@ -28,7 +28,9 @@ logger = logging.getLogger(__name__)
 
 
 AVAILABLE_ARCHS = {
-    "classification": models.classification.zoo.ARCHS + models.classification.zoo.ORIENTATION_ARCHS,
+    "classification": models.classification.zoo.ARCHS
+    + models.classification.zoo.ORIENTATION_ARCHS
+    + models.classification.zoo.FONT_STYLE_ARCHS,
     "detection": models.detection.zoo.ARCHS,
     "recognition": models.recognition.zoo.ARCHS,
     "layout": models.layout.zoo.ARCHS,

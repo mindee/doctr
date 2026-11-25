@@ -54,6 +54,8 @@ The structure of these exports depends on what the predictor detected:
   merged cells (`rowspan` / `colspan`); the other formats place the text of a merged cell at its top-left position.
 - **With formula recognition** (`detect_formulas=True`), formulas are rendered as display math (`$$...$$` in
   Markdown, a `[latexmath]` block in AsciiDoc, see [](layout_and_tables.md#formula-recognition)).
+- **With font style classification** (`detect_font_style=True`), bold, italic, underlined, struck through and
+  highlighted words are marked up, see [](#font-style) below.
 
 ::::{tab-set}
 
@@ -124,6 +126,24 @@ Useful options:
 
 `images`
 : How figures are rendered, see [](#figures) below.
+
+## Font style
+
+With `detect_font_style=True` (see [](results.md#font-style)), the Markdown, AsciiDoc, HTML and hOCR exports mark up
+the font style of the words. Consecutive words sharing the same style are marked up once, e.g. `**Total amount**`:
+
+| Style           | Markdown                                         | AsciiDoc                   | HTML                                      |
+| --------------- | ------------------------------------------------ | -------------------------- | ----------------------------------------- |
+| Bold            | `**text**`                                       | `**text**`                 | `<strong>`                                |
+| Italic          | `*text*`                                         | `__text__`                 | `<em>`                                    |
+| Strikethrough   | `~~text~~`                                       | `[.line-through]#text#`    | `<s>`                                     |
+| Underline       | `<u>text</u>`                                    | `[.underline]#text#`       | `<u>`                                     |
+| Double underline| `<u style="text-decoration-style: double">`      | `[.underline.double-underline]#text#` | `<u style="text-decoration-style: double">` |
+| Highlight       | `<mark>` (with a `background` other than yellow) | `[.yellow-background]#text#` | `<mark>`                                |
+| Text color      | not rendered                                     | `[.red]#text#`             | `<span style="color: red">`               |
+
+Black and white text are not marked up. In hOCR, bold and italic words hold `<strong>` / `<em>` elements, and every
+word gets its closest font family as `x_font` property. The plain text export is never marked up.
 
 ## hOCR
 

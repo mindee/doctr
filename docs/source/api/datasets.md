@@ -63,6 +63,10 @@ for a guide.
 .. autoclass:: TableStructureDataset
 
 .. autoclass:: OrientationDataset
+
+.. autoclass:: FontStyleDataset
+
+.. autofunction:: encode_font_style
 ```
 
 ## Vocabularies

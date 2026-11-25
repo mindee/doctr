@@ -99,6 +99,7 @@ def test_parse_args_defaults():
     assert args.on_error == "raise"
     assert args.detect_orientation is False
     assert args.detect_language is False
+    assert args.detect_font_style is False
     assert args.detect_layout is False
     assert args.detect_tables is False
     assert args.detect_formulas is False
@@ -434,6 +435,7 @@ def test_build_predictor_forwards_every_option(recorded_predictor):
         "geometric_mean",
         "--detect_orientation",
         "--detect_language",
+        "--detect_font_style",
         "--detect_layout",
         "--detect_tables",
         "--detect_formulas",
@@ -461,6 +463,7 @@ def test_build_predictor_forwards_every_option(recorded_predictor):
         "detect_orientation": True,
         "straighten_pages": True,
         "detect_language": True,
+        "detect_font_style": True,
         "detect_layout": True,
         "layout_arch": "lw_detr_s",
         "ignore_regions": None,

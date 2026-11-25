@@ -30,6 +30,7 @@ def _predictor(
     detect_orientation: bool = False,
     straighten_pages: bool = False,
     detect_language: bool = False,
+    detect_font_style: bool = False,
     detect_layout: bool = False,
     layout_arch: Any = "lw_detr_s",
     ignore_regions: list[str] | None = None,
@@ -110,6 +111,7 @@ def _predictor(
         detect_orientation=detect_orientation,
         straighten_pages=straighten_pages,
         detect_language=detect_language,
+        detect_font_style=detect_font_style,
         layout_predictor=layout_pred,
         table_predictor=table_pred,
         formula_predictor=formula_pred,
@@ -130,6 +132,7 @@ def ocr_predictor(
     detect_orientation: bool = False,
     straighten_pages: bool = False,
     detect_language: bool = False,
+    detect_font_style: bool = False,
     detect_layout: bool = False,
     layout_arch: Any = "lw_detr_s",
     ignore_regions: list[str] | None = None,
@@ -168,6 +171,9 @@ def ocr_predictor(
             Doing so will improve performances for documents with page-uniform rotations.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
+        detect_font_style: if True, the font style of each word (bold, italic, underline, strikethrough, colors, font
+            category, handwriting and closest font family) is classified and added to the predictions. Doing so will
+            slightly deteriorate the overall latency.
         detect_layout: if True, a layout detection model is run on each page and the detected regions are attached
             to each page.
             Doing so will slightly deteriorate the overall latency.
@@ -206,6 +212,7 @@ def ocr_predictor(
         detect_orientation=detect_orientation,
         straighten_pages=straighten_pages,
         detect_language=detect_language,
+        detect_font_style=detect_font_style,
         detect_layout=detect_layout,
         layout_arch=layout_arch,
         detect_tables=detect_tables,
@@ -229,6 +236,7 @@ def _kie_predictor(
     detect_orientation: bool = False,
     straighten_pages: bool = False,
     detect_language: bool = False,
+    detect_font_style: bool = False,
     detect_layout: bool = False,
     layout_arch: Any = "lw_detr_s",
     ignore_regions: list[str] | None = None,
@@ -282,6 +290,7 @@ def _kie_predictor(
         detect_orientation=detect_orientation,
         straighten_pages=straighten_pages,
         detect_language=detect_language,
+        detect_font_style=detect_font_style,
         layout_predictor=layout_pred,
         ignore_regions=ignore_regions,
         **kwargs,
@@ -300,6 +309,7 @@ def kie_predictor(
     detect_orientation: bool = False,
     straighten_pages: bool = False,
     detect_language: bool = False,
+    detect_font_style: bool = False,
     detect_layout: bool = False,
     layout_arch: Any = "lw_detr_s",
     ignore_regions: list[str] | None = None,
@@ -336,6 +346,9 @@ def kie_predictor(
             Doing so will improve performances for documents with page-uniform rotations.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
+        detect_font_style: if True, the font style of each word (bold, italic, underline, strikethrough, colors, font
+            category, handwriting and closest font family) is classified and added to the predictions. Doing so will
+            slightly deteriorate the overall latency.
         detect_layout: if True, a layout detection model is run on each page and the detected regions are attached
             to each page.
             Doing so will slightly deteriorate the overall latency.
@@ -366,6 +379,7 @@ def kie_predictor(
         detect_orientation=detect_orientation,
         straighten_pages=straighten_pages,
         detect_language=detect_language,
+        detect_font_style=detect_font_style,
         detect_layout=detect_layout,
         layout_arch=layout_arch,
         ignore_regions=ignore_regions,
