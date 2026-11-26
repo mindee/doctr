@@ -451,6 +451,44 @@ def test_markdown_finalize_line(line, expected):
     assert MarkdownExporter().finalize_line(line) == expected
 
 
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        # A backslash does not escape these mid-word in AsciiDoc and would be shown: use character references
+        ("snake_case", "snake&#95;case"),
+        ("C++", "C&#43;&#43;"),
+        ("*bold* #tag", "&#42;bold&#42; &#35;tag"),
+        ("x^2^ H~2~O", "x&#94;2&#94; H&#126;2&#126;O"),
+        ("{attr} <<ref>>", "&#123;attr&#125; &#60;&#60;ref&#62;&#62;"),
+        # A line made of a bracketed text would be read as a block attribute line, and dropped
+        ("[1]", "&#91;1&#93;"),
+        ("a\\b", "a&#92;b"),
+        ("plain text: 50%", "plain text: 50%"),
+    ],
+)
+def test_asciidoc_escape_text(text, expected):
+    assert AsciiDocExporter().escape_text(text) == expected
+
+
+@pytest.mark.parametrize(
+    "line, expected",
+    [
+        ("1. first", "{empty}1. first"),
+        ("J. Smith", "{empty}J. Smith"),
+        ("iv) fourth", "{empty}iv) fourth"),
+        ("NOTE: keep dry", "{empty}NOTE: keep dry"),
+        ("WARNING: hot", "{empty}WARNING: hot"),
+        (". dot", "{empty}. dot"),
+        ("'''", "{empty}'''"),
+        ("1.5 million", "1.5 million"),
+        ("Note: lower case", "Note: lower case"),
+        ("2022 was a year", "2022 was a year"),
+    ],
+)
+def test_asciidoc_finalize_line(line, expected):
+    assert AsciiDocExporter().finalize_line(line) == expected
+
+
 def test_page_export_list_items():
     # Three separate single-line list items, each covered by its own List-item region -> three bullets
     lines = [_line_at(f"item number {idx}", 0.1, 0.1 + 0.1 * idx, 0.5, 0.13 + 0.1 * idx) for idx in range(3)]
@@ -597,7 +635,7 @@ def test_table_exports():
         "after the table",
     ]
     asciidoc = page.export_as_asciidoc()
-    assert "|===\n|Name |Qty\n\n|Bolt |12\\|3\n|===" in asciidoc
+    assert "|===\n|Name |Qty\n\n|Bolt |12&#124;3\n|===" in asciidoc
     assert asciidoc.index("before the table") < asciidoc.index("|===") < asciidoc.index("after the table")
     # Recognized tables are part of the plain text render and of the HTML export
     page = _table_page()
@@ -969,7 +1007,7 @@ def test_page_export_images_fallbacks():
             AsciiDocExporter,
             True,
             'Fig [1], "a" <b>',
-            ['.Fig [1], "a" \\<b\\>\nimage::data:image/png;base64,', '["Fig [1], \\"a\\" <b>"]'],
+            ['.Fig &#91;1&#93;, "a" &#60;b&#62;\nimage::data:image/png;base64,', '["Fig [1], \\"a\\" <b>"]'],
         ),
         (AsciiDocExporter, True, "... continued", [".{empty}... continued\nimage::data:image/png;base64,"]),
         (AsciiDocExporter, True, None, ["image::data:image/png;base64,", "[]\n\nThe trend continued"]),
@@ -1004,7 +1042,7 @@ def test_page_export_caption_formatting():
     # AsciiDoc: the caption is the block title (without the automatic "Figure N." prefix) and the alt text
     page = _figure_page(caption="Figure 1: {author} revenue")
     asciidoc = page.export_as_asciidoc(images="embedded")
-    assert '[caption=""]\n.Figure 1: \\{author\\} revenue\nimage::data:image/png;base64,' in asciidoc
+    assert '[caption=""]\n.Figure 1: &#123;author&#125; revenue\nimage::data:image/png;base64,' in asciidoc
     assert '["Figure 1: \\{author\\} revenue"]' in asciidoc
     raw = page.export_as_asciidoc(images="embedded", escape=False)
     assert '[caption=""]\n.Figure 1: {author} revenue\n' in raw and '["Figure 1: {author} revenue"]' in raw

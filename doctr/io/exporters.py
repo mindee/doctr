@@ -68,8 +68,13 @@ _MD_SPECIAL_CHARS = "\\`*_[]|#<>"
 _MD_LINE_MARKERS = "-+>#=`"
 # Ordered list marker at the start of a line, e.g. "3." or "3)"
 _MD_ORDERED_MARKER = re.compile(r"^(\s*\d{1,9})([.)])(?=\s|$)")
-_ADOC_SPECIAL_CHARS = "\\`*_#^~|+{}<>"
-_ADOC_LINE_MARKERS = "=*.-/+"
+# Written as character references: a backslash only escapes some of them in AsciiDoc, and is otherwise kept as is
+_ADOC_SPECIAL_CHARS = "\\`*_#^~|+{}[]<>"
+# Ordered list ("1.", "a.", "iv)") or admonition ("NOTE:") at the start of a line
+_ADOC_LINE_PREFIX = re.compile(
+    r"^\s*(?:(?:\d+|[a-zA-Z]|[ivxIVX]+)[.)]|(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION):)(?=[ \t])"
+)
+_ADOC_LINE_MARKERS = "=*.-/+'"
 
 
 def _covering_region_indices(
@@ -1038,11 +1043,11 @@ class AsciiDocExporter(_PageTextExporter):
     figure_placeholder: ClassVar[str] = "// image"
 
     def escape_text(self, text: str) -> str:
-        return "".join(f"\\{char}" if char in _ADOC_SPECIAL_CHARS else char for char in text)
+        return "".join(f"&#{ord(char)};" if char in _ADOC_SPECIAL_CHARS else char for char in text)
 
     def finalize_line(self, line: str) -> str:
         stripped = line.lstrip()
-        if stripped and stripped[0] in _ADOC_LINE_MARKERS:
+        if (stripped and stripped[0] in _ADOC_LINE_MARKERS) or _ADOC_LINE_PREFIX.match(line):
             return f"{{empty}}{line}"
         return line
 
