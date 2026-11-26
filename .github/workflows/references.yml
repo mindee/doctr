@@ -85,7 +85,7 @@ jobs:
         run: >
           python references/classification/train_font_style.py mobilenet_v3_small_font_style
           --train_path ./font_style_set --val_path ./font_style_set -b 8 --epochs 1 --name font_style_ci
-          --class-weights underline strikethrough color highlight handwritten category family
+          --class-weights underline strikethrough color highlight category family
       - name: Evaluate the checkpoint
         run: >
           python references/classification/train_font_style.py mobilenet_v3_small_font_style

@@ -34,10 +34,10 @@ The type can be either `page` for document images or `crop` for word crops.
 The font style classifier predicts, for each word crop, its emphasis (bold, italic, underline, strikethrough), its text and highlight colors, whether it is handwritten, its font category and its closest font family (cf. `doctr.datasets.FONT_STYLE_ATTRIBUTES`). The model outputs the logits of all these attributes concatenated, and is trained with the sum of their cross entropies.
 
 ```shell
-python references/classification/train_font_style.py mobilenet_v3_small_font_style --train_path path/to/train --val_path path/to/val --epochs 100 --batch_size 256 --class-weights underline strikethrough color highlight handwritten category family --label-smoothing 0.1 --amp
+python references/classification/train_font_style.py mobilenet_v3_small_font_style --train_path path/to/train --val_path path/to/val --epochs 100 --batch_size 256 --class-weights underline strikethrough color highlight category family --label-smoothing 0.1 --amp
 ```
 
-The checkpoint with the best mean macro F1 score of the attributes is kept, and the accuracy and macro F1 score of each attribute is reported after each epoch. `--class-weights` weights the classes of each attribute (or of the listed ones) by their inverse square root frequency (rare styles such as strikethrough or highlight): leave bold and italic out, or the classifier calls ambiguous regular words bold, whereas most words of a page are regular, and `--label-smoothing` helps with the many near-identical font families. The augmentations leave the colors unchanged, as they are labels.
+The checkpoint with the best mean macro F1 score of the attributes is kept, and the accuracy and macro F1 score of each attribute is reported after each epoch. `--class-weights` weights the classes of each attribute (or of the listed ones) by their inverse square root frequency (rare styles such as strikethrough or highlight): leave bold, italic and handwritten out, or the classifier calls ambiguous words bold or handwritten, whereas most words of a page are regular and printed, and `--label-smoothing` helps with the many near-identical font families. The augmentations leave the colors unchanged, as they are labels.
 
 ## Device and mixed precision
 

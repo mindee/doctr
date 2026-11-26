@@ -58,7 +58,7 @@ predictors with `detect_font_style=True` (see [](../user_guide/results.md#font-s
 | `mobilenet_v3_small_font_style`    | Bold, italic, underline, strikethrough, text & highlight colors, handwriting, category, family | {func}`~doctr.models.classification.font_style_predictor` |
 
 The predicted classes of each attribute are listed in `doctr.datasets.FONT_STYLE_ATTRIBUTES`: the font family is the
-closest one among 339 families (e.g. `Arial`, `Roboto`, `Tinos` (Times), `Latin Modern Roman`...).
+closest one among 401 families (e.g. `Arial`, `Roboto`, `Tinos` (Times), `Latin Modern Roman`...).
 
 ## About the benchmarks
 

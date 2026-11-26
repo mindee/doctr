@@ -235,7 +235,7 @@ python references/classification/train_orientation.py mobilenet_v3_small_page_or
 ```bash
 python references/classification/train_font_style.py mobilenet_v3_small_font_style \
   --train_path path/to/train_set --val_path path/to/val_set --epochs 100 \
-  --class-weights underline strikethrough color highlight handwritten category family --label-smoothing 0.1
+  --class-weights underline strikethrough color highlight category family --label-smoothing 0.1
 ```
 
 The script reports the accuracy and macro F1 score of each attribute, and keeps the checkpoint with the best mean
