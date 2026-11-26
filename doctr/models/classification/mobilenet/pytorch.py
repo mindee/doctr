@@ -79,7 +79,7 @@ default_cfgs: dict[str, dict[str, Any]] = {
         # Margin the OCR predictor adds around the word boxes to crop them for the model (relative to their height):
         # straight boxes need ~0.1 to keep the underline of a word, the tighter rotated boxes ~0.2
         "crop_margin": 0.15,
-        "url": "https://github.com/mindee/doctr/releases/download/v1.2.0/font_style_mnv3s-4242f1e2.pt",
+        "url": "https://github.com/mindee/doctr/releases/download/v1.2.0/font_style_mnv3s-9d4a1aca.pt",
     },
 }
 

@@ -26,7 +26,7 @@ from doctr.models.utils import _CompiledModule, export_model_to_onnx
         ["mobilenet_v3_large", (3, 32, 32), (126,)],
         ["mobilenet_v3_small_crop_orientation", (3, 256, 256), (4,)],
         ["mobilenet_v3_small_page_orientation", (3, 512, 512), (4,)],
-        ["mobilenet_v3_small_font_style", (3, 64, 256), (434,)],
+        ["mobilenet_v3_small_font_style", (3, 64, 256), (411,)],
         ["vit_s", (3, 32, 32), (126,)],
         ["vit_b", (3, 32, 32), (126,)],
         ["textnet_tiny", (3, 32, 32), (126,)],

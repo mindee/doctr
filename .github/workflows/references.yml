@@ -79,8 +79,8 @@ jobs:
           extra-requirements: references/requirements.txt
       - name: Download and extract toy set
         run: |
-          wget https://github.com/mindee/doctr/releases/download/v1.2.0/toy_font_style_set-d6ddd12a.zip
-          unzip toy_font_style_set-d6ddd12a.zip -d font_style_set
+          wget https://github.com/mindee/doctr/releases/download/v1.2.0/toy_font_style_set-071088e5.zip
+          unzip toy_font_style_set-071088e5.zip -d font_style_set
       - name: Train for a short epoch
         run: >
           python references/classification/train_font_style.py mobilenet_v3_small_font_style

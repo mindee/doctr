@@ -105,9 +105,9 @@ print(styles[0]["bold"], styles[0]["family"])
 | `strikethrough` | `False`, `True`                                                                          |
 | `color`         | `"black"`, `"gray"`, `"white"`, `"red"`, `"orange"`, `"brown"`, `"yellow"`, `"green"`, `"blue"`, `"purple"` |
 | `highlight`     | `"none"`, `"yellow"`, `"green"`, `"pink"`, `"blue"`, `"orange"`                          |
-| `handwritten`   | `False`, `True`: written by hand (handwriting-style fonts included, typeset casual fonts such as Comic Sans excluded) |
+| `handwritten`   | `False`, `True`: written by hand (script and casual typefaces set as type, such as Comic Sans or a script logo, are printed) |
 | `category`      | `"sans_serif"`, `"serif"`, `"display"`, `"handwriting"`, `"monospace"`, `"unknown"`      |
-| `family`        | 401 font families (cf. `doctr.datasets.FONT_FAMILIES`)                                   |
+| `family`        | 378 font families (cf. `doctr.datasets.FONT_FAMILIES`)                                   |
 
 The OCR predictor runs it on every word with `detect_font_style=True` (see [](results.md#font-style)). It can be
 [retrained on your data](../training/custom_models.md#font-style-classifier).
