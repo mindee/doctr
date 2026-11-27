@@ -194,7 +194,7 @@ class Resize(T.Resize):
                 else:
                     offset = (0, 0)
 
-                if isinstance(target, str) or (isinstance(target, np.ndarray) and target.ndim < 2):
+                if isinstance(target, (str, int, np.integer)) or (isinstance(target, np.ndarray) and target.ndim < 2):
                     # Special case for class targets (e.g. orientation, font style), which are not boxes to resize
                     pass
                 elif isinstance(target, dict):

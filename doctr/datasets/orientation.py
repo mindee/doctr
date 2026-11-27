@@ -37,4 +37,21 @@ class OrientationDataset(AbstractDataset):
         )
 
         # initialize dataset with 0 degree rotation targets
-        self.data: list[tuple[str, np.ndarray]] = [(img_name, np.array([0])) for img_name in os.listdir(self.root)]
+        # a list-like sequence (only `len` and indexing are used by the base class), not a list: cf. _ZeroTargetSamples
+        self.data = _ZeroTargetSamples(os.listdir(self.root))  # type: ignore[assignment]
+
+
+class _ZeroTargetSamples:
+    """The (image name, 0 degree target) samples, with all the names in a single numpy array:
+    a list of Python objects per image would be copied by every DataLoader worker (refcount updates trigger
+    copy-on-write), which takes tens of GB with millions of images.
+    """
+
+    def __init__(self, img_names: list[str]) -> None:
+        self.img_names = np.array(img_names)
+
+    def __len__(self) -> int:
+        return len(self.img_names)
+
+    def __getitem__(self, index: int) -> tuple[str, np.ndarray]:
+        return str(self.img_names[index]), np.array([0])

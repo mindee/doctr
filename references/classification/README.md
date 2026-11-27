@@ -29,6 +29,8 @@ python references/classification/train_orientation.py resnet18 --type page --tra
 
 The type can be either `page` for document images or `crop` for word crops.
 
+The training images are expected upright: each sample is rotated by one of the 4 orientations before being resized and padded, like the inputs at inference. `--class-prior` draws the orientations with the given probabilities (order `0 -90 180 90`, uniform by default): most pages and crops are upright in practice, and a prior such as `--class-prior 0.4 0.2 0.2 0.2` keeps ambiguous inputs (digits, short tokens, single characters) upright instead of rotating them at random. The validation set always uses uniform orientations.
+
 ## Usage font style classification
 
 The font style classifier predicts, for each word crop, its emphasis (bold, italic, underline, strikethrough), its text and highlight colors, whether it is handwritten, its font category and its closest font family (cf. `doctr.datasets.FONT_STYLE_ATTRIBUTES`). The model outputs the logits of all these attributes concatenated, and is trained with the sum of their cross entropies.
