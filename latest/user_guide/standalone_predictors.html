@@ -601,6 +601,10 @@ reading pre-cropped words, classifying orientations…</p>
 <td><p>Word crops</p></td>
 <td><p>Orientation class, angle and probability</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/models.html#doctr.models.classification.font_style_predictor" title="doctr.models.classification.font_style_predictor"><code class="xref py py-func docutils literal notranslate"><span class="pre">font_style_predictor()</span></code></a></p></td>
+<td><p>Word crops</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{attribute:</span> <span class="pre">{&quot;value&quot;,</span> <span class="pre">&quot;confidence&quot;}}</span></code></p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -664,6 +668,58 @@ lines or pages, use the OCR predictor, which detects the words first.</p>
 </div>
 <p>They are used by the OCR predictor for <a class="reference internal" href="rotated_documents.html"><span class="std std-doc">rotated documents</span></a>, and can be
 <a class="reference internal" href="../training/custom_models.html#orientation-classifiers"><span class="std std-ref">retrained on your data</span></a>.</p>
+</section>
+<section id="font-style-classifier">
+<h2>Font style classifier<a class="headerlink" href="#font-style-classifier" title="Link to this heading">#</a></h2>
+<p>The font style classifier predicts, for each word crop, its emphasis, its text and highlight colors, whether it is
+handwritten, its font category and its closest font family, each with a confidence:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">font_style_predictor</span>
+
+<span class="n">classifier</span> <span class="o">=</span> <span class="n">font_style_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">styles</span> <span class="o">=</span> <span class="n">classifier</span><span class="p">([</span><span class="n">word_crop</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">styles</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"bold"</span><span class="p">],</span> <span class="n">styles</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"family"</span><span class="p">])</span>
+<span class="c1"># {'value': True, 'confidence': 0.98} {'value': 'Roboto', 'confidence': 0.71}</span>
+</pre></div>
+</div>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute</p></th>
+<th class="head"><p>Classes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bold</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code>, <code class="docutils literal notranslate"><span class="pre">True</span></code> (weight ≥ 600)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">italic</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code>, <code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">underline</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;none&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;single&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;double&quot;</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">strikethrough</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code>, <code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">color</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;black&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;gray&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;white&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;red&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;orange&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;brown&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;yellow&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;green&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;blue&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;purple&quot;</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">highlight</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;none&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;yellow&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;green&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;pink&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;blue&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;orange&quot;</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">handwritten</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code>, <code class="docutils literal notranslate"><span class="pre">True</span></code>: written by hand (script and casual typefaces set as type, such as Comic Sans or a script logo, are printed)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">category</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;sans_serif&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;serif&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;display&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;handwriting&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;monospace&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;unknown&quot;</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">family</span></code></p></td>
+<td><p>378 font families (cf. <code class="docutils literal notranslate"><span class="pre">doctr.datasets.FONT_FAMILIES</span></code>)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The OCR predictor runs it on every word with <code class="docutils literal notranslate"><span class="pre">detect_font_style=True</span></code> (see <a class="reference internal" href="results.html#font-style"><span class="std std-ref">Font style</span></a>). It can be
+<a class="reference internal" href="../training/custom_models.html#font-style-classifier"><span class="std std-ref">retrained on your data</span></a>.</p>
 </section>
 <section id="long-inputs">
 <h2>Long inputs<a class="headerlink" href="#long-inputs" title="Link to this heading">#</a></h2>
@@ -778,6 +834,7 @@ notebook shows these predictors in action.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#text-recognition">Text recognition</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#layout-analysis-table-structure-formula-recognition">Layout analysis, table structure &amp; formula recognition</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#orientation-classifiers">Orientation classifiers</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#font-style-classifier">Font style classifier</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#long-inputs">Long inputs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#accessing-the-models">Accessing the models</a></li>
 </ul>

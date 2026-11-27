@@ -705,6 +705,23 @@ building the predictor:</p>
 </pre></div>
 </div>
 </section>
+<section id="font-style-classifier">
+<h2>Font style classifier<a class="headerlink" href="#font-style-classifier" title="Link to this heading">#</a></h2>
+<p>The font style classifier is used with <code class="docutils literal notranslate"><span class="pre">detect_font_style=True</span></code>. Replace the default one after building the
+predictor:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">font_style_predictor</span><span class="p">,</span> <span class="n">mobilenet_v3_small_font_style</span><span class="p">,</span> <span class="n">ocr_predictor</span>
+
+<span class="n">style_model</span> <span class="o">=</span> <span class="n">mobilenet_v3_small_font_style</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">style_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">"path/to/font_style.pt"</span><span class="p">)</span>
+
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">detect_font_style</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">predictor</span><span class="o">.</span><span class="n">font_style_predictor</span> <span class="o">=</span> <span class="n">font_style_predictor</span><span class="p">(</span><span class="n">style_model</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Any classification backbone works, as long as its <code class="docutils literal notranslate"><span class="pre">cfg[&quot;classes&quot;]</span></code> maps each style attribute to its classes, in the
+order of the model outputs, and its <code class="docutils literal notranslate"><span class="pre">cfg[&quot;input_shape&quot;]</span></code> is the input size it was trained with (both set by the
+training script).</p>
+</section>
 <section id="custom-pre-processing">
 <h2>Custom pre-processing<a class="headerlink" href="#custom-pre-processing" title="Link to this heading">#</a></h2>
 <p>To change how images are resized and normalized (e.g. a model trained with another input size or other
@@ -798,6 +815,7 @@ settings automatically. See <a class="reference internal" href="sharing_models.h
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#table-structure-models">Table structure models</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#formula-recognition-models">Formula recognition models</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#orientation-classifiers">Orientation classifiers</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#font-style-classifier">Font style classifier</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#custom-pre-processing">Custom pre-processing</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#models-from-the-hugging-face-hub">Models from the Hugging Face Hub</a></li>
 </ul>

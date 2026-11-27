@@ -936,6 +936,39 @@
     <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">words</span><span class="p">)</span>
 
 
+<span class="c1"># The font style attributes rendered by the text exporters, and the values rendered as plain text</span>
+<span class="n">_STYLE_ATTRIBUTES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"bold"</span><span class="p">,</span> <span class="s2">"italic"</span><span class="p">,</span> <span class="s2">"underline"</span><span class="p">,</span> <span class="s2">"strikethrough"</span><span class="p">,</span> <span class="s2">"highlight"</span><span class="p">,</span> <span class="s2">"color"</span><span class="p">)</span>
+<span class="c1"># The default text color is not marked up, nor white text, which would be invisible on a white page</span>
+<span class="n">_PLAIN_COLORS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"black"</span><span class="p">,</span> <span class="s2">"white"</span><span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_word_style</span><span class="p">(</span><span class="n">word</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The font style attributes of a word rendered by the text exporters (all None when not detected)"""</span>
+    <span class="n">font_style</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="s2">"font_style"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">((</span><span class="n">font_style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">attribute</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"value"</span><span class="p">)</span> <span class="k">for</span> <span class="n">attribute</span> <span class="ow">in</span> <span class="n">_STYLE_ATTRIBUTES</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_style_runs</span><span class="p">(</span><span class="n">words</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]:</span>
+<span class="w">    </span><span class="sd">"""Group consecutive words sharing the same font style, so that a styled phrase is marked up only once</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        words: the words, in reading order</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        the runs of words, each with its font style {"bold": bool | None, "underline": str | None, ...}</span>
+<span class="sd">    """</span>
+    <span class="n">runs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">previous</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">words</span><span class="p">:</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="n">_word_style</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">runs</span> <span class="ow">and</span> <span class="n">style</span> <span class="o">==</span> <span class="n">previous</span><span class="p">:</span>
+            <span class="n">runs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">runs</span><span class="o">.</span><span class="n">append</span><span class="p">(([</span><span class="n">word</span><span class="p">],</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">_STYLE_ATTRIBUTES</span><span class="p">,</span> <span class="n">style</span><span class="p">))))</span>
+        <span class="n">previous</span> <span class="o">=</span> <span class="n">style</span>
+    <span class="k">return</span> <span class="n">runs</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">predictions_in_reading_order</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="s2">"KIEPage"</span><span class="p">,</span> <span class="n">predictions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Sort the predictions of a single KIE detection class in reading order.</span>
 
@@ -1108,11 +1141,44 @@
         <span class="k">return</span> <span class="n">captions</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_html_decorations</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">style</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">color</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Wrap a styled run in the HTML elements of its underline, text color and highlight</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        text: the run, already escaped and marked up</span>
+<span class="sd">        style: the font style of the run</span>
+<span class="sd">        color: whether the text color is rendered</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        the decorated run</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"underline"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"single"</span><span class="p">:</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"&lt;u&gt;</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">&lt;/u&gt;"</span>
+    <span class="k">elif</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"underline"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"double"</span><span class="p">:</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'&lt;u style="text-decoration-style: double"&gt;</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s1">&lt;/u&gt;'</span>
+    <span class="k">if</span> <span class="n">color</span> <span class="ow">and</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"color"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">style</span><span class="p">[</span><span class="s2">"color"</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_PLAIN_COLORS</span><span class="p">:</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'&lt;span style="color: </span><span class="si">{</span><span class="n">style</span><span class="p">[</span><span class="s2">"color"</span><span class="p">]</span><span class="si">}</span><span class="s1">"&gt;</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s1">&lt;/span&gt;'</span>
+    <span class="n">highlight</span> <span class="o">=</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"highlight"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">highlight</span> <span class="ow">and</span> <span class="n">highlight</span> <span class="o">!=</span> <span class="s2">"none"</span><span class="p">:</span>
+        <span class="c1"># `&lt;mark&gt;` is yellow by default</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"&lt;mark&gt;</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">&lt;/mark&gt;"</span> <span class="k">if</span> <span class="n">highlight</span> <span class="o">==</span> <span class="s2">"yellow"</span> <span class="k">else</span> <span class="sa">f</span><span class="s1">'&lt;mark style="background: </span><span class="si">{</span><span class="n">highlight</span><span class="si">}</span><span class="s1">"&gt;</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s1">&lt;/mark&gt;'</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">text</span>
+
+
 <span class="k">class</span><span class="w"> </span><span class="nc">_PageTextExporter</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Shared logic of the reading-order-aware text exporters</span>
 
 <span class="sd">    Subclasses define the format specifics: headings, bullets, escaping, line finalization, tables and figures.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        font_style: whether the font style detected for the words (`detect_font_style=True`) is marked up (bold,</span>
+<span class="sd">            italic, underline, strikethrough, colors): False exports the plain text</span>
 <span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">font_style</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">font_style</span> <span class="o">=</span> <span class="n">font_style</span>
 
     <span class="n">headings</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">bullet</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"- "</span>
@@ -1173,10 +1239,32 @@
 <span class="w">        </span><span class="sd">"""Render the header of a detection class in a KIE export"""</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_styled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">style</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Mark up a run of words sharing the same font style (cf. `Word.font_style`) in the target format</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            text: the text of the run, already escaped</span>
+<span class="sd">            style: the font style of the run, {"bold": bool | None, "italic": ..., "underline": "none" | "single" |</span>
+<span class="sd">                "double" | None, "strikethrough": ..., "highlight": "none" | color name | None, "color": ...}</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            the marked up text</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">text</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_words_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">words</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">escape</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Render words in reading order, marking up their font style when it was detected"""</span>
+        <span class="n">runs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">style_runs</span> <span class="o">=</span> <span class="n">_style_runs</span><span class="p">(</span><span class="n">words</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">font_style</span> <span class="k">else</span> <span class="p">[(</span><span class="nb">list</span><span class="p">(</span><span class="n">words</span><span class="p">),</span> <span class="p">{})]</span>
+        <span class="k">for</span> <span class="n">run_words</span><span class="p">,</span> <span class="n">style</span> <span class="ow">in</span> <span class="n">style_runs</span><span class="p">:</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">word</span><span class="o">.</span><span class="n">render</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">run_words</span><span class="p">)</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">escape_text</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="k">if</span> <span class="n">escape</span> <span class="k">else</span> <span class="n">text</span>
+            <span class="n">runs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">render_styled</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span> <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">else</span> <span class="n">text</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">runs</span><span class="p">)</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">_line_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">:</span> <span class="s2">"Line"</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">escape</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Render the text of a line, ordering the words according to the reading direction."""</span>
-        <span class="n">text</span> <span class="o">=</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">word</span><span class="o">.</span><span class="n">render</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">ordered_line_words</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">direction</span><span class="p">))</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">escape_text</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="k">if</span> <span class="n">escape</span> <span class="k">else</span> <span class="n">text</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_words_text</span><span class="p">(</span><span class="n">ordered_line_words</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">direction</span><span class="p">),</span> <span class="n">escape</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_block_lines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">block</span><span class="p">:</span> <span class="s2">"Block"</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">escape</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">auto</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Render the non-empty lines of a block"""</span>
@@ -1340,7 +1428,12 @@
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">predictions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="n">values</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">bullet</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">finalize_line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">escape_text</span><span class="p">(</span><span class="n">prediction</span><span class="o">.</span><span class="n">value</span><span class="p">))</span> <span class="k">if</span> <span class="n">escape</span> <span class="k">else</span> <span class="n">prediction</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bullet</span>
+                <span class="o">+</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">finalize_line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_words_text</span><span class="p">([</span><span class="n">prediction</span><span class="p">],</span> <span class="n">escape</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">escape</span>
+                    <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_words_text</span><span class="p">([</span><span class="n">prediction</span><span class="p">],</span> <span class="n">escape</span><span class="p">)</span>
+                <span class="p">)</span>
                 <span class="k">for</span> <span class="n">prediction</span> <span class="ow">in</span> <span class="n">predictions_in_reading_order</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span>
             <span class="p">)</span>
             <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">class_header</span><span class="p">(</span><span class="n">class_name</span><span class="p">,</span><span class="w"> </span><span class="n">escape</span><span class="p">)</span><span class="si">}</span><span class="se">\n\n</span><span class="si">{</span><span class="n">values</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
@@ -1448,7 +1541,16 @@
         <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">image</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">*</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">escape_text</span><span class="p">(</span><span class="n">caption</span><span class="p">)</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">escape</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="n">caption</span><span class="si">}</span><span class="s2">*"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">class_header</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">escape</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">"**</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">escape_text</span><span class="p">(</span><span class="n">class_name</span><span class="p">)</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">escape</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="n">class_name</span><span class="si">}</span><span class="s2">**"</span></div>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"**</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">escape_text</span><span class="p">(</span><span class="n">class_name</span><span class="p">)</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">escape</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="n">class_name</span><span class="si">}</span><span class="s2">**"</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_styled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">style</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Bold, italic and strikethrough (GFM) as Markdown emphasis, underline and highlight as inline HTML</span>
+<span class="sd">        (Markdown has no syntax for them). The text color is not rendered."""</span>
+        <span class="n">emphasis</span> <span class="o">=</span> <span class="s2">"**"</span> <span class="o">*</span> <span class="nb">bool</span><span class="p">(</span><span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"bold"</span><span class="p">))</span> <span class="o">+</span> <span class="s2">"*"</span> <span class="o">*</span> <span class="nb">bool</span><span class="p">(</span><span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"italic"</span><span class="p">))</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">emphasis</span><span class="si">}{</span><span class="n">text</span><span class="si">}{</span><span class="n">emphasis</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">if</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"strikethrough"</span><span class="p">):</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"~~</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">~~"</span>
+        <span class="k">return</span> <span class="n">_html_decorations</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 
 
@@ -1511,7 +1613,27 @@
         <span class="k">return</span> <span class="sa">f</span><span class="s1">'[caption=""]</span><span class="se">\n</span><span class="s1">.</span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="se">\n</span><span class="s1">image::</span><span class="si">{</span><span class="n">source</span><span class="si">}</span><span class="s1">["</span><span class="si">{</span><span class="n">alt</span><span class="si">}</span><span class="s1">"]'</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">class_header</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">escape</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">"*</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">escape_text</span><span class="p">(</span><span class="n">class_name</span><span class="p">)</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">escape</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="n">class_name</span><span class="si">}</span><span class="s2">*"</span></div>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"*</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">escape_text</span><span class="p">(</span><span class="n">class_name</span><span class="p">)</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">escape</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="n">class_name</span><span class="si">}</span><span class="s2">*"</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_styled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">style</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Bold and italic as unconstrained AsciiDoc quotes, the other attributes as roles of an inline span</span>
+<span class="sd">        (`underline`, `line-through`, the text color and `&lt;color&gt;-background`, as in the Asciidoctor stylesheet)"""</span>
+        <span class="k">if</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"italic"</span><span class="p">):</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"__</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">__"</span>
+        <span class="k">if</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"bold"</span><span class="p">):</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"**</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">**"</span>
+        <span class="n">roles</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"underline"</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"single"</span><span class="p">,</span> <span class="s2">"double"</span><span class="p">):</span>
+            <span class="n">roles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"underline"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">style</span><span class="p">[</span><span class="s2">"underline"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"double"</span><span class="p">:</span>
+                <span class="n">roles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"double-underline"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"strikethrough"</span><span class="p">):</span>
+            <span class="n">roles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"line-through"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"color"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">style</span><span class="p">[</span><span class="s2">"color"</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_PLAIN_COLORS</span><span class="p">:</span>
+            <span class="n">roles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">style</span><span class="p">[</span><span class="s2">"color"</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"highlight"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">style</span><span class="p">[</span><span class="s2">"highlight"</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"none"</span><span class="p">:</span>
+            <span class="n">roles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">style</span><span class="p">[</span><span class="s1">'highlight'</span><span class="p">]</span><span class="si">}</span><span class="s2">-background"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"[</span><span class="si">{</span><span class="s1">''</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">'.'</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">role</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">role</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">roles</span><span class="p">)</span><span class="si">}</span><span class="s2">]#</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">#"</span> <span class="k">if</span> <span class="n">roles</span> <span class="k">else</span> <span class="n">text</span></div>
 
 
 
@@ -1542,6 +1664,17 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">escape_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_html_escape</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">quote</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">render_styled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">style</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""`&lt;strong&gt;`, `&lt;em&gt;`, `&lt;s&gt;`, `&lt;u&gt;` (double: `text-decoration-style: double`), `&lt;mark&gt;` for the highlight and</span>
+<span class="sd">        a `&lt;span&gt;` for the text color"""</span>
+        <span class="k">if</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"italic"</span><span class="p">):</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"&lt;em&gt;</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">&lt;/em&gt;"</span>
+        <span class="k">if</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"bold"</span><span class="p">):</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"&lt;strong&gt;</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">&lt;/strong&gt;"</span>
+        <span class="k">if</span> <span class="n">style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"strikethrough"</span><span class="p">):</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"&lt;s&gt;</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">&lt;/s&gt;"</span>
+        <span class="k">return</span> <span class="n">_html_decorations</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">render_heading</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">norm_label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">escape</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">tag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">headings</span><span class="p">[</span><span class="n">norm_label</span><span class="p">]</span>
@@ -1629,7 +1762,7 @@
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">predictions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="n">values</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"&lt;li&gt;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">escape_text</span><span class="p">(</span><span class="n">prediction</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">escape</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="n">prediction</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&lt;/li&gt;"</span>
+                <span class="sa">f</span><span class="s2">"&lt;li&gt;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_words_text</span><span class="p">([</span><span class="n">prediction</span><span class="p">],</span><span class="w"> </span><span class="n">escape</span><span class="p">)</span><span class="si">}</span><span class="s2">&lt;/li&gt;"</span>
                 <span class="k">for</span> <span class="n">prediction</span> <span class="ow">in</span> <span class="n">predictions_in_reading_order</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span>
             <span class="p">)</span>
             <span class="n">header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">escape_text</span><span class="p">(</span><span class="n">class_name</span><span class="p">)</span> <span class="k">if</span> <span class="n">escape</span> <span class="k">else</span> <span class="n">class_name</span>
@@ -1686,6 +1819,25 @@
     <span class="k">return</span> <span class="n">x_size</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">x_size</span> <span class="o">*</span> <span class="mi">72</span> <span class="o">/</span> <span class="n">dpi</span><span class="p">))</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_hocr_font</span><span class="p">(</span><span class="n">word</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">mark_up</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The hOCR `x_font` property of a word (its closest font family), empty when the font style is not detected"""</span>
+    <span class="n">family</span> <span class="o">=</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="s2">"font_style"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"family"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"value"</span><span class="p">)</span> <span class="k">if</span> <span class="n">mark_up</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">family</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">""</span>
+    <span class="n">family</span> <span class="o">=</span> <span class="n">family</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"</span><span class="se">\\</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\\\\</span><span class="s2">"</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'"'</span><span class="p">,</span> <span class="s1">'</span><span class="se">\\</span><span class="s1">"'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s1">'; x_font "</span><span class="si">{</span><span class="n">family</span><span class="si">}</span><span class="s1">"'</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_set_hocr_word_text</span><span class="p">(</span><span class="n">word_div</span><span class="p">:</span> <span class="n">ETElement</span><span class="p">,</span> <span class="n">word</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">mark_up</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Write the text of an `ocrx_word`, inside `&lt;strong&gt;` / `&lt;em&gt;` when the word is bold / italic (cf. hOCR spec)"""</span>
+    <span class="n">font_style</span> <span class="o">=</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="s2">"font_style"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span> <span class="k">if</span> <span class="n">mark_up</span> <span class="k">else</span> <span class="p">{}</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="n">word_div</span>
+    <span class="k">for</span> <span class="n">attribute</span><span class="p">,</span> <span class="n">tag</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">"bold"</span><span class="p">,</span> <span class="s2">"strong"</span><span class="p">),</span> <span class="p">(</span><span class="s2">"italic"</span><span class="p">,</span> <span class="s2">"em"</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">font_style</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">attribute</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"value"</span><span class="p">):</span>
+            <span class="n">parent</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span>
+    <span class="n">parent</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">word</span><span class="o">.</span><span class="n">value</span>
+
+
 <div class="viewcode-block" id="XMLExporter">
 <a class="viewcode-back" href="../../../api/io.html#doctr.io.XMLExporter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">XMLExporter</span><span class="p">:</span>
@@ -1694,7 +1846,14 @@
 
 <span class="sd">    &gt;&gt;&gt; from doctr.io import XMLExporter</span>
 <span class="sd">    &gt;&gt;&gt; xml_bytes, xml_tree = XMLExporter().export_page(page)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        font_style: whether the font style detected for the words (`detect_font_style=True`) is exported: the font</span>
+<span class="sd">            family (`x_font`), and `&lt;strong&gt;` / `&lt;em&gt;` for bold / italic words</span>
 <span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">font_style</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">font_style</span> <span class="o">=</span> <span class="n">font_style</span>
 
     <span class="n">ocr_capabilities</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"ocr_page ocr_carea ocr_par ocr_line ocrx_word ocr_photo ocr_math"</span>
 
@@ -1935,11 +2094,11 @@
                             <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"word_</span><span class="si">{</span><span class="n">word_count</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
                             <span class="s2">"title"</span><span class="p">:</span> <span class="p">(</span>
                                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_hocr_bbox</span><span class="p">(</span><span class="n">word</span><span class="o">.</span><span class="n">geometry</span><span class="p">,</span><span class="w"> </span><span class="n">width</span><span class="p">,</span><span class="w"> </span><span class="n">height</span><span class="p">)</span><span class="si">}</span><span class="s2">; "</span>
-                                <span class="sa">f</span><span class="s2">"x_wconf </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">word</span><span class="o">.</span><span class="n">confidence</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="p">))</span><span class="si">}</span><span class="s2">"</span>
+                                <span class="sa">f</span><span class="s2">"x_wconf </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">word</span><span class="o">.</span><span class="n">confidence</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="p">))</span><span class="si">}{</span><span class="n">_hocr_font</span><span class="p">(</span><span class="n">word</span><span class="p">,</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">font_style</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
                             <span class="p">),</span>
                         <span class="p">},</span>
                     <span class="p">)</span>
-                    <span class="n">word_div</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">word</span><span class="o">.</span><span class="n">value</span>
+                    <span class="n">_set_hocr_word_text</span><span class="p">(</span><span class="n">word_div</span><span class="p">,</span> <span class="n">word</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">font_style</span><span class="p">)</span>
                     <span class="n">word_count</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="n">ET</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">page_hocr</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">"xml"</span><span class="p">),</span> <span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">(</span><span class="n">page_hocr</span><span class="p">)</span></div>
 
@@ -2024,10 +2183,13 @@
                     <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
                         <span class="s2">"class"</span><span class="p">:</span> <span class="s2">"ocrx_word"</span><span class="p">,</span>
                         <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">_word_</span><span class="si">{</span><span class="n">prediction_count</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                        <span class="s2">"title"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prediction_bbox</span><span class="si">}</span><span class="s2">; x_wconf </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">prediction</span><span class="o">.</span><span class="n">confidence</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="p">))</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                        <span class="s2">"title"</span><span class="p">:</span> <span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prediction_bbox</span><span class="si">}</span><span class="s2">; x_wconf </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">prediction</span><span class="o">.</span><span class="n">confidence</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="p">))</span><span class="si">}</span><span class="s2">"</span>
+                            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_hocr_font</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">font_style</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+                        <span class="p">),</span>
                     <span class="p">},</span>
                 <span class="p">)</span>
-                <span class="n">word_div</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">prediction</span><span class="o">.</span><span class="n">value</span>
+                <span class="n">_set_hocr_word_text</span><span class="p">(</span><span class="n">word_div</span><span class="p">,</span> <span class="n">prediction</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">font_style</span><span class="p">)</span>
                 <span class="n">prediction_count</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="n">ET</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">page_hocr</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">"xml"</span><span class="p">),</span> <span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">(</span><span class="n">page_hocr</span><span class="p">)</span></div>
 
@@ -2109,6 +2271,7 @@
         <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span>
         <span class="n">reading_order</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">dpi</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">72</span><span class="p">,</span>
+        <span class="n">font_style</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Export the page as XML (hOCR-format), with its content sorted in reading order</span>
 <span class="sd">        convention: https://github.com/kba/hocr-spec/blob/master/1.2/spec.md</span>
@@ -2118,11 +2281,12 @@
 <span class="sd">            direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'</span>
 <span class="sd">            reading_order: whether the content should be linearized in reading order</span>
 <span class="sd">            dpi: the page resolution in dots per inch, used to estimate font sizes (`x_size`, `x_fsize`)</span>
+<span class="sd">            font_style: whether the font style detected for the words (`detect_font_style=True`) is exported</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            a tuple of the XML byte string, and its ElementTree</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="n">XMLExporter</span><span class="p">()</span><span class="o">.</span><span class="n">export_page</span><span class="p">(</span>
+        <span class="k">return</span> <span class="n">XMLExporter</span><span class="p">(</span><span class="n">font_style</span><span class="o">=</span><span class="n">font_style</span><span class="p">)</span><span class="o">.</span><span class="n">export_page</span><span class="p">(</span>
             <span class="n">cast</span><span class="p">(</span><span class="s2">"Page"</span><span class="p">,</span> <span class="bp">self</span><span class="p">),</span> <span class="n">file_title</span><span class="o">=</span><span class="n">file_title</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span> <span class="n">reading_order</span><span class="o">=</span><span class="n">reading_order</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span>
         <span class="p">)</span>
 
@@ -2146,6 +2310,7 @@
         <span class="n">escape</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">include_furniture</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">images</span><span class="p">:</span> <span class="s2">"str | FigureEncoder | None"</span> <span class="o">=</span> <span class="s2">"placeholder"</span><span class="p">,</span>
+        <span class="n">font_style</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Export the page as Markdown, with its content sorted in reading order.</span>
 
@@ -2155,11 +2320,12 @@
 <span class="sd">            include_furniture: whether page headers, page footers and footnotes should be included</span>
 <span class="sd">            images: how to render the figures: 'none', 'placeholder', 'embedded', or a</span>
 <span class="sd">                :class:`~doctr.io.FigureEncoder` (required for 'referenced')</span>
+<span class="sd">            font_style: whether the font style detected for the words (`detect_font_style=True`) is marked up</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            a Markdown string</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="n">MarkdownExporter</span><span class="p">()</span><span class="o">.</span><span class="n">export_page</span><span class="p">(</span>
+        <span class="k">return</span> <span class="n">MarkdownExporter</span><span class="p">(</span><span class="n">font_style</span><span class="o">=</span><span class="n">font_style</span><span class="p">)</span><span class="o">.</span><span class="n">export_page</span><span class="p">(</span>
             <span class="n">cast</span><span class="p">(</span><span class="s2">"Page"</span><span class="p">,</span> <span class="bp">self</span><span class="p">),</span>
             <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span>
             <span class="n">escape</span><span class="o">=</span><span class="n">escape</span><span class="p">,</span>
@@ -2173,6 +2339,7 @@
         <span class="n">escape</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">include_furniture</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">images</span><span class="p">:</span> <span class="s2">"str | FigureEncoder | None"</span> <span class="o">=</span> <span class="s2">"placeholder"</span><span class="p">,</span>
+        <span class="n">font_style</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Export the page as AsciiDoc, with its content sorted in reading order.</span>
 
@@ -2183,11 +2350,12 @@
 <span class="sd">            include_furniture: whether page headers, page footers and footnotes should be included</span>
 <span class="sd">            images: how to render the figures: 'none', 'placeholder', 'embedded', or a</span>
 <span class="sd">                :class:`~doctr.io.FigureEncoder` (required for 'referenced')</span>
+<span class="sd">            font_style: whether the font style detected for the words (`detect_font_style=True`) is marked up</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            an AsciiDoc string</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="n">AsciiDocExporter</span><span class="p">()</span><span class="o">.</span><span class="n">export_page</span><span class="p">(</span>
+        <span class="k">return</span> <span class="n">AsciiDocExporter</span><span class="p">(</span><span class="n">font_style</span><span class="o">=</span><span class="n">font_style</span><span class="p">)</span><span class="o">.</span><span class="n">export_page</span><span class="p">(</span>
             <span class="n">cast</span><span class="p">(</span><span class="s2">"Page"</span><span class="p">,</span> <span class="bp">self</span><span class="p">),</span>
             <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span>
             <span class="n">escape</span><span class="o">=</span><span class="n">escape</span><span class="p">,</span>
@@ -2200,6 +2368,7 @@
         <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span>
         <span class="n">include_furniture</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">images</span><span class="p">:</span> <span class="s2">"str | FigureEncoder | None"</span> <span class="o">=</span> <span class="s2">"placeholder"</span><span class="p">,</span>
+        <span class="n">font_style</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Export the page as semantic HTML, with its content sorted in reading order.</span>
 
@@ -2208,11 +2377,12 @@
 <span class="sd">            include_furniture: whether page headers, page footers and footnotes should be included</span>
 <span class="sd">            images: how to render the figures: 'none', 'placeholder', 'embedded', or a</span>
 <span class="sd">                :class:`~doctr.io.FigureEncoder` (required for 'referenced')</span>
+<span class="sd">            font_style: whether the font style detected for the words (`detect_font_style=True`) is marked up</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            an HTML string</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="n">HTMLExporter</span><span class="p">()</span><span class="o">.</span><span class="n">export_page</span><span class="p">(</span>
+        <span class="k">return</span> <span class="n">HTMLExporter</span><span class="p">(</span><span class="n">font_style</span><span class="o">=</span><span class="n">font_style</span><span class="p">)</span><span class="o">.</span><span class="n">export_page</span><span class="p">(</span>
             <span class="n">cast</span><span class="p">(</span><span class="s2">"Page"</span><span class="p">,</span> <span class="bp">self</span><span class="p">),</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span> <span class="n">include_furniture</span><span class="o">=</span><span class="n">include_furniture</span><span class="p">,</span> <span class="n">images</span><span class="o">=</span><span class="n">images</span>
         <span class="p">)</span>
 
@@ -2300,6 +2470,7 @@
         <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span>
         <span class="n">reading_order</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">dpi</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">72</span><span class="p">,</span>
+        <span class="n">font_style</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Export the page as XML (hOCR-format), with the predictions of each class in reading order</span>
 <span class="sd">        convention: https://github.com/kba/hocr-spec/blob/master/1.2/spec.md</span>
@@ -2309,42 +2480,57 @@
 <span class="sd">            direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'</span>
 <span class="sd">            reading_order: whether the predictions of each class should be sorted in reading order</span>
 <span class="sd">            dpi: the page resolution in dots per inch, used to estimate font sizes (`x_size`, `x_fsize`)</span>
+<span class="sd">            font_style: whether the font style detected for the words (`detect_font_style=True`) is exported</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            a tuple of the XML byte string, and its ElementTree</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="n">XMLExporter</span><span class="p">()</span><span class="o">.</span><span class="n">export_kie_page</span><span class="p">(</span>
+        <span class="k">return</span> <span class="n">XMLExporter</span><span class="p">(</span><span class="n">font_style</span><span class="o">=</span><span class="n">font_style</span><span class="p">)</span><span class="o">.</span><span class="n">export_kie_page</span><span class="p">(</span>
             <span class="n">cast</span><span class="p">(</span><span class="s2">"KIEPage"</span><span class="p">,</span> <span class="bp">self</span><span class="p">),</span> <span class="n">file_title</span><span class="o">=</span><span class="n">file_title</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span> <span class="n">reading_order</span><span class="o">=</span><span class="n">reading_order</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span>
         <span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">export_as_markdown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span> <span class="n">escape</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">export_as_markdown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span> <span class="n">escape</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">font_style</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Export the KIE page as Markdown, with the predictions of each class sorted in reading order.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'</span>
 <span class="sd">            escape: whether the characters carrying a structural meaning in Markdown should be escaped</span>
+<span class="sd">            font_style: whether the font style detected for the words (`detect_font_style=True`) is marked up</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            a Markdown string with one section per detection class</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="n">MarkdownExporter</span><span class="p">()</span><span class="o">.</span><span class="n">export_kie_page</span><span class="p">(</span><span class="n">cast</span><span class="p">(</span><span class="s2">"KIEPage"</span><span class="p">,</span> <span class="bp">self</span><span class="p">),</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="n">escape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">MarkdownExporter</span><span class="p">(</span><span class="n">font_style</span><span class="o">=</span><span class="n">font_style</span><span class="p">)</span><span class="o">.</span><span class="n">export_kie_page</span><span class="p">(</span>
+            <span class="n">cast</span><span class="p">(</span><span class="s2">"KIEPage"</span><span class="p">,</span> <span class="bp">self</span><span class="p">),</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="n">escape</span>
+        <span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">export_as_asciidoc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span> <span class="n">escape</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">export_as_asciidoc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span> <span class="n">escape</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">font_style</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Export the KIE page as AsciiDoc, with the predictions of each class sorted in reading order.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'</span>
 <span class="sd">            escape: whether the characters and line markers carrying a structural meaning in AsciiDoc should</span>
 <span class="sd">                be escaped</span>
+<span class="sd">            font_style: whether the font style detected for the words (`detect_font_style=True`) is marked up</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            an AsciiDoc string with one section per detection class</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="n">AsciiDocExporter</span><span class="p">()</span><span class="o">.</span><span class="n">export_kie_page</span><span class="p">(</span><span class="n">cast</span><span class="p">(</span><span class="s2">"KIEPage"</span><span class="p">,</span> <span class="bp">self</span><span class="p">),</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="n">escape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">AsciiDocExporter</span><span class="p">(</span><span class="n">font_style</span><span class="o">=</span><span class="n">font_style</span><span class="p">)</span><span class="o">.</span><span class="n">export_kie_page</span><span class="p">(</span>
+            <span class="n">cast</span><span class="p">(</span><span class="s2">"KIEPage"</span><span class="p">,</span> <span class="bp">self</span><span class="p">),</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="n">escape</span>
+        <span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">export_as_html</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Export the KIE page as semantic HTML, with the predictions of each class sorted in reading order"""</span>
-        <span class="k">return</span> <span class="n">HTMLExporter</span><span class="p">()</span><span class="o">.</span><span class="n">export_kie_page</span><span class="p">(</span><span class="n">cast</span><span class="p">(</span><span class="s2">"KIEPage"</span><span class="p">,</span> <span class="bp">self</span><span class="p">),</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">export_as_html</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span> <span class="n">font_style</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Export the KIE page as semantic HTML, with the predictions of each class sorted in reading order</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'</span>
+<span class="sd">            font_style: whether the font style detected for the words (`detect_font_style=True`) is marked up</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            an HTML string with one section per detection class</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">HTMLExporter</span><span class="p">(</span><span class="n">font_style</span><span class="o">=</span><span class="n">font_style</span><span class="p">)</span><span class="o">.</span><span class="n">export_kie_page</span><span class="p">(</span><span class="n">cast</span><span class="p">(</span><span class="s2">"KIEPage"</span><span class="p">,</span> <span class="bp">self</span><span class="p">),</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">export_as</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">format</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Export the KIE page in the requested format ('markdown'/'md', 'asciidoc'/'adoc', 'html',</span>
@@ -2397,16 +2583,17 @@
         <span class="n">export_dict</span><span class="p">[</span><span class="s2">"pages"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">page</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">reading_order</span><span class="o">=</span><span class="n">reading_order</span><span class="p">)</span> <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pages</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">export_dict</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">export_as_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">]]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">export_as_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">font_style</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">"""Export the document as XML (hOCR-format)</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">            font_style: whether the font style detected for the words (`detect_font_style=True`) is exported</span>
 <span class="sd">            **kwargs: additional keyword arguments passed to the XML page export</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            list of tuple of (bytes, ElementTree)</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="n">XMLExporter</span><span class="p">()</span><span class="o">.</span><span class="n">export_document</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">XMLExporter</span><span class="p">(</span><span class="n">font_style</span><span class="o">=</span><span class="n">font_style</span><span class="p">)</span><span class="o">.</span><span class="n">export_document</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">export_as_markdown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page_break</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n\n</span><span class="s2">---</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Export the document as Markdown, with the content of each page sorted in reading order.</span>

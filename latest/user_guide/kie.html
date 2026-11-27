@@ -606,7 +606,8 @@ several classes, so that each detected box comes with the <em>type</em> of infor
         <span class="nb">print</span><span class="p">(</span><span class="n">class_name</span><span class="p">,</span> <span class="n">prediction</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">prediction</span><span class="o">.</span><span class="n">confidence</span><span class="p">,</span> <span class="n">prediction</span><span class="o">.</span><span class="n">geometry</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Each <a class="reference internal" href="../api/io.html#doctr.io.Prediction" title="doctr.io.Prediction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Prediction</span></code></a> is a word with an extra <code class="docutils literal notranslate"><span class="pre">crop_orientation</span></code> field. <code class="docutils literal notranslate"><span class="pre">render()</span></code> and the exports
+<p>Each <a class="reference internal" href="../api/io.html#doctr.io.Prediction" title="doctr.io.Prediction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Prediction</span></code></a> is a word with an extra <code class="docutils literal notranslate"><span class="pre">crop_orientation</span></code> field (and <code class="docutils literal notranslate"><span class="pre">font_style</span></code> with
+<code class="docutils literal notranslate"><span class="pre">detect_font_style=True</span></code>). <code class="docutils literal notranslate"><span class="pre">render()</span></code> and the exports
 group the predictions by class:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">render</span><span class="p">())</span>
 <span class="c1"># words: ACME</span>

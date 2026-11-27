@@ -732,35 +732,39 @@ falls back to JSON. Use <code class="docutils literal notranslate"><span class="
 <td><p>off</p></td>
 <td><p>Estimate the language of each page</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--detect_layout</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--detect_font_style</span></code></p></td>
+<td><p>off</p></td>
+<td><p>Classify the font style of each word, marked up in the text exports</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--detect_layout</span></code></p></td>
 <td><p>off</p></td>
 <td><p>Attach the layout regions to each page</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--detect_tables</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--detect_tables</span></code></p></td>
 <td><p>off</p></td>
 <td><p>Recognize tables (enables the layout model)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--detect_formulas</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--detect_formulas</span></code></p></td>
 <td><p>off</p></td>
 <td><p>Read formulas as LaTeX (enables the layout model)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--ignore_regions</span> <span class="pre">CLASS</span> <span class="pre">[CLASS</span> <span class="pre">...]</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--ignore_regions</span> <span class="pre">CLASS</span> <span class="pre">[CLASS</span> <span class="pre">...]</span></code></p></td>
 <td><p>none</p></td>
 <td><p>Layout classes to mask before OCR, e.g. <code class="docutils literal notranslate"><span class="pre">Picture</span> <span class="pre">Table</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--export_as_straight_boxes</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--export_as_straight_boxes</span></code></p></td>
 <td><p>off</p></td>
 <td><p>Export straight boxes with <code class="docutils literal notranslate"><span class="pre">--no-assume_straight_pages</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--preserve_original_coords</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--preserve_original_coords</span></code></p></td>
 <td><p>off</p></td>
 <td><p>With <code class="docutils literal notranslate"><span class="pre">--straighten_pages</span></code>, map the boxes back to the original pages</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--disable_page_orientation</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--disable_page_orientation</span></code></p></td>
 <td><p>off</p></td>
 <td><p>Skip the page orientation classifier</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--disable_crop_orientation</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--disable_crop_orientation</span></code></p></td>
 <td><p>off</p></td>
 <td><p>Skip the crop orientation classifier</p></td>
 </tr>
@@ -832,31 +836,35 @@ falls back to JSON. Use <code class="docutils literal notranslate"><span class="
 <td><p>on</p></td>
 <td><p>Include page headers, footers and footnotes</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--images</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--font_style_markup</span></code> / <code class="docutils literal notranslate"><span class="pre">--no-font_style_markup</span></code></p></td>
+<td><p>on</p></td>
+<td><p>Mark up the font style of <code class="docutils literal notranslate"><span class="pre">--detect_font_style</span></code> (Markdown, AsciiDoc, HTML, hOCR)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--images</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">placeholder</span></code></p></td>
 <td><p>Figures in Markdown, AsciiDoc and HTML: <code class="docutils literal notranslate"><span class="pre">none</span></code>, <code class="docutils literal notranslate"><span class="pre">placeholder</span></code>, <code class="docutils literal notranslate"><span class="pre">embedded</span></code>, <code class="docutils literal notranslate"><span class="pre">referenced</span></code> (see <a class="reference internal" href="exporting.html#figures"><span class="std std-ref">figures</span></a>)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--image_dir</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--image_dir</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&lt;output</span> <span class="pre">name&gt;_images</span></code></p></td>
 <td><p>Directory of the figures with <code class="docutils literal notranslate"><span class="pre">--images</span> <span class="pre">referenced</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--image_format</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--image_format</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">png</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">png</span></code>, <code class="docutils literal notranslate"><span class="pre">jpg</span></code>, <code class="docutils literal notranslate"><span class="pre">jpeg</span></code> or <code class="docutils literal notranslate"><span class="pre">webp</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--file_title</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--file_title</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">docTR</span> <span class="pre">-</span> <span class="pre">XML</span> <span class="pre">export</span> <span class="pre">(hOCR)</span></code></p></td>
 <td><p>Title of the hOCR files</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--indent</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--indent</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">4</span></code></p></td>
 <td><p>Indentation of the JSON export</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--quiet</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--quiet</span></code></p></td>
 <td><p>off</p></td>
 <td><p>Only log errors</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--version</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--version</span></code></p></td>
 <td><p></p></td>
 <td><p>Print the docTR version and exit</p></td>
 </tr>

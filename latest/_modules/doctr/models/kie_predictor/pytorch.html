@@ -560,6 +560,9 @@
 <span class="sd">            page. Doing so will slightly deteriorate the overall latency.</span>
 <span class="sd">        detect_language: if True, the language prediction will be added to the predictions for each</span>
 <span class="sd">            page. Doing so will slightly deteriorate the overall latency.</span>
+<span class="sd">        detect_font_style: if True, the font style of each word (bold, italic, underline, strikethrough, colors, font</span>
+<span class="sd">            category, handwriting and closest font family) is classified and added to the predictions. Doing so will</span>
+<span class="sd">            slightly deteriorate the overall latency.</span>
 <span class="sd">        preserve_original_coords: if True and straighten_pages is True, bounding boxes are mapped back to the</span>
 <span class="sd">            original page coordinates. Useful for redaction and annotation.</span>
 <span class="sd">        layout_predictor: optional layout detection module</span>
@@ -579,6 +582,7 @@
         <span class="n">symmetric_pad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">detect_orientation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">detect_language</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">detect_font_style</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">preserve_original_coords</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">layout_predictor</span><span class="p">:</span> <span class="n">LayoutPredictor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
@@ -594,6 +598,7 @@
             <span class="n">symmetric_pad</span><span class="p">,</span>
             <span class="n">detect_orientation</span><span class="p">,</span>
             <span class="n">preserve_original_coords</span><span class="o">=</span><span class="n">preserve_original_coords</span><span class="p">,</span>
+            <span class="n">detect_font_style</span><span class="o">=</span><span class="n">detect_font_style</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">detect_orientation</span> <span class="o">=</span> <span class="n">detect_orientation</span>
@@ -716,13 +721,19 @@
                 <span class="n">assume_horizontal</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_page_orientation_disabled</span><span class="p">,</span>
             <span class="p">)</span>
 
+        <span class="c1"># The word boxes before rectification, from which the font style crops are extracted</span>
+        <span class="n">crop_loc_preds</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dict_loc_preds</span><span class="p">)</span>
+        <span class="n">orientation_idxs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">dict_loc_preds</span><span class="p">)</span>
         <span class="c1"># Rectify crop orientation</span>
         <span class="n">crop_orientations</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">assume_straight_pages</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">class_name</span> <span class="ow">in</span> <span class="n">dict_loc_preds</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="n">crops</span><span class="p">[</span><span class="n">class_name</span><span class="p">],</span> <span class="n">dict_loc_preds</span><span class="p">[</span><span class="n">class_name</span><span class="p">],</span> <span class="n">word_orientations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rectify_crops</span><span class="p">(</span>
-                    <span class="n">crops</span><span class="p">[</span><span class="n">class_name</span><span class="p">],</span> <span class="n">dict_loc_preds</span><span class="p">[</span><span class="n">class_name</span><span class="p">]</span>
-                <span class="p">)</span>
+                <span class="p">(</span>
+                    <span class="n">crops</span><span class="p">[</span><span class="n">class_name</span><span class="p">],</span>
+                    <span class="n">dict_loc_preds</span><span class="p">[</span><span class="n">class_name</span><span class="p">],</span>
+                    <span class="n">word_orientations</span><span class="p">,</span>
+                    <span class="n">orientation_idxs</span><span class="p">[</span><span class="n">class_name</span><span class="p">],</span>
+                <span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rectify_crops</span><span class="p">(</span><span class="n">crops</span><span class="p">[</span><span class="n">class_name</span><span class="p">],</span> <span class="n">dict_loc_preds</span><span class="p">[</span><span class="n">class_name</span><span class="p">])</span>
                 <span class="n">crop_orientations</span><span class="p">[</span><span class="n">class_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
                     <span class="p">{</span><span class="s2">"value"</span><span class="p">:</span> <span class="n">orientation</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"confidence"</span><span class="p">:</span> <span class="n">orientation</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span> <span class="k">for</span> <span class="n">orientation</span> <span class="ow">in</span> <span class="n">word_orientations</span>
                 <span class="p">]</span>
@@ -747,6 +758,15 @@
         <span class="n">objectness_scores_per_page</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="n">invert_data_structure</span><span class="p">(</span><span class="n">objectness_scores</span><span class="p">)</span>  <span class="c1"># type: ignore[assignment]</span>
         <span class="n">text_preds_per_page</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="n">invert_data_structure</span><span class="p">(</span><span class="n">text_preds</span><span class="p">)</span>  <span class="c1"># type: ignore[assignment]</span>
         <span class="n">crop_orientations_per_page</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="n">invert_data_structure</span><span class="p">(</span><span class="n">word_crop_orientations</span><span class="p">)</span>  <span class="c1"># type: ignore[assignment]</span>
+        <span class="c1"># Classify the font style of the (rectified) crops of each class</span>
+        <span class="n">font_styles_per_page</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">font_style_predictor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">font_styles</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">class_name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_predict_font_styles</span><span class="p">(</span><span class="n">pages</span><span class="p">,</span> <span class="n">crop_loc_preds</span><span class="p">[</span><span class="n">class_name</span><span class="p">],</span> <span class="n">orientation_idxs</span><span class="p">[</span><span class="n">class_name</span><span class="p">])</span>
+                <span class="ow">or</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">class_name</span> <span class="ow">in</span> <span class="n">crops</span>
+            <span class="p">}</span>
+            <span class="n">font_styles_per_page</span> <span class="o">=</span> <span class="n">invert_data_structure</span><span class="p">(</span><span class="n">font_styles</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span>  <span class="c1"># type: ignore[assignment]</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">detect_language</span><span class="p">:</span>
             <span class="n">languages</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_language</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_text</span><span class="p">(</span><span class="n">text_pred</span><span class="p">))</span> <span class="k">for</span> <span class="n">text_pred</span> <span class="ow">in</span> <span class="n">text_preds_per_page</span><span class="p">]</span>
@@ -764,6 +784,7 @@
             <span class="n">orientations</span><span class="p">,</span>
             <span class="n">languages_dict</span><span class="p">,</span>
             <span class="n">regions</span><span class="p">,</span>
+            <span class="n">font_styles</span><span class="o">=</span><span class="n">font_styles_per_page</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="c1"># manipulate the already built Document to restore the original pages / shapes and geometries</span>

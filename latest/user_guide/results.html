@@ -586,6 +586,7 @@ into pixels, visualize the predictions, and save them for later.</p>
 <span class="n">page</span><span class="o">.</span><span class="n">layout</span>  <span class="c1"># list of LayoutElement with detect_layout=True</span>
 <span class="n">page</span><span class="o">.</span><span class="n">tables</span>  <span class="c1"># list of Table with detect_tables=True</span>
 <span class="n">page</span><span class="o">.</span><span class="n">formulas</span>  <span class="c1"># list of Formula with detect_formulas=True</span>
+<span class="n">word</span><span class="o">.</span><span class="n">font_style</span>  <span class="c1"># {"bold": {"value": ..., "confidence": ...}, ...} with detect_font_style=True</span>
 </pre></div>
 </div>
 <p>Most of the time, you want a flat list of words. A small generator does the job:</p>
@@ -615,6 +616,28 @@ noise:</p>
 <p>The way character probabilities are combined into <code class="docutils literal notranslate"><span class="pre">word.confidence</span></code> is configurable: see
 <a class="reference internal" href="ocr_predictor.html#confidence-scores"><span class="std std-ref">confidence scores</span></a>.</p>
 </div>
+</section>
+<section id="font-style">
+<h2>Font style<a class="headerlink" href="#font-style" title="Link to this heading">#</a></h2>
+<p>With <code class="docutils literal notranslate"><span class="pre">detect_font_style=True</span></code>, each word also carries its font style: emphasis, text and highlight colors, font
+category, handwriting and closest font family, each with a confidence. <code class="docutils literal notranslate"><span class="pre">word.style(attribute)</span></code> returns the predicted value:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">detect_font_style</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_pdf</span><span class="p">(</span><span class="s2">"invoice.pdf"</span><span class="p">))</span>
+
+<span class="n">word</span><span class="o">.</span><span class="n">font_style</span>
+<span class="c1"># {"bold": {"value": True, "confidence": 0.98}, "italic": {"value": False, "confidence": 0.99},</span>
+<span class="c1">#  "underline": {"value": "none", "confidence": 0.97}, "strikethrough": {"value": False, "confidence": 1.0},</span>
+<span class="c1">#  "color": {"value": "black", "confidence": 0.95}, "highlight": {"value": "none", "confidence": 0.99},</span>
+<span class="c1">#  "handwritten": {"value": False, "confidence": 0.99},</span>
+<span class="c1">#  "category": {"value": "sans_serif", "confidence": 0.93}, "family": {"value": "Roboto", "confidence": 0.71}}</span>
+
+<span class="n">emphasized</span> <span class="o">=</span> <span class="p">[</span><span class="n">word</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">iter_words</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="k">if</span> <span class="n">word</span><span class="o">.</span><span class="n">style</span><span class="p">(</span><span class="s2">"bold"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">word</span><span class="o">.</span><span class="n">style</span><span class="p">(</span><span class="s2">"underline"</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">"none"</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The classes of each attribute are listed in <a class="reference internal" href="standalone_predictors.html#font-style-classifier"><span class="std std-ref">Font style classifier</span></a>. <code class="docutils literal notranslate"><span class="pre">word.font_style</span></code> is
+<code class="docutils literal notranslate"><span class="pre">None</span></code> when the font style is not detected. The Markdown, AsciiDoc, HTML and hOCR exports render the emphasis (see
+<a class="reference internal" href="exporting.html#font-style"><span class="std std-ref">Font style</span></a>), which keeps what the document stresses visible to the downstream consumers of the text,
+such as LLMs.</p>
 </section>
 <section id="convert-coordinates-to-pixels">
 <h2>Convert coordinates to pixels<a class="headerlink" href="#convert-coordinates-to-pixels" title="Link to this heading">#</a></h2>
@@ -761,7 +784,8 @@ need them, e.g. to call <code class="docutils literal notranslate"><span class="
 <span class="w">                  </span><span class="nt">"confidence"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.99995</span><span class="p">,</span>
 <span class="w">                  </span><span class="nt">"geometry"</span><span class="p">:</span><span class="w"> </span><span class="p">[[</span><span class="mf">0.0706</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0537</span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="mf">0.1603</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0713</span><span class="p">]],</span>
 <span class="w">                  </span><span class="nt">"objectness_score"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.80</span><span class="p">,</span>
-<span class="w">                  </span><span class="nt">"crop_orientation"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"confidence"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">}</span>
+<span class="w">                  </span><span class="nt">"crop_orientation"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"confidence"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">},</span>
+<span class="w">                  </span><span class="nt">"font_style"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
 <span class="w">                </span><span class="p">}</span>
 <span class="w">              </span><span class="p">]</span>
 <span class="w">            </span><span class="p">}</span>
@@ -830,6 +854,7 @@ need them, e.g. to call <code class="docutils literal notranslate"><span class="
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#navigate-the-tree">Navigate the tree</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#filter-by-confidence">Filter by confidence</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#font-style">Font style</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#convert-coordinates-to-pixels">Convert coordinates to pixels</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#find-a-value-next-to-a-keyword">Find a value next to a keyword</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualize-the-predictions">Visualize the predictions</a></li>

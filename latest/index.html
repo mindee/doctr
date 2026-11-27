@@ -606,7 +606,7 @@ and read formulas as LaTeX.</p>
 </div>
 </div>
 <h2 class="doctr-section-title">How it works</h2>
-<p class="doctr-section-lead">An OCR predictor chains specialized models. Each stage is a regular PyTorch module you can replace with your own.</p><div class="doctr-diagram" role="img" aria-label="docTR pipeline: your files go through text detection and text recognition, are assembled by the document builder into a Document. Optional stages: orientation handling, layout analysis, table structure recognition and formula recognition.">
+<p class="doctr-section-lead">An OCR predictor chains specialized models. Each stage is a regular PyTorch module you can replace with your own.</p><div class="doctr-diagram" role="img" aria-label="docTR pipeline: your files go through text detection and text recognition, are assembled by the document builder into a Document. Optional stages: orientation handling, font style classification, layout analysis, table structure recognition and formula recognition.">
 <svg viewBox="0 0 1000 390" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <marker id="doctr-ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -660,6 +660,11 @@ and read formulas as LaTeX.</p>
   <text class="sub" x="877" y="230" text-anchor="middle">Rows, columns and cells</text>
   <text class="mono" x="877" y="249" text-anchor="middle">detect_tables=True</text>
 
+  <rect class="box opt" x="385" y="292" width="165" height="80" rx="12"/>
+  <text class="title" x="467" y="320" text-anchor="middle">Font style</text>
+  <text class="sub" x="467" y="340" text-anchor="middle">Bold, italic, colors, font…</text>
+  <text class="mono" x="467" y="359" text-anchor="middle">detect_font_style=True</text>
+
   <rect class="box opt" x="795" y="292" width="165" height="80" rx="12"/>
   <text class="title" x="877" y="320" text-anchor="middle">Formula recognition</text>
   <text class="sub" x="877" y="340" text-anchor="middle">Formulas as LaTeX</text>
@@ -671,6 +676,7 @@ and read formulas as LaTeX.</p>
   <line class="arrow" x1="877" y1="182" x2="877" y2="126" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
   <line class="arrow" x1="755" y1="222" x2="791" y2="222" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
   <path class="arrow" d="M 672 262 V 332 H 791" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
+  <path class="arrow" d="M 550 332 H 570 V 106 H 586" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
   <path class="arrow" d="M 960 332 H 982 V 76 H 964" marker-end="url(#doctr-ah)" stroke-dasharray="4 4"/>
 
   <!-- Legend -->

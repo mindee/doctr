@@ -679,23 +679,27 @@ Extra predictions</label><div class="sd-tab-content docutils" id="sd-tab-item-1-
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
 <td><p>Estimate the language of each page, available as <code class="docutils literal notranslate"><span class="pre">page.language</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">detect_layout</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">detect_font_style</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Classify the font style of each word (bold, italic, underline, colors, font family…), available as <code class="docutils literal notranslate"><span class="pre">word.font_style</span></code> (see <a class="reference internal" href="results.html#font-style"><span class="std std-ref">Font style</span></a>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">detect_layout</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
 <td><p>Run a layout model and attach its regions to each page (<code class="docutils literal notranslate"><span class="pre">page.layout</span></code>)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">layout_arch</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">layout_arch</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&quot;lw_detr_s&quot;</span></code></p></td>
 <td><p>Layout architecture name or model instance</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">detect_tables</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">detect_tables</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
 <td><p>Recognize the structure of tables (<code class="docutils literal notranslate"><span class="pre">page.tables</span></code>); enables the layout model</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">detect_formulas</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">detect_formulas</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
 <td><p>Read formulas as LaTeX (<code class="docutils literal notranslate"><span class="pre">page.formulas</span></code>); enables the layout model</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ignore_regions</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ignore_regions</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
 <td><p>Layout classes to mask out before OCR, e.g. <code class="docutils literal notranslate"><span class="pre">[&quot;Picture&quot;]</span></code>; requires the layout model (<code class="docutils literal notranslate"><span class="pre">detect_layout=True</span></code>)</p></td>
 </tr>

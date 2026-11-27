@@ -687,6 +687,24 @@ Orientation</label><div class="sd-tab-content docutils" id="sd-tab-item-5-conten
 </pre></div>
 </div>
 </div>
+<input id="sd-tab-item-6" name="sd-tab-set-0" type="radio">
+<label aria-controls="sd-tab-item-6-content" class="sd-tab-label" for="sd-tab-item-6">
+Font style</label><div class="sd-tab-content docutils" id="sd-tab-item-6-content">
+<p><code class="docutils literal notranslate"><span class="pre">images/</span></code> contains <strong>word crops</strong> and <code class="docutils literal notranslate"><span class="pre">labels.json</span></code> their style attributes (other keys, such as the text, are
+ignored). The classes of each attribute are listed in <code class="docutils literal notranslate"><span class="pre">doctr.datasets.FONT_STYLE_ATTRIBUTES</span></code>:</p>
+<div class="literal-block-wrapper docutils container" id="id6">
+<div class="code-block-caption"><span class="caption-text">labels.json</span><a class="headerlink" href="#id6" title="Link to this code">#</a></div>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="s2">"img_1.jpg"</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="s2">"bold"</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="s2">"italic"</span><span class="o">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="s2">"underline"</span><span class="o">:</span><span class="w"> </span><span class="s2">"double"</span><span class="p">,</span><span class="w"> </span><span class="s2">"strikethrough"</span><span class="o">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">"color"</span><span class="o">:</span><span class="w"> </span><span class="s2">"red"</span><span class="p">,</span><span class="w"> </span><span class="s2">"highlight"</span><span class="o">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"> </span><span class="s2">"category"</span><span class="o">:</span><span class="w"> </span><span class="s2">"SERIF"</span><span class="p">,</span><span class="w"> </span><span class="s2">"family"</span><span class="o">:</span><span class="w"> </span><span class="s2">"Lora"</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<p>A split can also be a folder of such folders (e.g. dataset shards), which are concatenated.</p>
+</div>
 </div>
 </section>
 <section id="train">
@@ -749,13 +767,23 @@ python<span class="w"> </span>references/classification/train_orientation.py<spa
 </div>
 <p><a class="reference external" href="https://github.com/mindee/doctr/tree/main/references/classification#readme">Full guide</a>.</p>
 </section>
+<section id="font-style-classifier">
+<h3>Font style classifier<a class="headerlink" href="#font-style-classifier" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>references/classification/train_font_style.py<span class="w"> </span>mobilenet_v3_small_font_style<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--train_path<span class="w"> </span>path/to/train_set<span class="w"> </span>--val_path<span class="w"> </span>path/to/val_set<span class="w"> </span>--epochs<span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--class-weights<span class="w"> </span>underline<span class="w"> </span>strikethrough<span class="w"> </span>color<span class="w"> </span>highlight<span class="w"> </span>category<span class="w"> </span>family<span class="w"> </span>--label-smoothing<span class="w"> </span><span class="m">0</span>.1
+</pre></div>
+</div>
+<p>The script reports the accuracy and macro F1 score of each attribute, and keeps the checkpoint with the best mean
+macro F1. <a class="reference external" href="https://github.com/mindee/doctr/tree/main/references/classification#readme">Full guide</a>.</p>
+</section>
 </section>
 <section id="hardware">
 <h2>Hardware<a class="headerlink" href="#hardware" title="Link to this heading">#</a></h2>
 <div class="sd-tab-set docutils">
-<input checked="checked" id="sd-tab-item-6" name="sd-tab-set-1" type="radio">
-<label aria-controls="sd-tab-item-6-content" class="sd-tab-label" for="sd-tab-item-6">
-Single GPU</label><div class="sd-tab-content docutils" id="sd-tab-item-6-content">
+<input checked="checked" id="sd-tab-item-7" name="sd-tab-set-1" type="radio">
+<label aria-controls="sd-tab-item-7-content" class="sd-tab-label" for="sd-tab-item-7">
+Single GPU</label><div class="sd-tab-content docutils" id="sd-tab-item-7-content">
 <p>Every script accepts <code class="docutils literal notranslate"><span class="pre">--device</span></code>: a CUDA index (<code class="docutils literal notranslate"><span class="pre">0</span></code>), <code class="docutils literal notranslate"><span class="pre">cuda:N</span></code>, <code class="docutils literal notranslate"><span class="pre">mps</span></code> or <code class="docutils literal notranslate"><span class="pre">cpu</span></code>. By default, the script picks CUDA,
 then MPS, then the CPU.</p>
 <p><code class="docutils literal notranslate"><span class="pre">--amp</span></code> enables automatic mixed precision on CUDA; add <code class="docutils literal notranslate"><span class="pre">--amp-dtype</span> <span class="pre">bfloat16</span></code> on Ampere GPUs or newer to avoid the
@@ -765,9 +793,9 @@ overflows of float16:</p>
 </pre></div>
 </div>
 </div>
-<input id="sd-tab-item-7" name="sd-tab-set-1" type="radio">
-<label aria-controls="sd-tab-item-7-content" class="sd-tab-label" for="sd-tab-item-7">
-Multi-GPU</label><div class="sd-tab-content docutils" id="sd-tab-item-7-content">
+<input id="sd-tab-item-8" name="sd-tab-set-1" type="radio">
+<label aria-controls="sd-tab-item-8-content" class="sd-tab-label" for="sd-tab-item-8">
+Multi-GPU</label><div class="sd-tab-content docutils" id="sd-tab-item-8-content">
 <p>Launch the same scripts with <a class="reference external" href="https://pytorch.org/docs/stable/elastic/run.html"><code class="docutils literal notranslate"><span class="pre">torchrun</span></code></a> to train with
 DistributedDataParallel:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="m">0</span>,2<span class="w"> </span>torchrun<span class="w"> </span>--nproc_per_node<span class="o">=</span><span class="m">2</span><span class="w"> </span>references/detection/train.py<span class="w"> </span>db_resnet50<span class="w"> </span><span class="se">\</span>
@@ -775,9 +803,9 @@ DistributedDataParallel:</p>
 </pre></div>
 </div>
 </div>
-<input id="sd-tab-item-8" name="sd-tab-set-1" type="radio">
-<label aria-controls="sd-tab-item-8-content" class="sd-tab-label" for="sd-tab-item-8">
-Apple Silicon</label><div class="sd-tab-content docutils" id="sd-tab-item-8-content">
+<input id="sd-tab-item-9" name="sd-tab-set-1" type="radio">
+<label aria-controls="sd-tab-item-9-content" class="sd-tab-label" for="sd-tab-item-9">
+Apple Silicon</label><div class="sd-tab-content docutils" id="sd-tab-item-9-content">
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Let the few operations MPS lacks fall back to the CPU</span>
 <span class="nv">PYTORCH_ENABLE_MPS_FALLBACK</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>python<span class="w"> </span>references/detection/train.py<span class="w"> </span>db_resnet50<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--train_path<span class="w"> </span>train<span class="w"> </span>--val_path<span class="w"> </span>val<span class="w"> </span>--device<span class="w"> </span>mps
@@ -856,6 +884,7 @@ versions and all the arguments.</p></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#table-structure">Table structure</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#formula-recognition">Formula recognition</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#orientation-classifiers">Orientation classifiers</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#font-style-classifier">Font style classifier</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hardware">Hardware</a></li>

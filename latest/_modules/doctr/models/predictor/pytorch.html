@@ -562,6 +562,9 @@
 <span class="sd">            page. Doing so will slightly deteriorate the overall latency.</span>
 <span class="sd">        detect_language: if True, the language prediction will be added to the predictions for each</span>
 <span class="sd">            page. Doing so will slightly deteriorate the overall latency.</span>
+<span class="sd">        detect_font_style: if True, the font style of each word (bold, italic, underline, strikethrough, colors, font</span>
+<span class="sd">            category, handwriting and closest font family) is classified and added to the predictions. Doing so will</span>
+<span class="sd">            slightly deteriorate the overall latency.</span>
 <span class="sd">        preserve_original_coords: if True and straighten_pages is True, the returned bounding boxes are mapped back</span>
 <span class="sd">            to the original page coordinate space. Useful for redaction and annotation.</span>
 <span class="sd">        layout_predictor: optional layout detection module</span>
@@ -586,6 +589,7 @@
         <span class="n">symmetric_pad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">detect_orientation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">detect_language</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">detect_font_style</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">preserve_original_coords</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">layout_predictor</span><span class="p">:</span> <span class="n">LayoutPredictor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">table_predictor</span><span class="p">:</span> <span class="n">TablePredictor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -603,6 +607,7 @@
             <span class="n">symmetric_pad</span><span class="p">,</span>
             <span class="n">detect_orientation</span><span class="p">,</span>
             <span class="n">preserve_original_coords</span><span class="o">=</span><span class="n">preserve_original_coords</span><span class="p">,</span>
+            <span class="n">detect_font_style</span><span class="o">=</span><span class="n">detect_font_style</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">detect_orientation</span> <span class="o">=</span> <span class="n">detect_orientation</span>
@@ -722,10 +727,12 @@
             <span class="n">assume_horizontal</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_page_orientation_disabled</span><span class="p">,</span>
         <span class="p">)</span>
 
+        <span class="c1"># The word boxes before rectification, from which the font style crops are extracted</span>
+        <span class="n">crop_loc_preds</span><span class="p">,</span> <span class="n">orientation_idxs</span> <span class="o">=</span> <span class="n">loc_preds</span><span class="p">,</span> <span class="kc">None</span>
         <span class="c1"># Rectify crop orientation and get crop orientation predictions</span>
         <span class="n">crop_orientations</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">assume_straight_pages</span><span class="p">:</span>
-            <span class="n">crops</span><span class="p">,</span> <span class="n">loc_preds</span><span class="p">,</span> <span class="n">_crop_orientations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rectify_crops</span><span class="p">(</span><span class="n">crops</span><span class="p">,</span> <span class="n">loc_preds</span><span class="p">)</span>
+            <span class="n">crops</span><span class="p">,</span> <span class="n">loc_preds</span><span class="p">,</span> <span class="n">_crop_orientations</span><span class="p">,</span> <span class="n">orientation_idxs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rectify_crops</span><span class="p">(</span><span class="n">crops</span><span class="p">,</span> <span class="n">loc_preds</span><span class="p">)</span>
             <span class="n">crop_orientations</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="p">{</span><span class="s2">"value"</span><span class="p">:</span> <span class="n">orientation</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"confidence"</span><span class="p">:</span> <span class="n">orientation</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span> <span class="k">for</span> <span class="n">orientation</span> <span class="ow">in</span> <span class="n">_crop_orientations</span>
             <span class="p">]</span>
@@ -736,6 +743,8 @@
             <span class="n">crop_orientations</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">"value"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"confidence"</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">word_preds</span><span class="p">]</span>
 
         <span class="n">boxes</span><span class="p">,</span> <span class="n">text_preds</span><span class="p">,</span> <span class="n">crop_orientations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_predictions</span><span class="p">(</span><span class="n">loc_preds</span><span class="p">,</span> <span class="n">word_preds</span><span class="p">,</span> <span class="n">crop_orientations</span><span class="p">)</span>
+        <span class="c1"># Classify the font style of the words</span>
+        <span class="n">font_styles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_predict_font_styles</span><span class="p">(</span><span class="n">pages</span><span class="p">,</span> <span class="n">crop_loc_preds</span><span class="p">,</span> <span class="n">orientation_idxs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">detect_language</span><span class="p">:</span>
             <span class="n">languages</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_language</span><span class="p">(</span><span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">text_pred</span><span class="p">]))</span> <span class="k">for</span> <span class="n">text_pred</span> <span class="ow">in</span> <span class="n">text_preds</span><span class="p">]</span>
@@ -768,6 +777,7 @@
             <span class="n">regions</span><span class="p">,</span>
             <span class="n">tables</span><span class="p">,</span>
             <span class="n">formulas</span><span class="p">,</span>
+            <span class="n">font_styles</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">straighten_pages</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">preserve_original_coords</span><span class="p">:</span>

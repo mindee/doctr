@@ -1312,6 +1312,62 @@ shape <cite>(N, 4)</cite> by default, or <cite>(N, 4, 2)</cite> when <cite>use_p
 </dl>
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.FontStyleDataset">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">FontStyleDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/font_style.html#FontStyleDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.FontStyleDataset" title="Link to this definition">#</a></dt>
+<dd><p>Dataset implementation for font style classification of word crops: each target holds the class index
+of every style attribute (cf. <cite>FONT_STYLE_ATTRIBUTES</cite>)</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">FontStyleDataset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">FontStyleDataset</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">"/path/to/images"</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                             <span class="n">labels_path</span><span class="o">=</span><span class="s2">"/path/to/labels.json"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sample</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">sample</span><span class="o">.</span><span class="n">image</span><span class="p">,</span> <span class="n">sample</span><span class="o">.</span><span class="n">target</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img_folder</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – path to the images folder</p></li>
+<li><p><strong>labels_path</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – path to the json file mapping each image name to its style attributes, e.g.
+{“img_1.jpg”: {“bold”: true, “italic”: false, “underline”: “none”, “strikethrough”: false,
+“color”: “black”, “highlight”: null, “category”: “SERIF”, “family”: “Lora”}, …}.
+Other keys (e.g. “text”) are ignored. Without a “handwritten” key, a word is handwritten when its font
+category is handwriting.</p></li>
+<li><p><strong>attributes</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em><em>] </em><em>| </em><em>None</em>) – the classes of each attribute, in the order of the model outputs (defaults to
+<cite>FONT_STYLE_ATTRIBUTES</cite>)</p></li>
+<li><p><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>) – keyword arguments from <cite>AbstractDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.datasets.encode_font_style">
+<span class="sig-name descname"><span class="pre">encode_font_style</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/font_style.html#encode_font_style"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.encode_font_style" title="Link to this definition">#</a></dt>
+<dd><p>Encode the style label of a word crop as the class index of each attribute</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">encode_font_style</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">encode_font_style</span><span class="p">({</span><span class="s2">"bold"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"italic"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"underline"</span><span class="p">:</span> <span class="s2">"double"</span><span class="p">,</span> <span class="s2">"strikethrough"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                   <span class="s2">"color"</span><span class="p">:</span> <span class="s2">"red"</span><span class="p">,</span> <span class="s2">"highlight"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"category"</span><span class="p">:</span> <span class="s2">"SERIF"</span><span class="p">,</span> <span class="s2">"family"</span><span class="p">:</span> <span class="s2">"Lora"</span><span class="p">})</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>label</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em>) – the style attributes of the crop, e.g. {“bold”: True, “underline”: “single”, “family”: “Lato”, …}.
+Without a “handwritten” key, a word is handwritten when its font category is handwriting.</p></li>
+<li><p><strong>attributes</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em><em>] </em><em>| </em><em>None</em>) – the classes of each attribute, in the order of the model outputs (defaults to
+<cite>FONT_STYLE_ATTRIBUTES</cite>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>an int64 array with the class index of each attribute</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="vocabularies">
 <h2>Vocabularies<a class="headerlink" href="#vocabularies" title="Link to this heading">#</a></h2>
@@ -1623,6 +1679,8 @@ mapping stable across samples, which the detection models rely on.</p></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.datasets.LayoutDataset"><code class="docutils literal notranslate"><span class="pre">LayoutDataset</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.datasets.TableStructureDataset"><code class="docutils literal notranslate"><span class="pre">TableStructureDataset</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.datasets.OrientationDataset"><code class="docutils literal notranslate"><span class="pre">OrientationDataset</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.datasets.FontStyleDataset"><code class="docutils literal notranslate"><span class="pre">FontStyleDataset</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#doctr.datasets.encode_font_style"><code class="docutils literal notranslate"><span class="pre">encode_font_style()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vocabularies">Vocabularies</a><ul class="pst-show_toc_level nav section-nav flex-column">

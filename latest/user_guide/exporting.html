@@ -643,6 +643,8 @@ headers as headings, list items as lists, and to place the page furniture (heade
 merged cells (<code class="docutils literal notranslate"><span class="pre">rowspan</span></code> / <code class="docutils literal notranslate"><span class="pre">colspan</span></code>); the other formats place the text of a merged cell at its top-left position.</p></li>
 <li><p><strong>With formula recognition</strong> (<code class="docutils literal notranslate"><span class="pre">detect_formulas=True</span></code>), formulas are rendered as display math (<code class="docutils literal notranslate"><span class="pre">$$...$$</span></code> in
 Markdown, a <code class="docutils literal notranslate"><span class="pre">[latexmath]</span></code> block in AsciiDoc, see <a class="reference internal" href="layout_and_tables.html#formula-recognition"><span class="std std-ref">Formula recognition</span></a>).</p></li>
+<li><p><strong>With font style classification</strong> (<code class="docutils literal notranslate"><span class="pre">detect_font_style=True</span></code>), bold, italic, underlined, struck through and
+highlighted words are marked up, see <a class="reference internal" href="#font-style"><span class="std std-ref">Font style</span></a> below.</p></li>
 </ul>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
@@ -706,11 +708,75 @@ Date: 26/10/2026<span class="p">&lt;/</span><span class="nt">p</span><span class
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">include_furniture</span></code></dt><dd><p>Include page headers, page footers and footnotes. Enabled by default.</p>
 </dd>
+<dt><code class="docutils literal notranslate"><span class="pre">font_style</span></code> (Markdown, AsciiDoc, HTML, hOCR)</dt><dd><p>Mark up the font style of the words detected with <code class="docutils literal notranslate"><span class="pre">detect_font_style=True</span></code>, see <a class="reference internal" href="#font-style"><span class="std std-ref">Font style</span></a>. Enabled by
+default.</p>
+</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">page_break</span></code></dt><dd><p>The separator inserted between pages: <code class="docutils literal notranslate"><span class="pre">---</span></code> in Markdown, <code class="docutils literal notranslate"><span class="pre">&lt;&lt;&lt;</span></code> in AsciiDoc, <code class="docutils literal notranslate"><span class="pre">&lt;hr&gt;</span></code> in HTML.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">images</span></code></dt><dd><p>How figures are rendered, see <a class="reference internal" href="#figures"><span class="std std-ref">Figures</span></a> below.</p>
 </dd>
 </dl>
+</section>
+<section id="font-style">
+<h2>Font style<a class="headerlink" href="#font-style" title="Link to this heading">#</a></h2>
+<p>With <code class="docutils literal notranslate"><span class="pre">detect_font_style=True</span></code> (see <a class="reference internal" href="results.html#font-style"><span class="std std-ref">Font style</span></a>), the Markdown, AsciiDoc, HTML and hOCR exports mark up
+the font style of the words. Consecutive words sharing the same style are marked up once, e.g. <code class="docutils literal notranslate"><span class="pre">**Total</span> <span class="pre">amount**</span></code>:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Style</p></th>
+<th class="head"><p>Markdown</p></th>
+<th class="head"><p>AsciiDoc</p></th>
+<th class="head"><p>HTML</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Bold</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">**text**</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">**text**</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&lt;strong&gt;</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Italic</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">*text*</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">__text__</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&lt;em&gt;</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Strikethrough</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">~~text~~</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[.line-through]#text#</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&lt;s&gt;</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Underline</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&lt;u&gt;text&lt;/u&gt;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[.underline]#text#</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&lt;u&gt;</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Double underline</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&lt;u</span> <span class="pre">style=&quot;text-decoration-style:</span> <span class="pre">double&quot;&gt;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[.underline.double-underline]#text#</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&lt;u</span> <span class="pre">style=&quot;text-decoration-style:</span> <span class="pre">double&quot;&gt;</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Highlight</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&lt;mark&gt;</span></code> (with a <code class="docutils literal notranslate"><span class="pre">background</span></code> other than yellow)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[.yellow-background]#text#</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&lt;mark&gt;</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Text color</p></td>
+<td><p>not rendered</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[.red]#text#</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&lt;span</span> <span class="pre">style=&quot;color:</span> <span class="pre">red&quot;&gt;</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Black and white text are not marked up. In hOCR, bold and italic words hold <code class="docutils literal notranslate"><span class="pre">&lt;strong&gt;</span></code> / <code class="docutils literal notranslate"><span class="pre">&lt;em&gt;</span></code> elements, and every
+word gets its closest font family as <code class="docutils literal notranslate"><span class="pre">x_font</span></code> property. The plain text export is never marked up.</p>
+<p>The font style stays in the predictions (<code class="docutils literal notranslate"><span class="pre">word.font_style</span></code>, the JSON export) while the markup can be left out:
+<code class="docutils literal notranslate"><span class="pre">font_style=False</span></code> exports the plain text of the words in Markdown, AsciiDoc, HTML and hOCR (no <code class="docutils literal notranslate"><span class="pre">x_font</span></code> either),
+e.g. to compare the text with that of an export without font style classification:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">markdown</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export_as_markdown</span><span class="p">(</span><span class="n">font_style</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">xml_pages</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export_as</span><span class="p">(</span><span class="s2">"hocr"</span><span class="p">,</span> <span class="n">font_style</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="hocr">
 <h2>hOCR<a class="headerlink" href="#hocr" title="Link to this heading">#</a></h2>
@@ -856,6 +922,7 @@ contains figures, and hOCR positions them as <code class="docutils literal notra
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plain-text">Plain text</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#markdown-asciidoc-and-html">Markdown, AsciiDoc and HTML</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#font-style">Font style</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hocr">hOCR</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-order">Reading order</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#figures">Figures</a></li>

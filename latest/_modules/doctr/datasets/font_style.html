@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" data-theme="auto">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>doctr.datasets.font_style &#8212; docTR documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "auto";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "auto";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=6a604523" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/css/doctr.css?v=376da089" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../../../_static/documentation_options.js?v=fe33b420"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=08e7b316"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../../../_static/design-tabs.js?v=fcb327ea"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('consent', 'default', {
+                    'ad_storage': 'denied',
+                    'ad_user_data': 'denied',
+                    'ad_personalization': 'denied',
+                    'analytics_storage': 'denied'
+                });
+            </script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-40DVRMX8T4"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-40DVRMX8T4');
+            </script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/doctr/datasets/font_style';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.24.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = '_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'latest';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = true;</script>
+    <script src="../../../_static/js/doctr.js?v=0ea358fd"></script>
+    <link rel="icon" href="../../../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.2.1a0" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="auto">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/logo-light.png" class="logo__image only-light" alt="docTR - Home"/>
+    <img src="../../../_static/logo-dark.png" class="logo__image only-dark pst-js-only" alt="docTR - Home"/>
+  
+  
+</a></div>
+    
+      <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../getting_started/index.html">
+    Get started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../user_guide/index.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../models/index.html">
+    Model zoo
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../training/index.html">
+    Training
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../deployment/index.html">
+    Deployment
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../community/index.html">
+    Community
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mindee/doctr" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/python-doctr/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-python fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://huggingface.co/spaces/mindee/doctr" title="Live demo on Hugging Face" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-wand-magic-sparkles fa-lg" aria-hidden="true"></i><span class="visually-hidden">Live demo on Hugging Face</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../getting_started/index.html">
+    Get started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../user_guide/index.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../models/index.html">
+    Model zoo
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../training/index.html">
+    Training
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../deployment/index.html">
+    Deployment
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../community/index.html">
+    Community
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/mindee/doctr" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/python-doctr/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-python fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://huggingface.co/spaces/mindee/doctr" title="Live demo on Hugging Face" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-wand-magic-sparkles fa-lg" aria-hidden="true"></i><span class="visually-hidden">Live demo on Hugging Face</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">doctr.datasets.font_style</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for doctr.datasets.font_style</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (C) 2021-2026, Mindee.</span>
+
+<span class="c1"># This program is licensed under the Apache License 2.0.</span>
+<span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractDataset</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"FONT_FAMILIES"</span><span class="p">,</span> <span class="s2">"FONT_STYLE_ATTRIBUTES"</span><span class="p">,</span> <span class="s2">"FontStyleDataset"</span><span class="p">,</span> <span class="s2">"encode_font_style"</span><span class="p">]</span>
+
+<span class="c1"># The font families known by the pretrained font style classifiers</span>
+<span class="n">FONT_FAMILIES</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"Abhaya Libre"</span><span class="p">,</span>
+    <span class="s2">"Abyssinica SIL"</span><span class="p">,</span>
+    <span class="s2">"Afacad"</span><span class="p">,</span>
+    <span class="s2">"Agbalumo"</span><span class="p">,</span>
+    <span class="s2">"Aksaramatee"</span><span class="p">,</span>
+    <span class="s2">"Akshar"</span><span class="p">,</span>
+    <span class="s2">"Alata"</span><span class="p">,</span>
+    <span class="s2">"Alatsi"</span><span class="p">,</span>
+    <span class="s2">"Allura"</span><span class="p">,</span>
+    <span class="s2">"Almarai"</span><span class="p">,</span>
+    <span class="s2">"Amatic SC"</span><span class="p">,</span>
+    <span class="s2">"Amiko"</span><span class="p">,</span>
+    <span class="s2">"Amiri"</span><span class="p">,</span>
+    <span class="s2">"Anek Devanagari"</span><span class="p">,</span>
+    <span class="s2">"Anek Gujarati"</span><span class="p">,</span>
+    <span class="s2">"Anek Kannada"</span><span class="p">,</span>
+    <span class="s2">"Anek Malayalam"</span><span class="p">,</span>
+    <span class="s2">"Anek Odia"</span><span class="p">,</span>
+    <span class="s2">"Anek Tamil"</span><span class="p">,</span>
+    <span class="s2">"Annapurna SIL"</span><span class="p">,</span>
+    <span class="s2">"Annie Use Your Telescope"</span><span class="p">,</span>
+    <span class="s2">"Anuphan"</span><span class="p">,</span>
+    <span class="s2">"Aparajita"</span><span class="p">,</span>
+    <span class="s2">"Architects Daughter"</span><span class="p">,</span>
+    <span class="s2">"Aref Ruqaa"</span><span class="p">,</span>
+    <span class="s2">"Arial"</span><span class="p">,</span>
+    <span class="s2">"Arima"</span><span class="p">,</span>
+    <span class="s2">"Arimo"</span><span class="p">,</span>
+    <span class="s2">"Arya"</span><span class="p">,</span>
+    <span class="s2">"Asar"</span><span class="p">,</span>
+    <span class="s2">"Assistant"</span><span class="p">,</span>
+    <span class="s2">"Athiti"</span><span class="p">,</span>
+    <span class="s2">"Atma"</span><span class="p">,</span>
+    <span class="s2">"Azeret Mono"</span><span class="p">,</span>
+    <span class="s2">"BIZ UDPGothic"</span><span class="p">,</span>
+    <span class="s2">"BIZ UDPMincho"</span><span class="p">,</span>
+    <span class="s2">"BPG Arial"</span><span class="p">,</span>
+    <span class="s2">"Bad Script"</span><span class="p">,</span>
+    <span class="s2">"Bai Jamjuree"</span><span class="p">,</span>
+    <span class="s2">"Baloo 2"</span><span class="p">,</span>
+    <span class="s2">"Baloo Bhai 2"</span><span class="p">,</span>
+    <span class="s2">"Baloo Bhaina 2"</span><span class="p">,</span>
+    <span class="s2">"Baloo Chettan 2"</span><span class="p">,</span>
+    <span class="s2">"Baloo Paaji 2"</span><span class="p">,</span>
+    <span class="s2">"Baloo Thambi 2"</span><span class="p">,</span>
+    <span class="s2">"Battambang"</span><span class="p">,</span>
+    <span class="s2">"Beiruti"</span><span class="p">,</span>
+    <span class="s2">"Bellefair"</span><span class="p">,</span>
+    <span class="s2">"Bellota"</span><span class="p">,</span>
+    <span class="s2">"Biryani"</span><span class="p">,</span>
+    <span class="s2">"Black Han Sans"</span><span class="p">,</span>
+    <span class="s2">"BlockKie"</span><span class="p">,</span>
+    <span class="s2">"Bokor"</span><span class="p">,</span>
+    <span class="s2">"Bricolage Grotesque"</span><span class="p">,</span>
+    <span class="s2">"Cairo"</span><span class="p">,</span>
+    <span class="s2">"Caladea"</span><span class="p">,</span>
+    <span class="s2">"Calistoga"</span><span class="p">,</span>
+    <span class="s2">"Cambay"</span><span class="p">,</span>
+    <span class="s2">"Catamaran"</span><span class="p">,</span>
+    <span class="s2">"Caveat"</span><span class="p">,</span>
+    <span class="s2">"Caveat Brush"</span><span class="p">,</span>
+    <span class="s2">"Cedarville Cursive"</span><span class="p">,</span>
+    <span class="s2">"Chakra Petch"</span><span class="p">,</span>
+    <span class="s2">"Charm"</span><span class="p">,</span>
+    <span class="s2">"Charmonman"</span><span class="p">,</span>
+    <span class="s2">"Chilanka"</span><span class="p">,</span>
+    <span class="s2">"Chonburi"</span><span class="p">,</span>
+    <span class="s2">"Code2000"</span><span class="p">,</span>
+    <span class="s2">"Coiny"</span><span class="p">,</span>
+    <span class="s2">"Comic Neue"</span><span class="p">,</span>
+    <span class="s2">"Coming Soon"</span><span class="p">,</span>
+    <span class="s2">"Content"</span><span class="p">,</span>
+    <span class="s2">"Cookie"</span><span class="p">,</span>
+    <span class="s2">"Cormorant Garamond"</span><span class="p">,</span>
+    <span class="s2">"Cousine"</span><span class="p">,</span>
+    <span class="s2">"Covered By Your Grace"</span><span class="p">,</span>
+    <span class="s2">"Crafty Girls"</span><span class="p">,</span>
+    <span class="s2">"Dancing Script"</span><span class="p">,</span>
+    <span class="s2">"Dangrek"</span><span class="p">,</span>
+    <span class="s2">"David Libre"</span><span class="p">,</span>
+    <span class="s2">"Dawning of a New Day"</span><span class="p">,</span>
+    <span class="s2">"DejaVu Sans"</span><span class="p">,</span>
+    <span class="s2">"DejaVu Sans Mono"</span><span class="p">,</span>
+    <span class="s2">"DejaVu Serif"</span><span class="p">,</span>
+    <span class="s2">"Dekko"</span><span class="p">,</span>
+    <span class="s2">"Denk One"</span><span class="p">,</span>
+    <span class="s2">"Do Hyeon"</span><span class="p">,</span>
+    <span class="s2">"DotGothic16"</span><span class="p">,</span>
+    <span class="s2">"EB Garamond"</span><span class="p">,</span>
+    <span class="s2">"Eczar"</span><span class="p">,</span>
+    <span class="s2">"El Messiri"</span><span class="p">,</span>
+    <span class="s2">"Faculty Glyphic"</span><span class="p">,</span>
+    <span class="s2">"Fahkwang"</span><span class="p">,</span>
+    <span class="s2">"Fira Sans"</span><span class="p">,</span>
+    <span class="s2">"Fjalla One"</span><span class="p">,</span>
+    <span class="s2">"Fragment Mono"</span><span class="p">,</span>
+    <span class="s2">"Frank Ruhl Libre"</span><span class="p">,</span>
+    <span class="s2">"Freehand"</span><span class="p">,</span>
+    <span class="s2">"Freeman"</span><span class="p">,</span>
+    <span class="s2">"Fustat"</span><span class="p">,</span>
+    <span class="s2">"Gaegu"</span><span class="p">,</span>
+    <span class="s2">"Galada"</span><span class="p">,</span>
+    <span class="s2">"Gamja Flower"</span><span class="p">,</span>
+    <span class="s2">"Gayathri"</span><span class="p">,</span>
+    <span class="s2">"Geist"</span><span class="p">,</span>
+    <span class="s2">"Geist Mono"</span><span class="p">,</span>
+    <span class="s2">"Gelasio"</span><span class="p">,</span>
+    <span class="s2">"Gemunu Libre"</span><span class="p">,</span>
+    <span class="s2">"Gidugu"</span><span class="p">,</span>
+    <span class="s2">"Glegoo"</span><span class="p">,</span>
+    <span class="s2">"Gloock"</span><span class="p">,</span>
+    <span class="s2">"Gloria Hallelujah"</span><span class="p">,</span>
+    <span class="s2">"Gochi Hand"</span><span class="p">,</span>
+    <span class="s2">"Gothic A1"</span><span class="p">,</span>
+    <span class="s2">"Gotu"</span><span class="p">,</span>
+    <span class="s2">"Gowun Batang"</span><span class="p">,</span>
+    <span class="s2">"Gowun Dodum"</span><span class="p">,</span>
+    <span class="s2">"Great Vibes"</span><span class="p">,</span>
+    <span class="s2">"Hahmlet"</span><span class="p">,</span>
+    <span class="s2">"Halant"</span><span class="p">,</span>
+    <span class="s2">"Handlee"</span><span class="p">,</span>
+    <span class="s2">"Hanuman"</span><span class="p">,</span>
+    <span class="s2">"Harmattan"</span><span class="p">,</span>
+    <span class="s2">"Heebo"</span><span class="p">,</span>
+    <span class="s2">"Herr Von Muellerhoff"</span><span class="p">,</span>
+    <span class="s2">"Hi Melody"</span><span class="p">,</span>
+    <span class="s2">"Hind"</span><span class="p">,</span>
+    <span class="s2">"Hind Guntur"</span><span class="p">,</span>
+    <span class="s2">"Hind Madurai"</span><span class="p">,</span>
+    <span class="s2">"Hind Siliguri"</span><span class="p">,</span>
+    <span class="s2">"Hind Vadodara"</span><span class="p">,</span>
+    <span class="s2">"Homemade Apple"</span><span class="p">,</span>
+    <span class="s2">"IBM Plex Mono"</span><span class="p">,</span>
+    <span class="s2">"IBM Plex Sans"</span><span class="p">,</span>
+    <span class="s2">"IBM Plex Sans Arabic"</span><span class="p">,</span>
+    <span class="s2">"IBM Plex Sans Devanagari"</span><span class="p">,</span>
+    <span class="s2">"IBM Plex Sans Hebrew"</span><span class="p">,</span>
+    <span class="s2">"IBM Plex Sans KR"</span><span class="p">,</span>
+    <span class="s2">"IBM Plex Sans Thai"</span><span class="p">,</span>
+    <span class="s2">"IBM Plex Sans Thai Looped"</span><span class="p">,</span>
+    <span class="s2">"IBM Plex Serif"</span><span class="p">,</span>
+    <span class="s2">"Inclusive Sans"</span><span class="p">,</span>
+    <span class="s2">"Indie Flower"</span><span class="p">,</span>
+    <span class="s2">"Inknut Antiqua"</span><span class="p">,</span>
+    <span class="s2">"Inter"</span><span class="p">,</span>
+    <span class="s2">"Inter Tight"</span><span class="p">,</span>
+    <span class="s2">"Itim"</span><span class="p">,</span>
+    <span class="s2">"Jaini"</span><span class="p">,</span>
+    <span class="s2">"Jaldi"</span><span class="p">,</span>
+    <span class="s2">"Javanese Text"</span><span class="p">,</span>
+    <span class="s2">"Jua"</span><span class="p">,</span>
+    <span class="s2">"Just Another Hand"</span><span class="p">,</span>
+    <span class="s2">"K2D"</span><span class="p">,</span>
+    <span class="s2">"Kadwa"</span><span class="p">,</span>
+    <span class="s2">"Kalam"</span><span class="p">,</span>
+    <span class="s2">"Kanit"</span><span class="p">,</span>
+    <span class="s2">"Kantumruy Pro"</span><span class="p">,</span>
+    <span class="s2">"Karma"</span><span class="p">,</span>
+    <span class="s2">"Katibeh"</span><span class="p">,</span>
+    <span class="s2">"Kelvinch"</span><span class="p">,</span>
+    <span class="s2">"Khand"</span><span class="p">,</span>
+    <span class="s2">"Khula"</span><span class="p">,</span>
+    <span class="s2">"Kiwi Maru"</span><span class="p">,</span>
+    <span class="s2">"Klee One"</span><span class="p">,</span>
+    <span class="s2">"KoHo"</span><span class="p">,</span>
+    <span class="s2">"Kodchasan"</span><span class="p">,</span>
+    <span class="s2">"Koh Santepheap"</span><span class="p">,</span>
+    <span class="s2">"Koulen"</span><span class="p">,</span>
+    <span class="s2">"Kristi"</span><span class="p">,</span>
+    <span class="s2">"Krub"</span><span class="p">,</span>
+    <span class="s2">"Kurale"</span><span class="p">,</span>
+    <span class="s2">"LXGW WenKai Mono TC"</span><span class="p">,</span>
+    <span class="s2">"LXGW WenKai TC"</span><span class="p">,</span>
+    <span class="s2">"La Belle Aurore"</span><span class="p">,</span>
+    <span class="s2">"Laila"</span><span class="p">,</span>
+    <span class="s2">"Lateef"</span><span class="p">,</span>
+    <span class="s2">"Latin Modern Mono"</span><span class="p">,</span>
+    <span class="s2">"Latin Modern Roman"</span><span class="p">,</span>
+    <span class="s2">"Latin Modern Sans"</span><span class="p">,</span>
+    <span class="s2">"Lato"</span><span class="p">,</span>
+    <span class="s2">"Liu Jian Mao Cao"</span><span class="p">,</span>
+    <span class="s2">"Lohit Marathi"</span><span class="p">,</span>
+    <span class="s2">"Long Cang"</span><span class="p">,</span>
+    <span class="s2">"Lora"</span><span class="p">,</span>
+    <span class="s2">"M PLUS 1p"</span><span class="p">,</span>
+    <span class="s2">"Ma Shan Zheng"</span><span class="p">,</span>
+    <span class="s2">"Mada"</span><span class="p">,</span>
+    <span class="s2">"Maitree"</span><span class="p">,</span>
+    <span class="s2">"Mali"</span><span class="p">,</span>
+    <span class="s2">"Manjari"</span><span class="p">,</span>
+    <span class="s2">"Marck Script"</span><span class="p">,</span>
+    <span class="s2">"Markazi Text"</span><span class="p">,</span>
+    <span class="s2">"Martel"</span><span class="p">,</span>
+    <span class="s2">"Martel Sans"</span><span class="p">,</span>
+    <span class="s2">"Meera Inimai"</span><span class="p">,</span>
+    <span class="s2">"Merriweather"</span><span class="p">,</span>
+    <span class="s2">"Mirza"</span><span class="p">,</span>
+    <span class="s2">"Mitr"</span><span class="p">,</span>
+    <span class="s2">"Mona Sans"</span><span class="p">,</span>
+    <span class="s2">"Montserrat"</span><span class="p">,</span>
+    <span class="s2">"Moul"</span><span class="p">,</span>
+    <span class="s2">"Mr Dafoe"</span><span class="p">,</span>
+    <span class="s2">"Mukta"</span><span class="p">,</span>
+    <span class="s2">"Mukta Malar"</span><span class="p">,</span>
+    <span class="s2">"Mukta Vaani"</span><span class="p">,</span>
+    <span class="s2">"Murecho"</span><span class="p">,</span>
+    <span class="s2">"Nanum Brush Script"</span><span class="p">,</span>
+    <span class="s2">"Nanum Pen"</span><span class="p">,</span>
+    <span class="s2">"NanumGothic"</span><span class="p">,</span>
+    <span class="s2">"NanumMyeongjo"</span><span class="p">,</span>
+    <span class="s2">"National Park"</span><span class="p">,</span>
+    <span class="s2">"Neucha"</span><span class="p">,</span>
+    <span class="s2">"Niramit"</span><span class="p">,</span>
+    <span class="s2">"Nokora"</span><span class="p">,</span>
+    <span class="s2">"Nothing You Could Do"</span><span class="p">,</span>
+    <span class="s2">"Noto Kufi Arabic"</span><span class="p">,</span>
+    <span class="s2">"Noto Naskh Arabic"</span><span class="p">,</span>
+    <span class="s2">"Noto Rashi Hebrew"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Arabic"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Armenian"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Bengali"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Devanagari"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Ethiopic"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Georgian"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Gujarati"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Gurmukhi"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Hebrew"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans JP"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Javanese"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans KR"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Kannada"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Khmer"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Lao"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Lao Looped"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Malayalam"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Mono"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Myanmar"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Oriya"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans SC"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Sinhala"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Sundanese"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Tamil"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Telugu"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Thai"</span><span class="p">,</span>
+    <span class="s2">"Noto Sans Thai Looped"</span><span class="p">,</span>
+    <span class="s2">"Noto Serif"</span><span class="p">,</span>
+    <span class="s2">"Noto Serif Armenian"</span><span class="p">,</span>
+    <span class="s2">"Noto Serif Bengali"</span><span class="p">,</span>
+    <span class="s2">"Noto Serif Devanagari"</span><span class="p">,</span>
+    <span class="s2">"Noto Serif Ethiopic"</span><span class="p">,</span>
+    <span class="s2">"Noto Serif Georgian"</span><span class="p">,</span>
+    <span class="s2">"Noto Serif Gujarati"</span><span class="p">,</span>
+    <span class="s2">"Noto Serif Gurmukhi"</span><span class="p">,</span>
+    <span class="s2">"Noto Serif Hebrew"</span><span class="p">,</span>
+    <span class="s2">"Noto Serif KR"</span><span class="p">,</span>
+    <span class="s2">"Noto Serif Kannada"</span><span class="p">,</span>
+    <span class="s2">"Noto Serif Khmer"</span><span class="p">,</span>
+    <span class="s2">"Noto Serif Lao"</span><span class="p">,</span>
+    <span class="s2">"Noto Serif Malayalam"</span><span class="p">,</span>
+    <span class="s2">"Noto Serif Myanmar"</span><span class="p">,</span>
+    <span class="s2">"Noto Serif Oriya"</span><span class="p">,</span>
+    <span class="s2">"Noto Serif SC"</span><span class="p">,</span>
+    <span class="s2">"Noto Serif Sinhala"</span><span class="p">,</span>
+    <span class="s2">"Noto Serif Tamil"</span><span class="p">,</span>
+    <span class="s2">"Noto Serif Telugu"</span><span class="p">,</span>
+    <span class="s2">"Noto Serif Thai"</span><span class="p">,</span>
+    <span class="s2">"Odor Mean Chey"</span><span class="p">,</span>
+    <span class="s2">"Ojuju"</span><span class="p">,</span>
+    <span class="s2">"Open Sans"</span><span class="p">,</span>
+    <span class="s2">"Over the Rainbow"</span><span class="p">,</span>
+    <span class="s2">"Overpass"</span><span class="p">,</span>
+    <span class="s2">"Overpass Mono"</span><span class="p">,</span>
+    <span class="s2">"Padauk"</span><span class="p">,</span>
+    <span class="s2">"Palanquin"</span><span class="p">,</span>
+    <span class="s2">"Palanquin Dark"</span><span class="p">,</span>
+    <span class="s2">"Patrick Hand"</span><span class="p">,</span>
+    <span class="s2">"Pattaya"</span><span class="p">,</span>
+    <span class="s2">"Permanent Marker"</span><span class="p">,</span>
+    <span class="s2">"Phetsarath"</span><span class="p">,</span>
+    <span class="s2">"Platypi"</span><span class="p">,</span>
+    <span class="s2">"Playfair"</span><span class="p">,</span>
+    <span class="s2">"Playwrite GB S"</span><span class="p">,</span>
+    <span class="s2">"Plus Jakarta Sans"</span><span class="p">,</span>
+    <span class="s2">"Poppins"</span><span class="p">,</span>
+    <span class="s2">"Pragati Narrow"</span><span class="p">,</span>
+    <span class="s2">"Pridi"</span><span class="p">,</span>
+    <span class="s2">"Prompt"</span><span class="p">,</span>
+    <span class="s2">"REM"</span><span class="p">,</span>
+    <span class="s2">"Rajdhani"</span><span class="p">,</span>
+    <span class="s2">"Raleway"</span><span class="p">,</span>
+    <span class="s2">"Ramabhadra"</span><span class="p">,</span>
+    <span class="s2">"Rancho"</span><span class="p">,</span>
+    <span class="s2">"Ranga"</span><span class="p">,</span>
+    <span class="s2">"Recursive"</span><span class="p">,</span>
+    <span class="s2">"Reem Kufi"</span><span class="p">,</span>
+    <span class="s2">"Reenie Beanie"</span><span class="p">,</span>
+    <span class="s2">"Reggae One"</span><span class="p">,</span>
+    <span class="s2">"Rhodium Libre"</span><span class="p">,</span>
+    <span class="s2">"Roboto"</span><span class="p">,</span>
+    <span class="s2">"Roboto Mono"</span><span class="p">,</span>
+    <span class="s2">"Roboto Serif"</span><span class="p">,</span>
+    <span class="s2">"Rock Salt"</span><span class="p">,</span>
+    <span class="s2">"RocknRoll One"</span><span class="p">,</span>
+    <span class="s2">"Roman Unicode"</span><span class="p">,</span>
+    <span class="s2">"Rounded Mplus 1c"</span><span class="p">,</span>
+    <span class="s2">"Rozha One"</span><span class="p">,</span>
+    <span class="s2">"Rubik"</span><span class="p">,</span>
+    <span class="s2">"Sacramento"</span><span class="p">,</span>
+    <span class="s2">"Sahitya"</span><span class="p">,</span>
+    <span class="s2">"Sarabun"</span><span class="p">,</span>
+    <span class="s2">"Sarala"</span><span class="p">,</span>
+    <span class="s2">"Satisfy"</span><span class="p">,</span>
+    <span class="s2">"Sawarabi Mincho"</span><span class="p">,</span>
+    <span class="s2">"Scheherazade New"</span><span class="p">,</span>
+    <span class="s2">"Schibsted Grotesk"</span><span class="p">,</span>
+    <span class="s2">"Schoolbell"</span><span class="p">,</span>
+    <span class="s2">"Secular One"</span><span class="p">,</span>
+    <span class="s2">"Sedgwick Ave"</span><span class="p">,</span>
+    <span class="s2">"Shadows Into"</span><span class="p">,</span>
+    <span class="s2">"Shantell Sans"</span><span class="p">,</span>
+    <span class="s2">"Shippori Mincho"</span><span class="p">,</span>
+    <span class="s2">"Shrikhand"</span><span class="p">,</span>
+    <span class="s2">"Song Myung"</span><span class="p">,</span>
+    <span class="s2">"Source Serif 4"</span><span class="p">,</span>
+    <span class="s2">"Space Grotesk"</span><span class="p">,</span>
+    <span class="s2">"Special Gothic"</span><span class="p">,</span>
+    <span class="s2">"Special Gothic Condensed One"</span><span class="p">,</span>
+    <span class="s2">"Sriracha"</span><span class="p">,</span>
+    <span class="s2">"Sue Ellen Francisco"</span><span class="p">,</span>
+    <span class="s2">"Suez One"</span><span class="p">,</span>
+    <span class="s2">"Sumana"</span><span class="p">,</span>
+    <span class="s2">"Sura"</span><span class="p">,</span>
+    <span class="s2">"Suwannaphum"</span><span class="p">,</span>
+    <span class="s2">"TH Sarabun New"</span><span class="p">,</span>
+    <span class="s2">"Tajawal"</span><span class="p">,</span>
+    <span class="s2">"Taprom"</span><span class="p">,</span>
+    <span class="s2">"Taviraj"</span><span class="p">,</span>
+    <span class="s2">"TeX Gyre Bonum"</span><span class="p">,</span>
+    <span class="s2">"TeX Gyre Cursor"</span><span class="p">,</span>
+    <span class="s2">"TeX Gyre Pagella"</span><span class="p">,</span>
+    <span class="s2">"TeX Gyre Schola"</span><span class="p">,</span>
+    <span class="s2">"Teko"</span><span class="p">,</span>
+    <span class="s2">"Thasadith"</span><span class="p">,</span>
+    <span class="s2">"The Girl Next Door"</span><span class="p">,</span>
+    <span class="s2">"Tillana"</span><span class="p">,</span>
+    <span class="s2">"Tinos"</span><span class="p">,</span>
+    <span class="s2">"Tiro Bangla"</span><span class="p">,</span>
+    <span class="s2">"Tiro Devanagari Hindi"</span><span class="p">,</span>
+    <span class="s2">"Tiro Gurmukhi"</span><span class="p">,</span>
+    <span class="s2">"Tiro Kannada"</span><span class="p">,</span>
+    <span class="s2">"Tiro Tamil"</span><span class="p">,</span>
+    <span class="s2">"Tiro Telugu"</span><span class="p">,</span>
+    <span class="s2">"Trirong"</span><span class="p">,</span>
+    <span class="s2">"Varela Round"</span><span class="p">,</span>
+    <span class="s2">"Vesper Libre"</span><span class="p">,</span>
+    <span class="s2">"Voltaire"</span><span class="p">,</span>
+    <span class="s2">"Waiting for the Sunrise"</span><span class="p">,</span>
+    <span class="s2">"Walter Turncoat"</span><span class="p">,</span>
+    <span class="s2">"Winky Sans"</span><span class="p">,</span>
+    <span class="s2">"Wittgenstein"</span><span class="p">,</span>
+    <span class="s2">"Xarrovv"</span><span class="p">,</span>
+    <span class="s2">"Yaldevi"</span><span class="p">,</span>
+    <span class="s2">"Yantramanav"</span><span class="p">,</span>
+    <span class="s2">"Yatra One"</span><span class="p">,</span>
+    <span class="s2">"Yellowtail"</span><span class="p">,</span>
+    <span class="s2">"Yomogi"</span><span class="p">,</span>
+    <span class="s2">"Yuji Syuku"</span><span class="p">,</span>
+    <span class="s2">"ZCOOL KuaiLe"</span><span class="p">,</span>
+    <span class="s2">"ZCOOL QingKe HuangYou"</span><span class="p">,</span>
+    <span class="s2">"Zen Kaku Gothic New"</span><span class="p">,</span>
+    <span class="s2">"Zen Kurenaido"</span><span class="p">,</span>
+    <span class="s2">"Zen Maru Gothic"</span><span class="p">,</span>
+    <span class="s2">"Zen Old Mincho"</span><span class="p">,</span>
+    <span class="s2">"Zeyada"</span><span class="p">,</span>
+    <span class="s2">"Zhi Mang Xing"</span><span class="p">,</span>
+    <span class="s2">"lipipragatuchhi"</span><span class="p">,</span>
+    <span class="s2">"站酷小薇体"</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1"># The attributes predicted by the font style classifiers, in the order of the model outputs, each with its classes</span>
+<span class="n">FONT_STYLE_ATTRIBUTES</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"bold"</span><span class="p">:</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span>
+    <span class="s2">"italic"</span><span class="p">:</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span>
+    <span class="s2">"underline"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"none"</span><span class="p">,</span> <span class="s2">"single"</span><span class="p">,</span> <span class="s2">"double"</span><span class="p">],</span>
+    <span class="s2">"strikethrough"</span><span class="p">:</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span>
+    <span class="s2">"color"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"black"</span><span class="p">,</span> <span class="s2">"gray"</span><span class="p">,</span> <span class="s2">"white"</span><span class="p">,</span> <span class="s2">"red"</span><span class="p">,</span> <span class="s2">"orange"</span><span class="p">,</span> <span class="s2">"brown"</span><span class="p">,</span> <span class="s2">"yellow"</span><span class="p">,</span> <span class="s2">"green"</span><span class="p">,</span> <span class="s2">"blue"</span><span class="p">,</span> <span class="s2">"purple"</span><span class="p">],</span>
+    <span class="s2">"highlight"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"none"</span><span class="p">,</span> <span class="s2">"yellow"</span><span class="p">,</span> <span class="s2">"green"</span><span class="p">,</span> <span class="s2">"pink"</span><span class="p">,</span> <span class="s2">"blue"</span><span class="p">,</span> <span class="s2">"orange"</span><span class="p">],</span>
+    <span class="c1"># Whether the word is written by hand (a script or casual typeface set as type is printed)</span>
+    <span class="s2">"handwritten"</span><span class="p">:</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span>
+    <span class="s2">"category"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"sans_serif"</span><span class="p">,</span> <span class="s2">"serif"</span><span class="p">,</span> <span class="s2">"display"</span><span class="p">,</span> <span class="s2">"handwriting"</span><span class="p">,</span> <span class="s2">"monospace"</span><span class="p">,</span> <span class="s2">"unknown"</span><span class="p">],</span>
+    <span class="s2">"family"</span><span class="p">:</span> <span class="n">FONT_FAMILIES</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_normalize</span><span class="p">(</span><span class="n">attribute</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Map a raw label value to its class name (e.g. a missing highlight to "none", "SANS_SERIF" to "sans_serif")"""</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"none"</span>
+    <span class="k">if</span> <span class="n">attribute</span> <span class="o">==</span> <span class="s2">"category"</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">value</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_value</span><span class="p">(</span><span class="n">label</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">attribute</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The raw value of an attribute: `handwritten` defaults to whether the font category is handwriting"""</span>
+    <span class="k">if</span> <span class="n">attribute</span> <span class="o">==</span> <span class="s2">"handwritten"</span> <span class="ow">and</span> <span class="n">attribute</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label</span> <span class="ow">and</span> <span class="s2">"category"</span> <span class="ow">in</span> <span class="n">label</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_normalize</span><span class="p">(</span><span class="s2">"category"</span><span class="p">,</span> <span class="n">label</span><span class="p">[</span><span class="s2">"category"</span><span class="p">])</span> <span class="o">==</span> <span class="s2">"handwriting"</span>
+    <span class="k">if</span> <span class="n">attribute</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"the label has no '</span><span class="si">{</span><span class="n">attribute</span><span class="si">}</span><span class="s2">' attribute"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">label</span><span class="p">[</span><span class="n">attribute</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="encode_font_style">
+<a class="viewcode-back" href="../../../api/datasets.html#doctr.datasets.encode_font_style">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">encode_font_style</span><span class="p">(</span><span class="n">label</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">attributes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Encode the style label of a word crop as the class index of each attribute</span>
+
+<span class="sd">    &gt;&gt;&gt; from doctr.datasets import encode_font_style</span>
+<span class="sd">    &gt;&gt;&gt; encode_font_style({"bold": True, "italic": False, "underline": "double", "strikethrough": False,</span>
+<span class="sd">    &gt;&gt;&gt;                    "color": "red", "highlight": None, "category": "SERIF", "family": "Lora"})</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        label: the style attributes of the crop, e.g. {"bold": True, "underline": "single", "family": "Lato", ...}.</span>
+<span class="sd">            Without a "handwritten" key, a word is handwritten when its font category is handwriting.</span>
+<span class="sd">        attributes: the classes of each attribute, in the order of the model outputs (defaults to</span>
+<span class="sd">            `FONT_STYLE_ATTRIBUTES`)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        an int64 array with the class index of each attribute</span>
+<span class="sd">    """</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">attribute</span><span class="p">,</span> <span class="n">classes</span> <span class="ow">in</span> <span class="p">(</span><span class="n">attributes</span> <span class="ow">or</span> <span class="n">FONT_STYLE_ATTRIBUTES</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="n">_value</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">attribute</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">_normalize</span><span class="p">(</span><span class="n">attribute</span><span class="p">,</span> <span class="n">raw</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown value for the '</span><span class="si">{</span><span class="n">attribute</span><span class="si">}</span><span class="s2">' attribute: </span><span class="si">{</span><span class="n">raw</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">classes</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="FontStyleDataset">
+<a class="viewcode-back" href="../../../api/datasets.html#doctr.datasets.FontStyleDataset">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FontStyleDataset</span><span class="p">(</span><span class="n">AbstractDataset</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Dataset implementation for font style classification of word crops: each target holds the class index</span>
+<span class="sd">    of every style attribute (cf. `FONT_STYLE_ATTRIBUTES`)</span>
+
+<span class="sd">    &gt;&gt;&gt; from doctr.datasets import FontStyleDataset</span>
+<span class="sd">    &gt;&gt;&gt; train_set = FontStyleDataset(img_folder="/path/to/images",</span>
+<span class="sd">    &gt;&gt;&gt;                              labels_path="/path/to/labels.json")</span>
+<span class="sd">    &gt;&gt;&gt; sample = train_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; img, target = sample.image, sample.target</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        img_folder: path to the images folder</span>
+<span class="sd">        labels_path: path to the json file mapping each image name to its style attributes, e.g.</span>
+<span class="sd">            {"img_1.jpg": {"bold": true, "italic": false, "underline": "none", "strikethrough": false,</span>
+<span class="sd">            "color": "black", "highlight": null, "category": "SERIF", "family": "Lora"}, ...}.</span>
+<span class="sd">            Other keys (e.g. "text") are ignored. Without a "handwritten" key, a word is handwritten when its font</span>
+<span class="sd">            category is handwriting.</span>
+<span class="sd">        attributes: the classes of each attribute, in the order of the model outputs (defaults to</span>
+<span class="sd">            `FONT_STYLE_ATTRIBUTES`)</span>
+<span class="sd">        **kwargs: keyword arguments from `AbstractDataset`.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">img_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">labels_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">attributes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">img_folder</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span> <span class="o">=</span> <span class="n">attributes</span> <span class="ow">or</span> <span class="n">FONT_STYLE_ATTRIBUTES</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">labels_path</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">img_name</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labels</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">img_name</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unable to locate </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span><span class="w"> </span><span class="n">img_name</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="n">encode_font_style</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"invalid label for </span><span class="si">{</span><span class="n">img_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">img_name</span><span class="p">,</span> <span class="n">target</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">merge_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ds</span><span class="p">:</span> <span class="n">AbstractDataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Update data with new root for self (absolute paths, a relative one would be read from the new root)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">[(</span><span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">)</span><span class="o">.</span><span class="n">absolute</span><span class="p">()</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">img_path</span><span class="p">)),</span> <span class="n">label</span><span class="p">)</span> <span class="k">for</span> <span class="n">img_path</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">]</span>
+        <span class="c1"># Define new root</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)</span>
+        <span class="c1"># Merge with ds data</span>
+        <span class="k">for</span> <span class="n">img_path</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">root</span><span class="p">)</span><span class="o">.</span><span class="n">absolute</span><span class="p">()</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">img_path</span><span class="p">)),</span> <span class="n">label</span><span class="p">))</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2021-2026, Mindee.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+    <div class="footer-items__center">
+      
+        <div class="footer-item"><p class="maintainers">
+  Created by <a href="https://mindee.com">Mindee</a> &middot; developed and maintained by
+  <a href="https://www.text2knowledge.de">t2k GmbH</a> and the docTR community
+</p></div>
+      
+    </div>
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="license">
+  Released under the <a href="https://github.com/mindee/doctr/blob/main/LICENSE">Apache 2.0 License</a>
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

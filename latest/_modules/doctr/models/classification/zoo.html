@@ -526,13 +526,15 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">nn</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">_CompiledModule</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">classification</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..preprocessor</span><span class="w"> </span><span class="kn">import</span> <span class="n">PreProcessor</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.predictor</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrientationPredictor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.predictor</span><span class="w"> </span><span class="kn">import</span> <span class="n">FontStylePredictor</span><span class="p">,</span> <span class="n">OrientationPredictor</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"crop_orientation_predictor"</span><span class="p">,</span> <span class="s2">"page_orientation_predictor"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"crop_orientation_predictor"</span><span class="p">,</span> <span class="s2">"page_orientation_predictor"</span><span class="p">,</span> <span class="s2">"font_style_predictor"</span><span class="p">]</span>
 
 <span class="n">ARCHS</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"magc_resnet31"</span><span class="p">,</span>
@@ -560,6 +562,8 @@
 <span class="p">]</span>
 
 <span class="n">ORIENTATION_ARCHS</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"mobilenet_v3_small_crop_orientation"</span><span class="p">,</span> <span class="s2">"mobilenet_v3_small_page_orientation"</span><span class="p">]</span>
+
+<span class="n">FONT_STYLE_ARCHS</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"mobilenet_v3_small_font_style"</span><span class="p">]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_orientation_predictor</span><span class="p">(</span>
@@ -650,6 +654,59 @@
 <span class="sd">        OrientationPredictor</span>
 <span class="sd">    """</span>
     <span class="k">return</span> <span class="n">_orientation_predictor</span><span class="p">(</span><span class="n">arch</span><span class="o">=</span><span class="n">arch</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="s2">"page"</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="font_style_predictor">
+<a class="viewcode-back" href="../../../../api/models.html#doctr.models.classification.font_style_predictor">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">font_style_predictor</span><span class="p">(</span>
+    <span class="n">arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">"mobilenet_v3_small_font_style"</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FontStylePredictor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Font style classification of word crops: bold, italic, underline, strikethrough, text and highlight colors,</span>
+<span class="sd">    handwriting, font category and closest font family.</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import font_style_predictor</span>
+<span class="sd">    &gt;&gt;&gt; model = font_style_predictor(arch='mobilenet_v3_small_font_style', pretrained=True)</span>
+<span class="sd">    &gt;&gt;&gt; input_crop = (255 * np.random.rand(32, 128, 3)).astype(np.uint8)</span>
+<span class="sd">    &gt;&gt;&gt; out = model([input_crop])</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        arch: name of the architecture to use (e.g. 'mobilenet_v3_small_font_style'), or a classification model</span>
+<span class="sd">            whose `cfg["classes"]` maps each style attribute to its classes (e.g. trained with</span>
+<span class="sd">            `references/classification/train_font_style.py`)</span>
+<span class="sd">        pretrained: If True, returns a model pre-trained on our font style dataset</span>
+<span class="sd">        batch_size: number of samples the model processes in parallel</span>
+<span class="sd">        chunk_size: maximum number of crops decoded and processed at once (1024 by default): longer inputs are</span>
+<span class="sd">            processed chunk by chunk</span>
+<span class="sd">        margin: margin added by the OCR predictor on each side of a word box to crop it for this model, relative to</span>
+<span class="sd">            the short side of the box (by default, the `crop_margin` of the model configuration)</span>
+<span class="sd">        **kwargs: keyword arguments to be passed to the FontStylePredictor</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        FontStylePredictor</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arch</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">arch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">FONT_STYLE_ARCHS</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown architecture '</span><span class="si">{</span><span class="n">arch</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
+        <span class="n">_model</span> <span class="o">=</span> <span class="n">classification</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">arch</span><span class="p">](</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arch</span><span class="p">,</span> <span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">_CompiledModule</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown architecture: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">arch</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">_model</span> <span class="o">=</span> <span class="n">arch</span>
+
+    <span class="n">kwargs</span><span class="p">[</span><span class="s2">"mean"</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"mean"</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s2">"mean"</span><span class="p">])</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s2">"std"</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"std"</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s2">"std"</span><span class="p">])</span>
+    <span class="n">chunk_size</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"chunk_size"</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span>
+    <span class="c1"># The margin around the word boxes the model was trained with</span>
+    <span class="n">margin</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"margin"</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"crop_margin"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+    <span class="n">input_shape</span> <span class="o">=</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s2">"input_shape"</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="k">return</span> <span class="n">FontStylePredictor</span><span class="p">(</span>
+        <span class="n">PreProcessor</span><span class="p">(</span><span class="n">input_shape</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">symmetric_pad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
+        <span class="n">_model</span><span class="p">,</span>
+        <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
+        <span class="n">margin</span><span class="o">=</span><span class="n">margin</span><span class="p">,</span>
+    <span class="p">)</span></div>
 
 </pre></div>
 

@@ -551,6 +551,7 @@
     <span class="n">detect_orientation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">straighten_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">detect_language</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">detect_font_style</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">detect_layout</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">layout_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">"lw_detr_s"</span><span class="p">,</span>
     <span class="n">ignore_regions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -631,6 +632,7 @@
         <span class="n">detect_orientation</span><span class="o">=</span><span class="n">detect_orientation</span><span class="p">,</span>
         <span class="n">straighten_pages</span><span class="o">=</span><span class="n">straighten_pages</span><span class="p">,</span>
         <span class="n">detect_language</span><span class="o">=</span><span class="n">detect_language</span><span class="p">,</span>
+        <span class="n">detect_font_style</span><span class="o">=</span><span class="n">detect_font_style</span><span class="p">,</span>
         <span class="n">layout_predictor</span><span class="o">=</span><span class="n">layout_pred</span><span class="p">,</span>
         <span class="n">table_predictor</span><span class="o">=</span><span class="n">table_pred</span><span class="p">,</span>
         <span class="n">formula_predictor</span><span class="o">=</span><span class="n">formula_pred</span><span class="p">,</span>
@@ -653,6 +655,7 @@
     <span class="n">detect_orientation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">straighten_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">detect_language</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">detect_font_style</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">detect_layout</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">layout_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">"lw_detr_s"</span><span class="p">,</span>
     <span class="n">ignore_regions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -691,6 +694,9 @@
 <span class="sd">            Doing so will improve performances for documents with page-uniform rotations.</span>
 <span class="sd">        detect_language: if True, the language prediction will be added to the predictions for each</span>
 <span class="sd">            page. Doing so will slightly deteriorate the overall latency.</span>
+<span class="sd">        detect_font_style: if True, the font style of each word (bold, italic, underline, strikethrough, colors, font</span>
+<span class="sd">            category, handwriting and closest font family) is classified and added to the predictions. Doing so will</span>
+<span class="sd">            slightly deteriorate the overall latency.</span>
 <span class="sd">        detect_layout: if True, a layout detection model is run on each page and the detected regions are attached</span>
 <span class="sd">            to each page.</span>
 <span class="sd">            Doing so will slightly deteriorate the overall latency.</span>
@@ -729,6 +735,7 @@
         <span class="n">detect_orientation</span><span class="o">=</span><span class="n">detect_orientation</span><span class="p">,</span>
         <span class="n">straighten_pages</span><span class="o">=</span><span class="n">straighten_pages</span><span class="p">,</span>
         <span class="n">detect_language</span><span class="o">=</span><span class="n">detect_language</span><span class="p">,</span>
+        <span class="n">detect_font_style</span><span class="o">=</span><span class="n">detect_font_style</span><span class="p">,</span>
         <span class="n">detect_layout</span><span class="o">=</span><span class="n">detect_layout</span><span class="p">,</span>
         <span class="n">layout_arch</span><span class="o">=</span><span class="n">layout_arch</span><span class="p">,</span>
         <span class="n">detect_tables</span><span class="o">=</span><span class="n">detect_tables</span><span class="p">,</span>
@@ -753,6 +760,7 @@
     <span class="n">detect_orientation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">straighten_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">detect_language</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">detect_font_style</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">detect_layout</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">layout_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">"lw_detr_s"</span><span class="p">,</span>
     <span class="n">ignore_regions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -806,6 +814,7 @@
         <span class="n">detect_orientation</span><span class="o">=</span><span class="n">detect_orientation</span><span class="p">,</span>
         <span class="n">straighten_pages</span><span class="o">=</span><span class="n">straighten_pages</span><span class="p">,</span>
         <span class="n">detect_language</span><span class="o">=</span><span class="n">detect_language</span><span class="p">,</span>
+        <span class="n">detect_font_style</span><span class="o">=</span><span class="n">detect_font_style</span><span class="p">,</span>
         <span class="n">layout_predictor</span><span class="o">=</span><span class="n">layout_pred</span><span class="p">,</span>
         <span class="n">ignore_regions</span><span class="o">=</span><span class="n">ignore_regions</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
@@ -826,6 +835,7 @@
     <span class="n">detect_orientation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">straighten_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">detect_language</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">detect_font_style</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">detect_layout</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">layout_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">"lw_detr_s"</span><span class="p">,</span>
     <span class="n">ignore_regions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -862,6 +872,9 @@
 <span class="sd">            Doing so will improve performances for documents with page-uniform rotations.</span>
 <span class="sd">        detect_language: if True, the language prediction will be added to the predictions for each</span>
 <span class="sd">            page. Doing so will slightly deteriorate the overall latency.</span>
+<span class="sd">        detect_font_style: if True, the font style of each word (bold, italic, underline, strikethrough, colors, font</span>
+<span class="sd">            category, handwriting and closest font family) is classified and added to the predictions. Doing so will</span>
+<span class="sd">            slightly deteriorate the overall latency.</span>
 <span class="sd">        detect_layout: if True, a layout detection model is run on each page and the detected regions are attached</span>
 <span class="sd">            to each page.</span>
 <span class="sd">            Doing so will slightly deteriorate the overall latency.</span>
@@ -892,6 +905,7 @@
         <span class="n">detect_orientation</span><span class="o">=</span><span class="n">detect_orientation</span><span class="p">,</span>
         <span class="n">straighten_pages</span><span class="o">=</span><span class="n">straighten_pages</span><span class="p">,</span>
         <span class="n">detect_language</span><span class="o">=</span><span class="n">detect_language</span><span class="p">,</span>
+        <span class="n">detect_font_style</span><span class="o">=</span><span class="n">detect_font_style</span><span class="p">,</span>
         <span class="n">detect_layout</span><span class="o">=</span><span class="n">detect_layout</span><span class="p">,</span>
         <span class="n">layout_arch</span><span class="o">=</span><span class="n">layout_arch</span><span class="p">,</span>
         <span class="n">ignore_regions</span><span class="o">=</span><span class="n">ignore_regions</span><span class="p">,</span>

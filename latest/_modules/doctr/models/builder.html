@@ -1085,6 +1085,7 @@
         <span class="n">crop_orientations</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
         <span class="n">shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">layout</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">LayoutElement</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">font_styles</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Block</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Gather independent words in structured blocks</span>
 
@@ -1097,6 +1098,7 @@
 <span class="sd">            shape: the page dimensions (height, width), used to de-skew rotated pages exactly when</span>
 <span class="sd">                resolving lines</span>
 <span class="sd">            layout: optional layout regions of the page</span>
+<span class="sd">            font_styles: optional, the font style of each word of the page</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            list of block elements</span>
@@ -1130,7 +1132,13 @@
                 <span class="k">if</span> <span class="n">boxes</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span>
                 <span class="k">else</span> <span class="p">((</span><span class="n">boxes</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">boxes</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="p">(</span><span class="n">boxes</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">boxes</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">3</span><span class="p">]))</span>
             <span class="p">)</span>
-            <span class="k">return</span> <span class="n">Word</span><span class="p">(</span><span class="o">*</span><span class="n">word_preds</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">geometry</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">objectness_scores</span><span class="p">[</span><span class="n">idx</span><span class="p">]),</span> <span class="n">crop_orientations</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>  <span class="c1"># type: ignore[arg-type]</span>
+            <span class="k">return</span> <span class="n">Word</span><span class="p">(</span>
+                <span class="o">*</span><span class="n">word_preds</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span>
+                <span class="n">geometry</span><span class="p">,</span>  <span class="c1"># type: ignore[arg-type]</span>
+                <span class="nb">float</span><span class="p">(</span><span class="n">objectness_scores</span><span class="p">[</span><span class="n">idx</span><span class="p">]),</span>
+                <span class="n">crop_orientations</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span>
+                <span class="n">font_styles</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">if</span> <span class="n">font_styles</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="p">)</span>
 
         <span class="k">return</span> <span class="p">[</span><span class="n">Block</span><span class="p">([</span><span class="n">Line</span><span class="p">([</span><span class="n">_word</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">line</span><span class="p">])</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">block</span><span class="p">])</span> <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">]</span>
 
@@ -1202,6 +1210,7 @@
         <span class="n">regions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">tables</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">formulas</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">font_styles</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Document</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Re-arrange detected words into structured blocks</span>
 
@@ -1226,6 +1235,8 @@
 <span class="sd">                the `blocks` output of that page.</span>
 <span class="sd">            formulas: optional, list of N elements, where each element is the list of formulas recognized on a page</span>
 <span class="sd">                `{"geometry", "value", "confidence", "score"}` (cf. `FormulaPredictor.predict_regions`)</span>
+<span class="sd">            font_styles: optional, list of N elements, where each element is the list of the font styles of the</span>
+<span class="sd">                words of a page (cf. `FontStylePredictor`)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            document object</span>
@@ -1241,6 +1252,7 @@
         <span class="n">_regions</span> <span class="o">=</span> <span class="n">regions</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">regions</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">boxes</span><span class="p">)</span>
         <span class="n">_tables</span> <span class="o">=</span> <span class="n">tables</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tables</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">boxes</span><span class="p">)</span>
         <span class="n">_formulas</span> <span class="o">=</span> <span class="n">formulas</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">formulas</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">boxes</span><span class="p">)</span>
+        <span class="n">_font_styles</span> <span class="o">=</span> <span class="n">font_styles</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">font_styles</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">boxes</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">export_as_straight_boxes</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">boxes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># If boxes are already straight OK, else fit a bounding rect</span>
             <span class="k">if</span> <span class="n">boxes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
@@ -1261,6 +1273,7 @@
             <span class="n">page_regions</span><span class="p">,</span>
             <span class="n">page_table</span><span class="p">,</span>
             <span class="n">page_formulas</span><span class="p">,</span>
+            <span class="n">word_font_styles</span><span class="p">,</span>
         <span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>  <span class="c1"># noqa: E501</span>
             <span class="n">pages</span><span class="p">,</span>
             <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">boxes</span><span class="p">)),</span>
@@ -1274,6 +1287,7 @@
             <span class="n">_regions</span><span class="p">,</span>
             <span class="n">_tables</span><span class="p">,</span>
             <span class="n">_formulas</span><span class="p">,</span>
+            <span class="n">_font_styles</span><span class="p">,</span>
         <span class="p">):</span>
             <span class="c1"># Build the page tables and flag the words that belong to a table</span>
             <span class="n">page_tables</span><span class="p">,</span> <span class="n">consumed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_tables</span><span class="p">(</span><span class="n">page_boxes</span><span class="p">,</span> <span class="n">word_preds</span><span class="p">,</span> <span class="n">page_table</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
@@ -1284,6 +1298,8 @@
                 <span class="n">loc_scores</span> <span class="o">=</span> <span class="n">loc_scores</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>
                 <span class="n">word_preds</span> <span class="o">=</span> <span class="p">[</span><span class="n">wp</span> <span class="k">for</span> <span class="n">wp</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">word_preds</span><span class="p">,</span> <span class="n">keep</span><span class="p">)</span> <span class="k">if</span> <span class="n">k</span><span class="p">]</span>
                 <span class="n">word_crop_orientations</span> <span class="o">=</span> <span class="p">[</span><span class="n">co</span> <span class="k">for</span> <span class="n">co</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">word_crop_orientations</span><span class="p">,</span> <span class="n">keep</span><span class="p">)</span> <span class="k">if</span> <span class="n">k</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">word_font_styles</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">word_font_styles</span> <span class="o">=</span> <span class="p">[</span><span class="n">fs</span> <span class="k">for</span> <span class="n">fs</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">word_font_styles</span><span class="p">,</span> <span class="n">keep</span><span class="p">)</span> <span class="k">if</span> <span class="n">k</span><span class="p">]</span>
 
             <span class="n">page_layout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_layout_elements</span><span class="p">(</span><span class="n">page_regions</span><span class="p">)</span>
             <span class="n">page_blocks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_blocks</span><span class="p">(</span>
@@ -1293,6 +1309,7 @@
                 <span class="n">word_crop_orientations</span><span class="p">,</span>
                 <span class="n">shape</span><span class="p">,</span>
                 <span class="n">page_layout</span><span class="p">,</span>
+                <span class="n">word_font_styles</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">_page</span> <span class="o">=</span> <span class="n">Page</span><span class="p">(</span>
                 <span class="n">page</span><span class="p">,</span>
@@ -1342,6 +1359,7 @@
         <span class="n">regions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">tables</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">formulas</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">font_styles</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">KIEDocument</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Re-arrange detected words into structured predictions</span>
 
@@ -1366,6 +1384,8 @@
 <span class="sd">                the `blocks` output of that page. Unused for KIE documents, as tables are not supported in KIE.</span>
 <span class="sd">            formulas: optional, list of N elements, where each element is the list of formulas recognized on a page.</span>
 <span class="sd">                Unused for KIE documents, as formulas are not supported in KIE.</span>
+<span class="sd">            font_styles: optional, list of N dictionaries, where each element is the list of the font styles of the</span>
+<span class="sd">                predictions of a class</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            document object</span>
@@ -1378,6 +1398,7 @@
         <span class="n">_orientations</span> <span class="o">=</span> <span class="n">orientations</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">orientations</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">boxes</span><span class="p">)</span>
         <span class="n">_languages</span> <span class="o">=</span> <span class="n">languages</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">languages</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">boxes</span><span class="p">)</span>
         <span class="n">_regions</span> <span class="o">=</span> <span class="n">regions</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">regions</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">boxes</span><span class="p">)</span>
+        <span class="n">_font_styles</span> <span class="o">=</span> <span class="n">font_styles</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">font_styles</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">boxes</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">export_as_straight_boxes</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">boxes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># If boxes are already straight OK, else fit a bounding rect</span>
             <span class="k">if</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">boxes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
@@ -1401,6 +1422,7 @@
                         <span class="n">word_preds</span><span class="p">[</span><span class="n">k</span><span class="p">],</span>
                         <span class="n">word_crop_orientations</span><span class="p">[</span><span class="n">k</span><span class="p">],</span>
                         <span class="n">shape</span><span class="p">,</span>
+                        <span class="n">page_font_styles</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">if</span> <span class="n">page_font_styles</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
                     <span class="p">)</span>
                     <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">page_boxes</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
                 <span class="p">},</span>
@@ -1410,7 +1432,7 @@
                 <span class="n">language</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_build_layout_elements</span><span class="p">(</span><span class="n">page_regions</span><span class="p">),</span>
             <span class="p">)</span>
-            <span class="k">for</span> <span class="n">page</span><span class="p">,</span> <span class="n">_idx</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">page_boxes</span><span class="p">,</span> <span class="n">loc_scores</span><span class="p">,</span> <span class="n">word_preds</span><span class="p">,</span> <span class="n">word_crop_orientations</span><span class="p">,</span> <span class="n">orientation</span><span class="p">,</span> <span class="n">language</span><span class="p">,</span> <span class="n">page_regions</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>  <span class="c1"># noqa: E501</span>
+            <span class="k">for</span> <span class="n">page</span><span class="p">,</span> <span class="n">_idx</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">page_boxes</span><span class="p">,</span> <span class="n">loc_scores</span><span class="p">,</span> <span class="n">word_preds</span><span class="p">,</span> <span class="n">word_crop_orientations</span><span class="p">,</span> <span class="n">orientation</span><span class="p">,</span> <span class="n">language</span><span class="p">,</span> <span class="n">page_regions</span><span class="p">,</span> <span class="n">page_font_styles</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>  <span class="c1"># noqa: E501</span>
                 <span class="n">pages</span><span class="p">,</span>
                 <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">boxes</span><span class="p">)),</span>
                 <span class="n">page_shapes</span><span class="p">,</span>
@@ -1421,6 +1443,7 @@
                 <span class="n">_orientations</span><span class="p">,</span>
                 <span class="n">_languages</span><span class="p">,</span>
                 <span class="n">_regions</span><span class="p">,</span>
+                <span class="n">_font_styles</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">]</span>
 
@@ -1433,6 +1456,7 @@
         <span class="n">word_preds</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
         <span class="n">crop_orientations</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
         <span class="n">shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">font_styles</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Prediction</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Gather independent words in structured blocks</span>
 
@@ -1442,6 +1466,7 @@
 <span class="sd">            word_preds: list of all detected words of the page, of shape N</span>
 <span class="sd">            crop_orientations: list of orientations for each word crop</span>
 <span class="sd">            shape: the page dimensions (height, width), used to de-skew rotated pages exactly</span>
+<span class="sd">            font_styles: optional, the font style of each prediction</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            list of block elements</span>
@@ -1462,6 +1487,7 @@
                 <span class="n">geometry</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">pt</span><span class="p">)</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">boxes</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()),</span>  <span class="c1"># type: ignore[arg-type]</span>
                 <span class="n">objectness_score</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">objectness_scores</span><span class="p">[</span><span class="n">idx</span><span class="p">]),</span>
                 <span class="n">crop_orientation</span><span class="o">=</span><span class="n">crop_orientations</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span>
+                <span class="n">font_style</span><span class="o">=</span><span class="n">font_styles</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">if</span> <span class="n">font_styles</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">boxes</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span>
             <span class="k">else</span> <span class="n">Prediction</span><span class="p">(</span>
@@ -1470,6 +1496,7 @@
                 <span class="n">geometry</span><span class="o">=</span><span class="p">((</span><span class="n">boxes</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">boxes</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="p">(</span><span class="n">boxes</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">boxes</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">3</span><span class="p">])),</span>
                 <span class="n">objectness_score</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">objectness_scores</span><span class="p">[</span><span class="n">idx</span><span class="p">]),</span>
                 <span class="n">crop_orientation</span><span class="o">=</span><span class="n">crop_orientations</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span>
+                <span class="n">font_style</span><span class="o">=</span><span class="n">font_styles</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">if</span> <span class="n">font_styles</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">idxs</span>
         <span class="p">]</span>

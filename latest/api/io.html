@@ -1177,11 +1177,14 @@ KIE pages)</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="doctr.io.Document.export_as_xml">
-<span class="sig-name descname"><span class="pre">export_as_xml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#doctr.io.Document.export_as_xml" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">export_as_xml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">font_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#doctr.io.Document.export_as_xml" title="Link to this definition">#</a></dt>
 <dd><p>Export the document as XML (hOCR-format)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>) – additional keyword arguments passed to the XML page export</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>font_style</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – whether the font style detected for the words (<cite>detect_font_style=True</cite>) is exported</p></li>
+<li><p><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a>) – additional keyword arguments passed to the XML page export</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>list of tuple of (bytes, ElementTree)</p>
@@ -1331,6 +1334,7 @@ Markdown / HTML / AsciiDoc / hOCR exports. Pass False to serialize <cite>page.bl
 <dd><em class="sig-param"><span class="n"><span class="pre">escape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">include_furniture</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">images</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'placeholder'</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">font_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>,</dd>
 </dl>
 
 <span class="sig-paren">)</span><a class="headerlink" href="#doctr.io.Page.export_as_markdown" title="Link to this definition">#</a></dt>
@@ -1343,6 +1347,7 @@ Markdown / HTML / AsciiDoc / hOCR exports. Pass False to serialize <cite>page.bl
 <li><p><strong>include_furniture</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – whether page headers, page footers and footnotes should be included</p></li>
 <li><p><strong>images</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> | </em><a class="reference internal" href="#doctr.io.FigureEncoder" title="doctr.io.figures.FigureEncoder"><em>FigureEncoder</em></a><em> | </em><em>None</em>) – how to render the figures: ‘none’, ‘placeholder’, ‘embedded’, or a
 <a class="reference internal" href="#doctr.io.FigureEncoder" title="doctr.io.FigureEncoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">FigureEncoder</span></code></a> (required for ‘referenced’)</p></li>
+<li><p><strong>font_style</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – whether the font style detected for the words (<cite>detect_font_style=True</cite>) is marked up</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1363,6 +1368,7 @@ Markdown / HTML / AsciiDoc / hOCR exports. Pass False to serialize <cite>page.bl
 <dd><em class="sig-param"><span class="n"><span class="pre">escape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">include_furniture</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">images</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'placeholder'</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">font_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>,</dd>
 </dl>
 
 <span class="sig-paren">)</span><a class="headerlink" href="#doctr.io.Page.export_as_asciidoc" title="Link to this definition">#</a></dt>
@@ -1376,6 +1382,7 @@ be escaped</p></li>
 <li><p><strong>include_furniture</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – whether page headers, page footers and footnotes should be included</p></li>
 <li><p><strong>images</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> | </em><a class="reference internal" href="#doctr.io.FigureEncoder" title="doctr.io.figures.FigureEncoder"><em>FigureEncoder</em></a><em> | </em><em>None</em>) – how to render the figures: ‘none’, ‘placeholder’, ‘embedded’, or a
 <a class="reference internal" href="#doctr.io.FigureEncoder" title="doctr.io.FigureEncoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">FigureEncoder</span></code></a> (required for ‘referenced’)</p></li>
+<li><p><strong>font_style</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – whether the font style detected for the words (<cite>detect_font_style=True</cite>) is marked up</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1389,7 +1396,16 @@ be escaped</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="doctr.io.Page.export_as_html">
-<span class="sig-name descname"><span class="pre">export_as_html</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_furniture</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">images</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'placeholder'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#doctr.io.Page.export_as_html" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">export_as_html</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">include_furniture</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">images</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'placeholder'</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">font_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="headerlink" href="#doctr.io.Page.export_as_html" title="Link to this definition">#</a></dt>
 <dd><p>Export the page as semantic HTML, with its content sorted in reading order.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1398,6 +1414,7 @@ be escaped</p></li>
 <li><p><strong>include_furniture</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – whether page headers, page footers and footnotes should be included</p></li>
 <li><p><strong>images</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> | </em><a class="reference internal" href="#doctr.io.FigureEncoder" title="doctr.io.figures.FigureEncoder"><em>FigureEncoder</em></a><em> | </em><em>None</em>) – how to render the figures: ‘none’, ‘placeholder’, ‘embedded’, or a
 <a class="reference internal" href="#doctr.io.FigureEncoder" title="doctr.io.FigureEncoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">FigureEncoder</span></code></a> (required for ‘referenced’)</p></li>
+<li><p><strong>font_style</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – whether the font style detected for the words (<cite>detect_font_style=True</cite>) is marked up</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1418,6 +1435,7 @@ be escaped</p></li>
 <dd><em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">reading_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">72</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">font_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>,</dd>
 </dl>
 
 <span class="sig-paren">)</span><a class="headerlink" href="#doctr.io.Page.export_as_xml" title="Link to this definition">#</a></dt>
@@ -1430,6 +1448,7 @@ convention: <a class="github reference external" href="https://github.com/kba/ho
 <li><p><strong>direction</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
 <li><p><strong>reading_order</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – whether the content should be linearized in reading order</p></li>
 <li><p><strong>dpi</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – the page resolution in dots per inch, used to estimate font sizes (<cite>x_size</cite>, <cite>x_fsize</cite>)</p></li>
+<li><p><strong>font_style</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – whether the font style detected for the words (<cite>detect_font_style=True</cite>) is exported</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1534,7 +1553,7 @@ all words in it.</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="doctr.io.Word">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Word</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geometry</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objectness_score</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crop_orientation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/elements.html#Word"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.Word" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Word</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geometry</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objectness_score</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crop_orientation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">font_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/elements.html#Word"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.Word" title="Link to this definition">#</a></dt>
 <dd><p>Implements a word element</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1545,6 +1564,9 @@ all words in it.</p></li>
 the page’s size</p></li>
 <li><p><strong>objectness_score</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – the objectness score of the detection</p></li>
 <li><p><strong>crop_orientation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em>) – the general orientation of the crop in degrees and its confidence</p></li>
+<li><p><strong>font_style</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><em>Any</em></a><em>]</em><em>] </em><em>| </em><em>None</em>) – the font style of the word, None if not detected: the predicted value of each style attribute
+and its confidence, e.g. <cite>{“bold”: {“value”: True, “confidence”: 0.98}, “underline”: {“value”: “double”,
+“confidence”: 0.91}, “family”: {“value”: “Lato”, “confidence”: 0.61}, …}</cite></p></li>
 </ul>
 </dd>
 </dl>
@@ -1804,13 +1826,14 @@ coordinates relative to the page’s size</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="doctr.io.KIEPage.export_as_markdown">
-<span class="sig-name descname"><span class="pre">export_as_markdown</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">escape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#doctr.io.KIEPage.export_as_markdown" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">export_as_markdown</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">escape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">font_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#doctr.io.KIEPage.export_as_markdown" title="Link to this definition">#</a></dt>
 <dd><p>Export the KIE page as Markdown, with the predictions of each class sorted in reading order.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>direction</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
 <li><p><strong>escape</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – whether the characters carrying a structural meaning in Markdown should be escaped</p></li>
+<li><p><strong>font_style</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – whether the font style detected for the words (<cite>detect_font_style=True</cite>) is marked up</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1824,7 +1847,7 @@ coordinates relative to the page’s size</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="doctr.io.KIEPage.export_as_asciidoc">
-<span class="sig-name descname"><span class="pre">export_as_asciidoc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">escape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#doctr.io.KIEPage.export_as_asciidoc" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">export_as_asciidoc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">escape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">font_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#doctr.io.KIEPage.export_as_asciidoc" title="Link to this definition">#</a></dt>
 <dd><p>Export the KIE page as AsciiDoc, with the predictions of each class sorted in reading order.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1832,6 +1855,7 @@ coordinates relative to the page’s size</p></li>
 <li><p><strong>direction</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
 <li><p><strong>escape</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – whether the characters and line markers carrying a structural meaning in AsciiDoc should
 be escaped</p></li>
+<li><p><strong>font_style</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – whether the font style detected for the words (<cite>detect_font_style=True</cite>) is marked up</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1845,9 +1869,18 @@ be escaped</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="doctr.io.KIEPage.export_as_html">
-<span class="sig-name descname"><span class="pre">export_as_html</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#doctr.io.KIEPage.export_as_html" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">export_as_html</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">font_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#doctr.io.KIEPage.export_as_html" title="Link to this definition">#</a></dt>
 <dd><p>Export the KIE page as semantic HTML, with the predictions of each class sorted in reading order</p>
 <dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>direction</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+<li><p><strong>font_style</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – whether the font style detected for the words (<cite>detect_font_style=True</cite>) is marked up</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>an HTML string with one section per detection class</p>
+</dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a></p>
 </dd>
@@ -1863,6 +1896,7 @@ be escaped</p></li>
 <dd><em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">reading_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>,</dd>
 <dd><em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">72</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">font_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>,</dd>
 </dl>
 
 <span class="sig-paren">)</span><a class="headerlink" href="#doctr.io.KIEPage.export_as_xml" title="Link to this definition">#</a></dt>
@@ -1875,6 +1909,7 @@ convention: <a class="github reference external" href="https://github.com/kba/ho
 <li><p><strong>direction</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
 <li><p><strong>reading_order</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – whether the predictions of each class should be sorted in reading order</p></li>
 <li><p><strong>dpi</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – the page resolution in dots per inch, used to estimate font sizes (<cite>x_size</cite>, <cite>x_fsize</cite>)</p></li>
+<li><p><strong>font_style</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – whether the font style detected for the words (<cite>detect_font_style=True</cite>) is exported</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1905,7 +1940,18 @@ convention: <a class="github reference external" href="https://github.com/kba/ho
 
 <dl class="py class">
 <dt class="sig sig-object py" id="doctr.io.Prediction">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Prediction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geometry</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objectness_score</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crop_orientation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/elements.html#Prediction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.Prediction" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Prediction</span></span><span class="sig-paren">(</span>
+
+<dl>
+<dd><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">confidence</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">geometry</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">objectness_score</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">crop_orientation</span></span></em>,</dd>
+<dd><em class="sig-param"><span class="n"><span class="pre">font_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>,</dd>
+</dl>
+
+<span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/elements.html#Prediction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.Prediction" title="Link to this definition">#</a></dt>
 <dd><p>Implements a prediction element</p>
 <dl class="field-list simple">
 </dl>
@@ -1919,12 +1965,14 @@ convention: <a class="github reference external" href="https://github.com/kba/ho
 linearization. See <a class="reference internal" href="../user_guide/exporting.html"><span class="std std-doc">Exporting results</span></a>.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="doctr.io.TextExporter">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">TextExporter</span></span><a class="reference internal" href="../_modules/doctr/io/exporters.html#TextExporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.TextExporter" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">TextExporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">font_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/exporters.html#TextExporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.TextExporter" title="Link to this definition">#</a></dt>
 <dd><p>Export OCR results to plain text, with the content sorted in reading order.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">TextExporter</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">text</span> <span class="o">=</span> <span class="n">TextExporter</span><span class="p">()</span><span class="o">.</span><span class="n">export_page</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="doctr.io.TextExporter.export_document">
 <span class="sig-name descname"><span class="pre">export_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">document</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_break</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#doctr.io.TextExporter.export_document" title="Link to this definition">#</a></dt>
@@ -2007,12 +2055,14 @@ linearization. See <a class="reference internal" href="../user_guide/exporting.h
 
 <dl class="py class">
 <dt class="sig sig-object py" id="doctr.io.MarkdownExporter">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">MarkdownExporter</span></span><a class="reference internal" href="../_modules/doctr/io/exporters.html#MarkdownExporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.MarkdownExporter" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">MarkdownExporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">font_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/exporters.html#MarkdownExporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.MarkdownExporter" title="Link to this definition">#</a></dt>
 <dd><p>Export OCR results to Markdown, with the content sorted in reading order.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">MarkdownExporter</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">markdown</span> <span class="o">=</span> <span class="n">MarkdownExporter</span><span class="p">()</span><span class="o">.</span><span class="n">export_page</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="doctr.io.MarkdownExporter.export_document">
 <span class="sig-name descname"><span class="pre">export_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">document</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_break</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#doctr.io.MarkdownExporter.export_document" title="Link to this definition">#</a></dt>
@@ -2095,12 +2145,14 @@ linearization. See <a class="reference internal" href="../user_guide/exporting.h
 
 <dl class="py class">
 <dt class="sig sig-object py" id="doctr.io.AsciiDocExporter">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">AsciiDocExporter</span></span><a class="reference internal" href="../_modules/doctr/io/exporters.html#AsciiDocExporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.AsciiDocExporter" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">AsciiDocExporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">font_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/exporters.html#AsciiDocExporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.AsciiDocExporter" title="Link to this definition">#</a></dt>
 <dd><p>Export OCR results to AsciiDoc, with the content sorted in reading order.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsciiDocExporter</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">asciidoc</span> <span class="o">=</span> <span class="n">AsciiDocExporter</span><span class="p">()</span><span class="o">.</span><span class="n">export_page</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="doctr.io.AsciiDocExporter.export_document">
 <span class="sig-name descname"><span class="pre">export_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">document</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_break</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#doctr.io.AsciiDocExporter.export_document" title="Link to this definition">#</a></dt>
@@ -2183,7 +2235,7 @@ linearization. See <a class="reference internal" href="../user_guide/exporting.h
 
 <dl class="py class">
 <dt class="sig sig-object py" id="doctr.io.HTMLExporter">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">HTMLExporter</span></span><a class="reference internal" href="../_modules/doctr/io/exporters.html#HTMLExporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.HTMLExporter" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">HTMLExporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">font_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/exporters.html#HTMLExporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.HTMLExporter" title="Link to this definition">#</a></dt>
 <dd><p>Export OCR results to semantic HTML, with the content sorted in reading order.</p>
 <p>Headings map to <cite>&lt;h1&gt;</cite>/<cite>&lt;h2&gt;</cite>, list items to <cite>&lt;ul&gt;&lt;li&gt;</cite>, recognized tables to <cite>&lt;table&gt;</cite>, recognized formulas to
 <cite>&lt;div class=”formula”&gt;</cite> holding <cite>$$…$$</cite> display math (rendered by MathJax or KaTeX auto-render) and
@@ -2199,6 +2251,8 @@ Only disable escaping for output that is never rendered in a browser.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">html</span> <span class="o">=</span> <span class="n">HTMLExporter</span><span class="p">()</span><span class="o">.</span><span class="n">export_page</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="doctr.io.HTMLExporter.export_kie_page">
 <span class="sig-name descname"><span class="pre">export_kie_page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">escape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/exporters.html#HTMLExporter.export_kie_page"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.HTMLExporter.export_kie_page" title="Link to this definition">#</a></dt>
@@ -2281,13 +2335,19 @@ Only disable escaping for output that is never rendered in a browser.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="doctr.io.XMLExporter">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">XMLExporter</span></span><a class="reference internal" href="../_modules/doctr/io/exporters.html#XMLExporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.XMLExporter" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">XMLExporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">font_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/exporters.html#XMLExporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.XMLExporter" title="Link to this definition">#</a></dt>
 <dd><p>hOCR (XML) exporter for pages, KIE pages and documents.
 See the hOCR 1.2 specification for the XML convention: <a class="github reference external" href="https://github.com/kba/hocr-spec/blob/master/1.2/spec.md">kba/hocr-spec</a></p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">XMLExporter</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">xml_bytes</span><span class="p">,</span> <span class="n">xml_tree</span> <span class="o">=</span> <span class="n">XMLExporter</span><span class="p">()</span><span class="o">.</span><span class="n">export_page</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>font_style</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – whether the font style detected for the words (<cite>detect_font_style=True</cite>) is exported: the font
+family (<cite>x_font</cite>), and <cite>&lt;strong&gt;</cite> / <cite>&lt;em&gt;</cite> for bold / italic words</p>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="doctr.io.XMLExporter.export_page">
 <span class="sig-name descname"><span class="pre">export_page</span></span><span class="sig-paren">(</span>
