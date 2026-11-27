@@ -52,6 +52,7 @@ def load_predictor(
     layout_arch: str,
     detect_tables: bool,
     detect_formulas: bool = False,
+    detect_font_style: bool = False,
 ) -> OCRPredictor:
     """Load a predictor from doctr.models
 
@@ -71,6 +72,8 @@ def load_predictor(
         detect_tables: whether to detect tables (via the layout model), structure them and attach them to each page
         detect_formulas: whether to read the formulas (located via the layout model) as LaTeX and attach them to each
             page
+        detect_font_style: whether to classify the font style of the words (bold, italic, underline, colors, font
+            family, ...)
 
     Returns:
         instance of OCRPredictor
@@ -89,6 +92,7 @@ def load_predictor(
         layout_arch=layout_arch,
         detect_tables=detect_tables,
         detect_formulas=detect_formulas,
+        detect_font_style=detect_font_style,
     ).to(device)
     predictor.det_predictor.model.postprocessor.bin_thresh = bin_thresh
     predictor.det_predictor.model.postprocessor.box_thresh = box_thresh

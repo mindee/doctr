@@ -1416,3 +1416,116 @@ def test_formula_exports():
     # An empty formula is left out of the exports
     page = _page(lines, layout=layout, formulas=[elements.Formula("", 0.0, ((0.3, 0.22), (0.7, 0.32)))])
     assert "$$" not in page.export_as_markdown() and "formula" not in page.export_as_html()
+
+
+def _styled_word(text, x0, **style):
+    font_style = {
+        attribute: {"value": style.get(attribute, default), "confidence": 0.9}
+        for attribute, default in (
+            ("bold", False),
+            ("italic", False),
+            ("underline", "none"),
+            ("strikethrough", False),
+            ("color", "black"),
+            ("highlight", "none"),
+            ("category", "serif"),
+            ("family", style.get("family", "Lora")),
+        )
+    }
+    return elements.Word(text, 0.95, ((x0, 0.1), (x0 + 0.08, 0.12)), 0.9, _ORIENTATION, font_style)
+
+
+def _styled_page():
+    words = [
+        _styled_word("Total", 0.1, bold=True),
+        _styled_word("amount", 0.2, bold=True),
+        _styled_word("is", 0.3),
+        _styled_word("*due*", 0.4, color="red", underline="double"),
+        _styled_word("now", 0.5, italic=True, highlight="green"),
+        _styled_word("x", 0.6, bold=True, italic=True, strikethrough=True, underline="single", highlight="yellow"),
+        _styled_word("white", 0.7, color="white", family='Q"uo\\te'),
+    ]
+    return _page([elements.Line(words)])
+
+
+def test_font_style_exports():
+    page = _styled_page()
+    # Runs of words sharing the same style are marked up once, the text is escaped inside the markup
+    assert page.export_as_markdown() == (
+        '**Total amount** is <u style="text-decoration-style: double">\\*due\\*</u> '
+        '<mark style="background: green">*now*</mark> <mark><u>~~***x***~~</u></mark> white'
+    )
+    assert page.export_as_markdown(escape=False).startswith("**Total amount** is <u")
+    assert page.export_as_html() == (
+        "<p><strong>Total amount</strong> is "
+        '<span style="color: red"><u style="text-decoration-style: double">*due*</u></span> '
+        '<mark style="background: green"><em>now</em></mark> <mark><u><s><strong><em>x</em></strong></s></u></mark> '
+        "white</p>"
+    )
+    assert page.export_as_asciidoc() == (
+        "{empty}**Total amount** is [.underline.double-underline.red]#\\*due\\*# [.green-background]#__now__# "
+        "[.underline.line-through.yellow-background]#**__x__**# white"
+    )
+    # Plain text is never styled
+    assert page.export_as("text") == page.render() == "Total amount is *due* now x white"
+
+    # hOCR: bold / italic words, closest font family
+    words = ET.fromstring(page.export_as_xml()[0]).findall(".//{*}span[@class='ocrx_word']")
+    assert [child.tag.split("}")[-1] for child in words[0]] == ["strong"]
+    assert words[0][0].text == "Total" and 'x_font "Lora"' in words[0].get("title")
+    assert [child.tag.split("}")[-1] for child in words[5]] == ["strong"]
+    assert [child.tag.split("}")[-1] for child in words[5][0]] == ["em"] and words[5][0][0].text == "x"
+    assert len(words[2]) == 0 and words[2].text == "is"
+    assert words[6].get("title").endswith('x_font "Q\\"uo\\\\te"')
+
+    # Without font style, the exports are unchanged
+    plain = _page([_line_at("Total amount is due", 0.1, 0.1, 0.5, 0.12)])
+    assert plain.export_as_markdown() == "Total amount is due"
+    assert plain.export_as_html() == "<p>Total amount is due</p>"
+    assert "x_font" not in plain.export_as_xml()[0].decode()
+    assert ET.fromstring(plain.export_as_xml()[0]).find(".//{*}strong") is None
+
+    # KIE
+    prediction = elements.Prediction(
+        "Total", 0.9, ((0.1, 0.1), (0.9, 0.2)), 0.9, _ORIENTATION, {"bold": {"value": True, "confidence": 0.9}}
+    )
+    kie_page = _kie_page({CLASS_NAME: [prediction]})
+    assert kie_page.export_as_markdown() == f"**{CLASS_NAME}**\n\n- **Total**"
+    assert "<li><strong>Total</strong></li>" in kie_page.export_as_html()
+    xml_word = ET.fromstring(kie_page.export_as_xml()[0]).find(".//{*}span[@class='ocrx_word']")
+    assert xml_word[0].tag.endswith("strong") and xml_word[0].text == "Total"
+
+
+def test_font_style_exports_can_be_plain():
+    # Detected font style left out of the markup: the exports of a page without font style
+    page = _styled_page()
+    plain_text = "Total amount is *due* now x white"
+    assert page.export_as_markdown(font_style=False) == "Total amount is \\*due\\* now x white"
+    assert page.export_as_asciidoc(font_style=False) == "Total amount is \\*due\\* now x white"
+    assert page.export_as_html(font_style=False) == f"<p>{plain_text}</p>"
+    assert page.export_as("md", font_style=False) == page.export_as_markdown(font_style=False)
+    xml = page.export_as_xml(font_style=False)[0]
+    assert "x_font" not in xml.decode() and ET.fromstring(xml).find(".//{*}strong") is None
+    words = ET.fromstring(xml).findall(".//{*}span[@class='ocrx_word']")
+    assert [word.text for word in words] == plain_text.split()
+    # ... while the font style stays in the predictions
+    assert page.export()["blocks"][0]["lines"][0]["words"][0]["font_style"]["bold"]["value"] is True
+
+    # Documents pass the option to their pages
+    document = elements.Document([page, page])
+    assert "**" not in document.export_as_markdown(font_style=False)
+    assert "<strong>" not in document.export_as_html(font_style=False)
+    assert "**" not in document.export_as_asciidoc(font_style=False)
+    assert all(ET.fromstring(xml).find(".//{*}strong") is None for xml, _ in document.export_as_xml(font_style=False))
+    assert "**Total amount**" in document.export_as("markdown")
+
+    # KIE
+    prediction = elements.Prediction(
+        "Total", 0.9, ((0.1, 0.1), (0.9, 0.2)), 0.9, _ORIENTATION, {"bold": {"value": True, "confidence": 0.9}}
+    )
+    kie_page = _kie_page({CLASS_NAME: [prediction]})
+    assert kie_page.export_as_markdown(font_style=False) == f"**{CLASS_NAME}**\n\n- Total"
+    assert "<li>Total</li>" in kie_page.export_as_html(font_style=False)
+    assert "**" not in kie_page.export_as_asciidoc(font_style=False).split("\n", 1)[1]
+    xml_word = ET.fromstring(kie_page.export_as_xml(font_style=False)[0]).find(".//{*}span[@class='ocrx_word']")
+    assert len(xml_word) == 0 and xml_word.text == "Total"

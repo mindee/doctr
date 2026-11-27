@@ -62,6 +62,35 @@ jobs:
       - name: Train for a short epoch (crop orientation)
         run: python references/classification/train_orientation.py resnet18 --type crop --train_path ./reco_set --val_path ./reco_set  -b 4 --epochs 1
 
+  train-font-style-classification:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.11"]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
+        with:
+          python-version: ${{ matrix.python }}
+          extra-requirements: references/requirements.txt
+      - name: Download and extract toy set
+        run: |
+          wget https://github.com/mindee/doctr/releases/download/v1.2.0/toy_font_style_set-071088e5.zip
+          unzip toy_font_style_set-071088e5.zip -d font_style_set
+      - name: Train for a short epoch
+        run: >
+          python references/classification/train_font_style.py mobilenet_v3_small_font_style
+          --train_path ./font_style_set --val_path ./font_style_set -b 8 --epochs 1 --name font_style_ci
+          --class-weights underline strikethrough color highlight category family
+      - name: Evaluate the checkpoint
+        run: >
+          python references/classification/train_font_style.py mobilenet_v3_small_font_style
+          --train_path ./font_style_set --val_path ./font_style_set -b 8 --test-only --resume font_style_ci.pt
+
   train-text-recognition:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30

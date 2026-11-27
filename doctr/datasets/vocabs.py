@@ -14,6 +14,19 @@ _BASE_VOCABS = {
     "ascii_letters": string.ascii_letters,
     "punctuation": string.punctuation,
     "currency": "£€¥¢฿",
+    # Signs shared across scripts (e.g. m², H₂O, ½, ±, „quotes“, «guillemets», ©, §)
+    # NOTE: look-alikes of existing characters are left out on purpose: º / ª (vs. °), − U+2212 (vs. - and –),
+    # ′ ″ primes (vs. ' and ") and µ micro sign (vs. Greek μ)
+    "additional_signs": "".join([
+        "§¶",  # paragraph signs
+        "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾",  # superscripts
+        "₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎",  # subscripts
+        "¼½¾⅓⅔⅛⅜⅝⅞",  # vulgar fractions
+        "±×÷≈≠≤≥∞√‰",  # math operators
+        "–—…•‘’‚“”„‹›«»",  # dashes, ellipsis, bullet, typographic quotes and guillemets
+        "©®™№†‡",  # legal and reference marks
+        "←→",  # arrows
+    ]),
     # Cyrillic
     "generic_cyrillic_letters": "абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯ",
     "russian_cyrillic_letters": "ёыэЁЫЭ",
@@ -1150,7 +1163,6 @@ VOCABS["multilingual"] = "".join(
         + VOCABS["welsh"]
         + VOCABS["yoruba"]
         + VOCABS["zulu"]
-        + "§"  # paragraph sign
         # cyrillic_based
         + VOCABS["russian"]
         + VOCABS["belarusian"]
@@ -1167,6 +1179,8 @@ VOCABS["multilingual"] = "".join(
         + VOCABS["uzbek_cyrillic"]
         # greek
         + VOCABS["greek"]
+        # additional signs
+        + _BASE_VOCABS["additional_signs"]
     )
 )
 

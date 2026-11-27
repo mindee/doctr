@@ -36,6 +36,8 @@ class _KIEPredictor(_OCRPredictor):
         page_chunk_size: the maximum number of pages processed at once for lazy page sources, iterators and
             `stream`, so that the memory footprint does not grow with the number of pages. Lists and tuples of pages
             are processed in a single pass.
+        detect_font_style: if True, the font style of each prediction (bold, italic, underline, strikethrough, colors,
+            font category, handwriting and closest font family) is classified and added to the predictions.
         kwargs: keyword args of `DocumentBuilder`
     """
 
@@ -53,6 +55,7 @@ class _KIEPredictor(_OCRPredictor):
         ignore_regions: Collection[str] | None = None,
         preserve_original_coords: bool = False,
         page_chunk_size: int = 32,
+        detect_font_style: bool = False,
         **kwargs: Any,
     ) -> None:
         super().__init__(
@@ -64,6 +67,7 @@ class _KIEPredictor(_OCRPredictor):
             ignore_regions,
             preserve_original_coords=preserve_original_coords,
             page_chunk_size=page_chunk_size,
+            detect_font_style=detect_font_style,
             **kwargs,
         )
 

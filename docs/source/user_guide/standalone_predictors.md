@@ -13,6 +13,7 @@ reading pre-cropped words, classifying orientations...
 | {func}`~doctr.models.formula.formula_predictor`                  | Formula images            | `(latex, confidence)`                                  |
 | {func}`~doctr.models.classification.page_orientation_predictor`         | Pages                     | Orientation class, angle and probability               |
 | {func}`~doctr.models.classification.crop_orientation_predictor`         | Word crops                | Orientation class, angle and probability               |
+| {func}`~doctr.models.classification.font_style_predictor`               | Word crops                | `{attribute: {"value", "confidence"}}`                 |
 
 All of them take a **list of images** (NumPy arrays of shape `(H, W, 3)`, `uint8`, RGB) and return one result per
 image. They also accept a [lazy page source](loading_documents.md#long-documents--large-collections) or any iterable
@@ -81,6 +82,35 @@ print(angles)  # [0, 180]
 
 They are used by the OCR predictor for [rotated documents](rotated_documents.md), and can be
 [retrained on your data](../training/custom_models.md#orientation-classifiers).
+
+## Font style classifier
+
+The font style classifier predicts, for each word crop, its emphasis, its text and highlight colors, whether it is
+handwritten, its font category and its closest font family, each with a confidence:
+
+```python
+from doctr.models import font_style_predictor
+
+classifier = font_style_predictor(pretrained=True)
+styles = classifier([word_crop])
+print(styles[0]["bold"], styles[0]["family"])
+# {'value': True, 'confidence': 0.98} {'value': 'Roboto', 'confidence': 0.71}
+```
+
+| Attribute       | Classes                                                                                  |
+| --------------- | ---------------------------------------------------------------------------------------- |
+| `bold`          | `False`, `True` (weight ≥ 600)                                                           |
+| `italic`        | `False`, `True`                                                                          |
+| `underline`     | `"none"`, `"single"`, `"double"`                                                         |
+| `strikethrough` | `False`, `True`                                                                          |
+| `color`         | `"black"`, `"gray"`, `"white"`, `"red"`, `"orange"`, `"brown"`, `"yellow"`, `"green"`, `"blue"`, `"purple"` |
+| `highlight`     | `"none"`, `"yellow"`, `"green"`, `"pink"`, `"blue"`, `"orange"`                          |
+| `handwritten`   | `False`, `True`: written by hand (script and casual typefaces set as type, such as Comic Sans or a script logo, are printed) |
+| `category`      | `"sans_serif"`, `"serif"`, `"display"`, `"handwriting"`, `"monospace"`, `"unknown"`      |
+| `family`        | 378 font families (cf. `doctr.datasets.FONT_FAMILIES`)                                   |
+
+The OCR predictor runs it on every word with `detect_font_style=True` (see [](results.md#font-style)). It can be
+[retrained on your data](../training/custom_models.md#font-style-classifier).
 
 ## Long inputs
 

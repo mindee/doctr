@@ -75,6 +75,8 @@ def main(det_archs, reco_archs, layout_archs):
     detect_tables = st.sidebar.checkbox("Detect tables", value=False)
     # Formula recognition (relies on the layout model to locate formulas)
     detect_formulas = st.sidebar.checkbox("Detect formulas", value=False)
+    # Font style classification of the words (bold, italic, underline, colors, font family, ...)
+    detect_font_style = st.sidebar.checkbox("Detect font style", value=False)
     st.sidebar.write("\n")
     # Binarization threshold
     bin_thresh = st.sidebar.slider("Binarization threshold", min_value=0.1, max_value=0.9, value=0.3, step=0.1)
@@ -104,6 +106,7 @@ def main(det_archs, reco_archs, layout_archs):
                     layout_arch=layout_arch,
                     detect_tables=detect_tables,
                     detect_formulas=detect_formulas,
+                    detect_font_style=detect_font_style,
                 )
 
             with st.spinner("Analyzing..."):
@@ -143,6 +146,11 @@ def main(det_archs, reco_archs, layout_archs):
                         st.markdown(f"**Formula {idx + 1}** (confidence {formula.confidence:.2f})")
                         st.latex(formula.value)
                         st.code(formula.value, language="latex")
+
+                # Display the text with its font style (bold, italic, underline, highlight, ...) as Markdown
+                if detect_font_style:
+                    st.markdown("\nText with font style:")
+                    st.markdown(out.pages[0].export_as_markdown(), unsafe_allow_html=True)
 
                 # Display JSON
                 st.markdown("\nHere are your analysis results in JSON format:")

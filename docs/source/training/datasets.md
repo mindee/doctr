@@ -103,6 +103,7 @@ Load annotated data stored in the [training format](train.md) of each task:
 | {class}`~doctr.datasets.LayoutDataset` | Layout analysis | `images/` + `labels.json` with polygons and classes |
 | {class}`~doctr.datasets.TableStructureDataset` | Table structure | `images/` + `labels.json` with cells and their logical coordinates |
 | {class}`~doctr.datasets.OrientationDataset` | Orientation classification | a folder of upright images |
+| {class}`~doctr.datasets.FontStyleDataset` | Font style classification | word images + `labels.json` mapping each image to its style attributes |
 
 ```python
 from doctr.datasets import DetectionDataset, OCRDataset, RecognitionDataset

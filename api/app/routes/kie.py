@@ -48,6 +48,7 @@ async def perform_kie(request: KIEIn = Depends(), files: list[UploadFile] = [Fil
                             objectness_score=round(prediction.objectness_score, 2),
                             confidence=round(prediction.confidence, 2),
                             crop_orientation=prediction.crop_orientation,
+                            font_style=prediction.font_style,
                         )
                         for prediction in page.predictions[class_name]
                     ],

@@ -54,6 +54,8 @@ The structure of these exports depends on what the predictor detected:
   merged cells (`rowspan` / `colspan`); the other formats place the text of a merged cell at its top-left position.
 - **With formula recognition** (`detect_formulas=True`), formulas are rendered as display math (`$$...$$` in
   Markdown, a `[latexmath]` block in AsciiDoc, see [](layout_and_tables.md#formula-recognition)).
+- **With font style classification** (`detect_font_style=True`), bold, italic, underlined, struck through and
+  highlighted words are marked up, see [](#font-style) below.
 
 ::::{tab-set}
 
@@ -119,11 +121,42 @@ Useful options:
 `include_furniture`
 : Include page headers, page footers and footnotes. Enabled by default.
 
+`font_style` (Markdown, AsciiDoc, HTML, hOCR)
+: Mark up the font style of the words detected with `detect_font_style=True`, see [](#font-style). Enabled by
+  default.
+
 `page_break`
 : The separator inserted between pages: `---` in Markdown, `<<<` in AsciiDoc, `<hr>` in HTML.
 
 `images`
 : How figures are rendered, see [](#figures) below.
+
+## Font style
+
+With `detect_font_style=True` (see [](results.md#font-style)), the Markdown, AsciiDoc, HTML and hOCR exports mark up
+the font style of the words. Consecutive words sharing the same style are marked up once, e.g. `**Total amount**`:
+
+| Style           | Markdown                                         | AsciiDoc                   | HTML                                      |
+| --------------- | ------------------------------------------------ | -------------------------- | ----------------------------------------- |
+| Bold            | `**text**`                                       | `**text**`                 | `<strong>`                                |
+| Italic          | `*text*`                                         | `__text__`                 | `<em>`                                    |
+| Strikethrough   | `~~text~~`                                       | `[.line-through]#text#`    | `<s>`                                     |
+| Underline       | `<u>text</u>`                                    | `[.underline]#text#`       | `<u>`                                     |
+| Double underline| `<u style="text-decoration-style: double">`      | `[.underline.double-underline]#text#` | `<u style="text-decoration-style: double">` |
+| Highlight       | `<mark>` (with a `background` other than yellow) | `[.yellow-background]#text#` | `<mark>`                                |
+| Text color      | not rendered                                     | `[.red]#text#`             | `<span style="color: red">`               |
+
+Black and white text are not marked up. In hOCR, bold and italic words hold `<strong>` / `<em>` elements, and every
+word gets its closest font family as `x_font` property. The plain text export is never marked up.
+
+The font style stays in the predictions (`word.font_style`, the JSON export) while the markup can be left out:
+`font_style=False` exports the plain text of the words in Markdown, AsciiDoc, HTML and hOCR (no `x_font` either),
+e.g. to compare the text with that of an export without font style classification:
+
+```python
+markdown = result.export_as_markdown(font_style=False)
+xml_pages = result.export_as("hocr", font_style=False)
+```
 
 ## hOCR
 

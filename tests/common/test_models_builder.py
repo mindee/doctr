@@ -532,6 +532,45 @@ def test_documentbuilder_tables():
     assert sorted(_words(page)) == sorted(_TABLE_WORDS)
 
 
+def _font_style(**values):
+    return {attribute: {"value": value, "confidence": 0.9} for attribute, value in values.items()}
+
+
+def test_documentbuilder_font_styles():
+    doc_builder = builder.DocumentBuilder()
+    names = ("Name", "Age", "caption")
+    styles = [_font_style(bold=True), _font_style(bold=False), _font_style(italic=True)]
+    table = {
+        "cells": [_table_cell(0.10, 0.10, 0.25, 0.20, 0, 0, 0, 0), _table_cell(0.28, 0.10, 0.45, 0.20, 0, 0, 1, 1)],
+        "num_rows": 1,
+        "num_cols": 2,
+    }
+    words = lambda page: [word for block in page.blocks for line in block.lines for word in line.words]  # noqa: E731
+    # Each word keeps its own font style
+    page = doc_builder(*_table_words(*names), font_styles=[styles]).pages[0]
+    assert {word.value: word.font_style for word in words(page)} == dict(zip(names, styles))
+    # The words assigned to a table are removed with their font style
+    page = doc_builder(*_table_words(*names), tables=[[table]], font_styles=[styles]).pages[0]
+    assert [(word.value, word.font_style) for word in words(page)] == [("caption", styles[2])]
+    # Without font styles
+    assert all(word.font_style is None for word in words(doc_builder(*_table_words(*names)).pages[0]))
+
+    # KIE
+    kie_builder = builder.KIEDocumentBuilder()
+    boxes = np.array([[0.1, 0.1, 0.2, 0.2], [0.5, 0.5, 0.6, 0.6]], dtype=np.float32)
+    args = (
+        [np.zeros((100, 100, 3), dtype=np.uint8)],
+        [{"words": boxes}],
+        [{"words": np.array([0.9, 0.8])}],
+        [{"words": [("a", 0.9), ("b", 0.8)]}],
+        [(100, 100)],
+        [{"words": [{"value": 0, "confidence": None}] * 2}],
+    )
+    page = kie_builder(*args, font_styles=[{"words": styles[:2]}]).pages[0]
+    assert {pred.value: pred.font_style for pred in page.predictions["words"]} == {"a": styles[0], "b": styles[1]}
+    assert all(pred.font_style is None for pred in kie_builder(*args).pages[0].predictions["words"])
+
+
 def test_documentbuilder_tables_straight_cells():
     doc_builder = builder.DocumentBuilder()
     # Straight-mode table predictions store cells as flat (xmin, ymin, xmax, ymax) boxes

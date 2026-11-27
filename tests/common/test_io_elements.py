@@ -163,6 +163,7 @@ def test_word():
         "geometry": geom,
         "objectness_score": objectness_score,
         "crop_orientation": crop_orientation,
+        "font_style": None,
     }
 
     # Repr
@@ -176,8 +177,18 @@ def test_word():
         "objectness_score": objectness_score,
         "crop_orientation": crop_orientation,
     }
+    # Exports of earlier versions have no font style
     word = elements.Word.from_dict(state_dict)
-    assert word.export() == state_dict
+    assert word.export() == {**state_dict, "font_style": None}
+    assert word.font_style is None and word.style("bold") is None
+
+    # Font style
+    font_style = {"bold": {"value": True, "confidence": 0.9}, "family": {"value": "Lato", "confidence": 0.6}}
+    word = elements.Word(word_str, conf, geom, objectness_score, crop_orientation, font_style)
+    assert word.font_style == font_style
+    assert word.style("bold") is True and word.style("family") == "Lato" and word.style("italic") is None
+    assert word.export()["font_style"] == font_style
+    assert elements.Word.from_dict(word.export()).font_style == font_style
 
 
 def test_line():
@@ -218,6 +229,7 @@ def test_line():
                 "geometry": ((0, 0), (1.0, 1.0)),
                 "objectness_score": objectness_score,
                 "crop_orientation": {"value": 0, "confidence": None},
+                "font_style": None,
             }
         ],
         "geometry": ((0, 0), (1.0, 1.0)),
@@ -417,6 +429,7 @@ def test_prediction():
         "geometry": geom,
         "objectness_score": objectness_score,
         "crop_orientation": crop_orientation,
+        "font_style": None,
     }
 
     # Repr
@@ -431,7 +444,10 @@ def test_prediction():
         "crop_orientation": crop_orientation,
     }
     prediction = elements.Prediction.from_dict(state_dict)
-    assert prediction.export() == state_dict
+    assert prediction.export() == {**state_dict, "font_style": None}
+    font_style = {"italic": {"value": True, "confidence": 0.9}}
+    prediction = elements.Prediction.from_dict({**state_dict, "font_style": font_style})
+    assert prediction.style("italic") is True and prediction.export()["font_style"] == font_style
 
 
 def test_block():

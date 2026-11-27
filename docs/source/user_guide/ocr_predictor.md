@@ -69,6 +69,7 @@ See [](rotated_documents.md) for a detailed guide.
 | -------------------- | ------------ | --------------------------------------------------------------------------------------------------- |
 | `detect_orientation` | `False`      | Estimate the general orientation of each page, available as `page.orientation`                    |
 | `detect_language`    | `False`      | Estimate the language of each page, available as `page.language`                                  |
+| `detect_font_style`  | `False`      | Classify the font style of each word (bold, italic, underline, colors, font family...), available as `word.font_style` (see [](results.md#font-style)) |
 | `detect_layout`      | `False`      | Run a layout model and attach its regions to each page (`page.layout`)                           |
 | `layout_arch`        | `"lw_detr_s"`| Layout architecture name or model instance                                                          |
 | `detect_tables`      | `False`      | Recognize the structure of tables (`page.tables`); enables the layout model                         |

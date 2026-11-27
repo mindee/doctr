@@ -132,9 +132,19 @@ class Word(Element):
             the page's size
         objectness_score: the objectness score of the detection
         crop_orientation: the general orientation of the crop in degrees and its confidence
+        font_style: the font style of the word, None if not detected: the predicted value of each style attribute
+            and its confidence, e.g. `{"bold": {"value": True, "confidence": 0.98}, "underline": {"value": "double",
+            "confidence": 0.91}, "family": {"value": "Lato", "confidence": 0.61}, ...}`
     """
 
-    _exported_keys: list[str] = ["value", "confidence", "geometry", "objectness_score", "crop_orientation"]
+    _exported_keys: list[str] = [
+        "value",
+        "confidence",
+        "geometry",
+        "objectness_score",
+        "crop_orientation",
+        "font_style",
+    ]
     _children_names: list[str] = []
 
     def __init__(
@@ -144,6 +154,7 @@ class Word(Element):
         geometry: BoundingBox | np.ndarray,
         objectness_score: float,
         crop_orientation: dict[str, Any],
+        font_style: dict[str, dict[str, Any]] | None = None,
     ) -> None:
         super().__init__()
         self.value = value
@@ -151,6 +162,11 @@ class Word(Element):
         self.geometry = geometry
         self.objectness_score = objectness_score
         self.crop_orientation = crop_orientation
+        self.font_style = font_style
+
+    def style(self, attribute: str) -> Any:
+        """The predicted value of a font style attribute (e.g. "bold", "family"), None if not detected"""
+        return (self.font_style or {}).get(attribute, {}).get("value")
 
     def render(self) -> str:
         """Renders the full text of the element"""
@@ -161,8 +177,9 @@ class Word(Element):
 
     @classmethod
     def from_dict(cls, save_dict: dict[str, Any], **kwargs):
-        kwargs = {k: save_dict[k] for k in cls._exported_keys}
-        return cls(**kwargs)
+        # `font_style` is missing from the exports of earlier versions
+        kwargs = {k: save_dict[k] for k in cls._exported_keys if k != "font_style"}
+        return cls(**kwargs, font_style=save_dict.get("font_style"))
 
 
 class Artefact(Element):

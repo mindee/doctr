@@ -12,7 +12,7 @@ from typing import Any
 from torchvision.models import mobilenetv3
 from torchvision.models.mobilenetv3 import MobileNetV3
 
-from doctr.datasets import VOCABS
+from doctr.datasets import FONT_STYLE_ATTRIBUTES, VOCABS
 
 from ...utils import load_pretrained_params
 
@@ -24,6 +24,7 @@ __all__ = [
     "mobilenet_v3_large_r",
     "mobilenet_v3_small_crop_orientation",
     "mobilenet_v3_small_page_orientation",
+    "mobilenet_v3_small_font_style",
 ]
 
 default_cfgs: dict[str, dict[str, Any]] = {
@@ -69,7 +70,23 @@ default_cfgs: dict[str, dict[str, Any]] = {
         "classes": [0, -90, 180, 90],
         "url": "https://doctr-static.mindee.com/models?id=v0.8.1/mobilenet_v3_small_page_orientation-8e60325c.pt&src=0",
     },
+    "mobilenet_v3_small_font_style": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (3, 64, 256),
+        # One group of outputs per style attribute (the model outputs the logits of all groups concatenated)
+        "classes": FONT_STYLE_ATTRIBUTES,
+        # Margin the OCR predictor adds around the word boxes to crop them for the model (relative to their height):
+        # straight boxes need ~0.1 to keep the underline of a word, the tighter rotated boxes ~0.2
+        "crop_margin": 0.15,
+        "url": "https://github.com/mindee/doctr/releases/download/v1.2.0/font_style_mnv3s-9d4a1aca.pt",
+    },
 }
+
+
+def _num_classes(classes: Any) -> int:
+    """The number of model outputs: the sum of the group sizes when the classes are grouped by attribute"""
+    return sum(len(group) for group in classes.values()) if isinstance(classes, dict) else len(classes)
 
 
 def _mobilenet_v3(
@@ -79,8 +96,8 @@ def _mobilenet_v3(
     ignore_keys: list[str] | None = None,
     **kwargs: Any,
 ) -> mobilenetv3.MobileNetV3:
-    kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
     kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])
+    kwargs["num_classes"] = kwargs.get("num_classes", _num_classes(kwargs["classes"]))
 
     _cfg = deepcopy(default_cfgs[arch])
     _cfg["num_classes"] = kwargs["num_classes"]
@@ -117,7 +134,7 @@ def _mobilenet_v3(
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
-        _ignore_keys = ignore_keys if kwargs["num_classes"] != len(default_cfgs[arch]["classes"]) else None
+        _ignore_keys = ignore_keys if kwargs["num_classes"] != _num_classes(default_cfgs[arch]["classes"]) else None
         model.from_pretrained(default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     model.cfg = _cfg
@@ -274,6 +291,33 @@ def mobilenet_v3_small_page_orientation(pretrained: bool = False, **kwargs: Any)
     """
     return _mobilenet_v3(
         "mobilenet_v3_small_page_orientation",
+        pretrained,
+        ignore_keys=["classifier.3.weight", "classifier.3.bias"],
+        **kwargs,
+    )
+
+
+def mobilenet_v3_small_font_style(pretrained: bool = False, **kwargs: Any) -> mobilenetv3.MobileNetV3:
+    """MobileNetV3-Small architecture as described in
+    `"Searching for MobileNetV3",
+    <https://arxiv.org/pdf/1905.02244.pdf>`_, classifying the font style of word crops: the model outputs the logits
+    of each style attribute (bold, italic, underline, ..., font family) concatenated, in the order of `cfg["classes"]`.
+
+    >>> import torch
+    >>> from doctr.models import mobilenet_v3_small_font_style
+    >>> model = mobilenet_v3_small_font_style(pretrained=False)
+    >>> input_tensor = torch.rand((1, 3, 64, 256), dtype=torch.float32)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained: If True, returns a model pre-trained on our font style dataset
+        **kwargs: keyword arguments of the MobileNetV3 architecture
+
+    Returns:
+        a torch.nn.Module
+    """
+    return _mobilenet_v3(
+        "mobilenet_v3_small_font_style",
         pretrained,
         ignore_keys=["classifier.3.weight", "classifier.3.bias"],
         **kwargs,

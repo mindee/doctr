@@ -3,8 +3,9 @@ import numpy as np
 import pytest
 import torch
 
+from doctr.datasets import FONT_STYLE_ATTRIBUTES
 from doctr.models import classification
-from doctr.models.classification.predictor import OrientationPredictor
+from doctr.models.classification.predictor import FontStylePredictor, OrientationPredictor
 
 
 def _test_classification(model, input_shape, output_size, batch_size=2):
@@ -192,3 +193,54 @@ def test_page_orientation_model(mock_payslip):
 
     with pytest.raises(ValueError):
         _ = classification.page_orientation_predictor(classification.textnet_tiny(pretrained=True))
+
+
+def test_font_style_model(mock_text_box):
+    num_outputs = sum(len(classes) for classes in FONT_STYLE_ATTRIBUTES.values())
+    model = classification.mobilenet_v3_small_font_style(pretrained=False).eval()
+    assert model.cfg["classes"] == FONT_STYLE_ATTRIBUTES
+    assert model.cfg["num_classes"] == num_outputs
+    _test_classification(model, (3, 64, 256), (num_outputs,))
+
+    text_box = cv2.imread(mock_text_box)
+    classifier = classification.font_style_predictor("mobilenet_v3_small_font_style", pretrained=True, batch_size=2)
+    assert isinstance(classifier, FontStylePredictor)
+    out = classifier([text_box, text_box[:, ::-1], text_box[: text_box.shape[0] // 2]])
+    assert isinstance(out, list) and len(out) == 3
+    for style in out:
+        assert list(style) == list(FONT_STYLE_ATTRIBUTES)
+        for attribute, pred in style.items():
+            assert set(pred) == {"value", "confidence"}
+            assert pred["value"] in FONT_STYLE_ATTRIBUTES[attribute]
+            assert isinstance(pred["confidence"], float) and 0 <= pred["confidence"] <= 1
+    assert classifier([]) == []
+    # Chunked processing of an iterator gives the same predictions as a single pass
+    chunked = classification.font_style_predictor(classifier.model, batch_size=2, chunk_size=2)
+    assert chunked(iter([text_box, text_box[:, ::-1], text_box[: text_box.shape[0] // 2]])) == out
+
+    with pytest.raises(ValueError):
+        classifier([text_box[..., 0]])
+    with pytest.raises(ValueError):
+        classification.font_style_predictor(arch="wrong_model", pretrained=False)
+    with pytest.raises(ValueError):
+        classification.font_style_predictor(arch=42)
+    # A model without grouped classes
+    with pytest.raises(ValueError):
+        classification.font_style_predictor(classification.mobilenet_v3_small_crop_orientation(pretrained=False))
+    # The number of outputs must match the classes
+    custom = classification.mobilenet_v3_small(pretrained=False, num_classes=4, classes={"bold": [False, True]})
+    custom.cfg["input_shape"] = (3, 64, 256)
+    with pytest.raises(ValueError):
+        classification.font_style_predictor(custom)([text_box])
+    # Another backbone trained on custom attributes
+    custom = classification.resnet18(pretrained=False, num_classes=5, classes={"bold": [False, True], "u": [0, 1, 2]})
+    custom.cfg["input_shape"] = (3, 64, 256)
+    out = classification.font_style_predictor(custom)([text_box])
+    assert list(out[0]) == ["bold", "u"]
+    with pytest.raises(ValueError):
+        FontStylePredictor(classifier.pre_processor, classifier.model, chunk_size=0)
+    with pytest.raises(ValueError):
+        FontStylePredictor(classifier.pre_processor, classifier.model, margin=-0.1)
+    # The crop margin comes from the model configuration, and can be overridden
+    assert classifier.margin == model.cfg["crop_margin"] > 0
+    assert classification.font_style_predictor(classifier.model, margin=0.0).margin == 0.0

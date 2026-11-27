@@ -37,6 +37,9 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             page. Doing so will slightly deteriorate the overall latency.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
+        detect_font_style: if True, the font style of each word (bold, italic, underline, strikethrough, colors, font
+            category, handwriting and closest font family) is classified and added to the predictions. Doing so will
+            slightly deteriorate the overall latency.
         preserve_original_coords: if True and straighten_pages is True, bounding boxes are mapped back to the
             original page coordinates. Useful for redaction and annotation.
         layout_predictor: optional layout detection module
@@ -56,6 +59,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         symmetric_pad: bool = True,
         detect_orientation: bool = False,
         detect_language: bool = False,
+        detect_font_style: bool = False,
         preserve_original_coords: bool = False,
         layout_predictor: LayoutPredictor | None = None,
         **kwargs: Any,
@@ -71,6 +75,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             symmetric_pad,
             detect_orientation,
             preserve_original_coords=preserve_original_coords,
+            detect_font_style=detect_font_style,
             **kwargs,
         )
         self.detect_orientation = detect_orientation
@@ -193,13 +198,19 @@ class KIEPredictor(nn.Module, _KIEPredictor):
                 assume_horizontal=self._page_orientation_disabled,
             )
 
+        # The word boxes before rectification, from which the font style crops are extracted
+        crop_loc_preds = dict(dict_loc_preds)
+        orientation_idxs: dict[str, Any] = dict.fromkeys(dict_loc_preds)
         # Rectify crop orientation
         crop_orientations: Any = {}
         if not self.assume_straight_pages:
             for class_name in dict_loc_preds.keys():
-                crops[class_name], dict_loc_preds[class_name], word_orientations = self._rectify_crops(
-                    crops[class_name], dict_loc_preds[class_name]
-                )
+                (
+                    crops[class_name],
+                    dict_loc_preds[class_name],
+                    word_orientations,
+                    orientation_idxs[class_name],
+                ) = self._rectify_crops(crops[class_name], dict_loc_preds[class_name])
                 crop_orientations[class_name] = [
                     {"value": orientation[0], "confidence": orientation[1]} for orientation in word_orientations
                 ]
@@ -224,6 +235,15 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         objectness_scores_per_page: list[dict] = invert_data_structure(objectness_scores)  # type: ignore[assignment]
         text_preds_per_page: list[dict] = invert_data_structure(text_preds)  # type: ignore[assignment]
         crop_orientations_per_page: list[dict] = invert_data_structure(word_crop_orientations)  # type: ignore[assignment]
+        # Classify the font style of the (rectified) crops of each class
+        font_styles_per_page: list[dict] | None = None
+        if self.font_style_predictor is not None:
+            font_styles: dict[str, list[Any]] = {
+                class_name: self._predict_font_styles(pages, crop_loc_preds[class_name], orientation_idxs[class_name])
+                or []
+                for class_name in crops
+            }
+            font_styles_per_page = invert_data_structure(font_styles) or None  # type: ignore[assignment]
 
         if self.detect_language:
             languages = [get_language(self.get_text(text_pred)) for text_pred in text_preds_per_page]
@@ -241,6 +261,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             orientations,
             languages_dict,
             regions,
+            font_styles=font_styles_per_page,
         )
 
         # manipulate the already built Document to restore the original pages / shapes and geometries

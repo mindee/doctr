@@ -99,6 +99,7 @@ def test_parse_args_defaults():
     assert args.on_error == "raise"
     assert args.detect_orientation is False
     assert args.detect_language is False
+    assert args.detect_font_style is False
     assert args.detect_layout is False
     assert args.detect_tables is False
     assert args.detect_formulas is False
@@ -284,11 +285,11 @@ def test_resolve_format_explicit_overrides_output(alias, expected):
     ("fmt", "expected_keys"),
     [
         ("json", {"reading_order"}),
-        ("xml", {"reading_order", "direction", "file_title"}),
+        ("xml", {"reading_order", "direction", "file_title", "font_style"}),
         ("txt", {"direction", "include_furniture"}),
-        ("md", {"direction", "escape", "include_furniture", "images"}),
-        ("adoc", {"direction", "escape", "include_furniture", "images"}),
-        ("html", {"direction", "include_furniture", "images"}),
+        ("md", {"direction", "escape", "include_furniture", "images", "font_style"}),
+        ("adoc", {"direction", "escape", "include_furniture", "images", "font_style"}),
+        ("html", {"direction", "include_furniture", "images", "font_style"}),
     ],
 )
 def test_export_kwargs(fmt, expected_keys):
@@ -297,6 +298,13 @@ def test_export_kwargs(fmt, expected_keys):
     assert set(kwargs) == expected_keys
     assert kwargs.get("direction", "ltr") == "ltr"
     assert kwargs.get("escape", False) is False
+    assert kwargs.get("font_style", True) is True
+
+
+def test_export_kwargs_font_style_markup():
+    assert cli._export_kwargs("md", _args("--no-font_style_markup"))["font_style"] is False
+    assert cli._export_kwargs("xml", _args("--no-font_style_markup"))["font_style"] is False
+    assert "font_style" not in cli._export_kwargs("txt", _args("--no-font_style_markup"))
 
 
 def test_export_kwargs_images(tmp_path):
@@ -434,6 +442,7 @@ def test_build_predictor_forwards_every_option(recorded_predictor):
         "geometric_mean",
         "--detect_orientation",
         "--detect_language",
+        "--detect_font_style",
         "--detect_layout",
         "--detect_tables",
         "--detect_formulas",
@@ -461,6 +470,7 @@ def test_build_predictor_forwards_every_option(recorded_predictor):
         "detect_orientation": True,
         "straighten_pages": True,
         "detect_language": True,
+        "detect_font_style": True,
         "detect_layout": True,
         "layout_arch": "lw_detr_s",
         "ignore_regions": None,

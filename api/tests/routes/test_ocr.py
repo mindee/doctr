@@ -31,6 +31,7 @@ def common_test(json_response, expected_response):
                     assert isinstance(word["value"], str) and word["value"] == expected_word["value"]
                     assert isinstance(word["confidence"], (int, float))
                     assert isinstance(word["crop_orientation"], dict)
+                    assert word["font_style"] is None
                     assert isinstance(word["crop_orientation"]["value"], int) and isinstance(
                         word["crop_orientation"]["confidence"], (float, int, type(None))
                     )
@@ -93,6 +94,31 @@ async def test_ocr_layout(test_app_asyncio, mock_detection_image):
         assert isinstance(region["type"], str)
         assert isinstance(region["confidence"], (int, float))
         assert len(region["geometry"]) in (4, 8)
+
+
+@pytest.mark.asyncio
+async def test_ocr_font_style(test_app_asyncio, mock_detection_image):
+    headers = {
+        "accept": "application/json",
+    }
+    params = {"det_arch": "db_resnet50", "reco_arch": "crnn_vgg16_bn", "detect_font_style": True}
+    files = [
+        ("files", ("test.jpg", mock_detection_image, "image/jpeg")),
+    ]
+    response = await test_app_asyncio.post("/ocr", params=params, files=files, headers=headers)
+    assert response.status_code == 200
+    words = [
+        word
+        for item in response.json()[0]["items"]
+        for block in item["blocks"]
+        for line in block["lines"]
+        for word in line["words"]
+    ]
+    assert len(words) > 0
+    for word in words:
+        assert isinstance(word["font_style"], dict)
+        assert {"bold", "italic", "underline", "family"} <= set(word["font_style"])
+        assert set(word["font_style"]["family"]) == {"value", "confidence"}
 
 
 @pytest.mark.asyncio

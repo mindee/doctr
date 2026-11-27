@@ -93,6 +93,7 @@ Run `doctr-cli --help` for the full list with default values.
 | `--confidence_aggregation`                       | model     | `mean`, `min`, `max`, `median`, `geometric_mean` or `harmonic_mean`     |
 | `--detect_orientation`                           | off       | Estimate the orientation of each page                                  |
 | `--detect_language`                              | off       | Estimate the language of each page                                     |
+| `--detect_font_style`                            | off       | Classify the font style of each word, marked up in the text exports   |
 | `--detect_layout`                                | off       | Attach the layout regions to each page                                 |
 | `--detect_tables`                                | off       | Recognize tables (enables the layout model)                            |
 | `--detect_formulas`                              | off       | Read formulas as LaTeX (enables the layout model)                      |
@@ -121,6 +122,7 @@ Run `doctr-cli --help` for the full list with default values.
 | `--reading_order` / `--no-reading_order`          | on                            | Linearize JSON and hOCR exports in reading order                            |
 | `--escape` / `--no-escape`                        | on                            | Escape markup characters (Markdown, AsciiDoc)                               |
 | `--include_furniture` / `--no-include_furniture`  | on                            | Include page headers, footers and footnotes                                 |
+| `--font_style_markup` / `--no-font_style_markup`  | on                            | Mark up the font style of `--detect_font_style` (Markdown, AsciiDoc, HTML, hOCR) |
 | `--images`                                        | `placeholder`                 | Figures in Markdown, AsciiDoc and HTML: `none`, `placeholder`, `embedded`, `referenced` (see [figures](exporting.md#figures)) |
 | `--image_dir`                                     | `<output name>_images`        | Directory of the figures with `--images referenced`                         |
 | `--image_format`                                  | `png`                         | `png`, `jpg`, `jpeg` or `webp`                                              |

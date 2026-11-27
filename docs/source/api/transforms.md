@@ -30,6 +30,12 @@ img_transforms = Compose([
 
 .. autoclass:: RandomPad
 
+.. autoclass:: RandomLowResolution
+
+.. autoclass:: JPEGCompression
+
+.. autoclass:: RandomColorCast
+
 .. autoclass:: GaussianNoise
 
 .. autoclass:: GaussianBlur

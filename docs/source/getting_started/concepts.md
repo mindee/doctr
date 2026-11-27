@@ -146,6 +146,10 @@ docTR attaches several scores to its predictions. They answer different question
 : The predicted rotation of the word crop, `{"value": angle, "confidence": score}`, when crop orientation is
   classified (rotated documents).
 
+`Word.font_style`
+: The predicted font style of the word (bold, italic, underline, colors, handwriting, font family...), each attribute as
+  `{"value": ..., "confidence": score}`, filled with `detect_font_style=True`.
+
 `Page.orientation` / `Page.language`
 : The estimated page rotation and language, filled with `detect_orientation=True` / `detect_language=True`.
 

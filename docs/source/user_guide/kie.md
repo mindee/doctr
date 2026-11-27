@@ -29,7 +29,8 @@ for class_name, predictions in page.predictions.items():
         print(class_name, prediction.value, prediction.confidence, prediction.geometry)
 ```
 
-Each {class}`~doctr.io.Prediction` is a word with an extra `crop_orientation` field. `render()` and the exports
+Each {class}`~doctr.io.Prediction` is a word with an extra `crop_orientation` field (and `font_style` with
+`detect_font_style=True`). `render()` and the exports
 group the predictions by class:
 
 ```python

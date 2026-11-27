@@ -267,6 +267,7 @@ def _build_predictor(args: argparse.Namespace) -> Any:
         "detect_orientation": args.detect_orientation,
         "straighten_pages": args.straighten_pages,
         "detect_language": args.detect_language,
+        "detect_font_style": args.detect_font_style,
         "detect_layout": detect_layout,
         "layout_arch": args.layout_arch,
         "ignore_regions": args.ignore_regions or None,
@@ -347,6 +348,8 @@ def _export_kwargs(fmt: str, args: argparse.Namespace) -> dict[str, Any]:
         kwargs["include_furniture"] = args.include_furniture
     if fmt in {"md", "adoc", "html"}:
         kwargs["images"] = _figure_encoder(args)
+    if fmt in {"md", "adoc", "html", "xml"}:
+        kwargs["font_style"] = args.font_style_markup
     return kwargs
 
 
@@ -542,6 +545,12 @@ def _parse_args(argv=None):
     )
     parser.add_argument("--detect_orientation", action="store_true", help="automatically detect page orientation")
     parser.add_argument("--detect_language", action="store_true", help="detect language of the text")
+    parser.add_argument(
+        "--detect_font_style",
+        action="store_true",
+        help="classify the font style of each word (bold, italic, underline, strikethrough, colors, font family), "
+        "rendered in the Markdown, HTML, AsciiDoc and hOCR exports (cf. --font_style_markup)",
+    )
     parser.add_argument("--detect_layout", action="store_true", help="attach the detected layout regions to each page")
     parser.add_argument(
         "--detect_tables",
@@ -622,6 +631,13 @@ def _parse_args(argv=None):
         action=argparse.BooleanOptionalAction,
         default=True,
         help="include page headers, page footers and footnotes (text-like exports)",
+    )
+    parser.add_argument(
+        "--font_style_markup",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="mark up the font style detected with --detect_font_style (Markdown, AsciiDoc, HTML & hOCR exports): "
+        "--no-font_style_markup exports the plain text",
     )
     parser.add_argument(
         "--images",

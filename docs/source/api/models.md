@@ -107,16 +107,22 @@ directly. See the [model zoo](../models/index.md) for benchmarks.
 
 ## Classification
 
-Orientation classifiers, and the backbones used by the detection and recognition models.
+Orientation and font style classifiers, and the backbones used by the detection and recognition models.
 
 ```{eval-rst}
 .. autofunction:: doctr.models.classification.crop_orientation_predictor
 
 .. autofunction:: doctr.models.classification.page_orientation_predictor
 
+.. autofunction:: doctr.models.classification.font_style_predictor
+
+.. autoclass:: doctr.models.classification.predictor.FontStylePredictor
+
 .. autofunction:: doctr.models.classification.mobilenet_v3_small_crop_orientation
 
 .. autofunction:: doctr.models.classification.mobilenet_v3_small_page_orientation
+
+.. autofunction:: doctr.models.classification.mobilenet_v3_small_font_style
 
 .. autofunction:: doctr.models.classification.vgg16_bn_r
 
