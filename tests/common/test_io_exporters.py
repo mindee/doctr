@@ -464,6 +464,11 @@ def test_markdown_finalize_line(line, expected):
         ("[1]", "&#91;1&#93;"),
         ("a\\b", "a&#92;b"),
         ("plain text: 50%", "plain text: 50%"),
+        # A passthrough ($$...$$) would drop the dollars and show the references inside as is
+        ("$$<img$$", "&#36;&#36;&#60;img&#36;&#36;"),
+        # E-mail addresses are kept as is, so Asciidoctor links the whole address
+        ("mail jane_doe@example.com", "mail jane_doe@example.com"),
+        ("<john+tag@example.com>", "&#60;john+tag@example.com&#62;"),
     ],
 )
 def test_asciidoc_escape_text(text, expected):
@@ -483,6 +488,8 @@ def test_asciidoc_escape_text(text, expected):
         ("1.5 million", "1.5 million"),
         ("Note: lower case", "Note: lower case"),
         ("2022 was a year", "2022 was a year"),
+        ("'90s music", "'90s music"),
+        ("'tis", "'tis"),
     ],
 )
 def test_asciidoc_finalize_line(line, expected):
@@ -1501,7 +1508,7 @@ def test_font_style_exports():
         "white</p>"
     )
     assert page.export_as_asciidoc() == (
-        "{empty}**Total amount** is [.underline.double-underline.red]#\\*due\\*# [.green-background]#__now__# "
+        "{empty}**Total amount** is [.underline.double-underline.red]#&#42;due&#42;# [.green-background]#__now__# "
         "[.underline.line-through.yellow-background]#**__x__**# white"
     )
     # Plain text is never styled
@@ -1539,7 +1546,7 @@ def test_font_style_exports_can_be_plain():
     page = _styled_page()
     plain_text = "Total amount is *due* now x white"
     assert page.export_as_markdown(font_style=False) == "Total amount is \\*due\\* now x white"
-    assert page.export_as_asciidoc(font_style=False) == "Total amount is \\*due\\* now x white"
+    assert page.export_as_asciidoc(font_style=False) == "Total amount is &#42;due&#42; now x white"
     assert page.export_as_html(font_style=False) == f"<p>{plain_text}</p>"
     assert page.export_as("md", font_style=False) == page.export_as_markdown(font_style=False)
     xml = page.export_as_xml(font_style=False)[0]
