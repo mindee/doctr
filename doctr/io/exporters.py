@@ -647,7 +647,14 @@ class _PageTextExporter:
     """Shared logic of the reading-order-aware text exporters
 
     Subclasses define the format specifics: headings, bullets, escaping, line finalization, tables and figures.
+
+    Args:
+        font_style: whether the font style detected for the words (`detect_font_style=True`) is marked up (bold,
+            italic, underline, strikethrough, colors): False exports the plain text
     """
+
+    def __init__(self, font_style: bool = True) -> None:
+        self.font_style = font_style
 
     headings: ClassVar[dict[str, str]] = {}
     bullet: ClassVar[str] = "- "
@@ -724,7 +731,8 @@ class _PageTextExporter:
     def _words_text(self, words: list[Any], escape: bool) -> str:
         """Render words in reading order, marking up their font style when it was detected"""
         runs = []
-        for run_words, style in _style_runs(words):
+        style_runs = _style_runs(words) if self.font_style else [(list(words), {})]
+        for run_words, style in style_runs:
             text = " ".join(word.render() for word in run_words)
             text = self.escape_text(text) if escape else text
             runs.append(self.render_styled(text, style) if text.strip() else text)
@@ -1272,18 +1280,18 @@ def _hocr_text_size(geometry: BoundingBox, height: int, dpi: int = 72) -> tuple[
     return x_size, int(round(x_size * 72 / dpi))
 
 
-def _hocr_font(word: Any) -> str:
+def _hocr_font(word: Any, mark_up: bool = True) -> str:
     """The hOCR `x_font` property of a word (its closest font family), empty when the font style is not detected"""
-    family = (getattr(word, "font_style", None) or {}).get("family", {}).get("value")
+    family = (getattr(word, "font_style", None) or {}).get("family", {}).get("value") if mark_up else None
     if not family:
         return ""
     family = family.replace("\\", "\\\\").replace('"', '\\"')
     return f'; x_font "{family}"'
 
 
-def _set_hocr_word_text(word_div: ETElement, word: Any) -> None:
+def _set_hocr_word_text(word_div: ETElement, word: Any, mark_up: bool = True) -> None:
     """Write the text of an `ocrx_word`, inside `<strong>` / `<em>` when the word is bold / italic (cf. hOCR spec)"""
-    font_style = getattr(word, "font_style", None) or {}
+    font_style = (getattr(word, "font_style", None) or {}) if mark_up else {}
     parent = word_div
     for attribute, tag in (("bold", "strong"), ("italic", "em")):
         if (font_style.get(attribute) or {}).get("value"):
@@ -1297,7 +1305,14 @@ class XMLExporter:
 
     >>> from doctr.io import XMLExporter
     >>> xml_bytes, xml_tree = XMLExporter().export_page(page)
+
+    Args:
+        font_style: whether the font style detected for the words (`detect_font_style=True`) is exported: the font
+            family (`x_font`), and `<strong>` / `<em>` for bold / italic words
     """
+
+    def __init__(self, font_style: bool = True) -> None:
+        self.font_style = font_style
 
     ocr_capabilities: ClassVar[str] = "ocr_page ocr_carea ocr_par ocr_line ocrx_word ocr_photo ocr_math"
 
@@ -1536,11 +1551,11 @@ class XMLExporter:
                             "id": f"word_{word_count}",
                             "title": (
                                 f"{_hocr_bbox(word.geometry, width, height)}; "
-                                f"x_wconf {int(round(word.confidence * 100))}{_hocr_font(word)}"
+                                f"x_wconf {int(round(word.confidence * 100))}{_hocr_font(word, self.font_style)}"
                             ),
                         },
                     )
-                    _set_hocr_word_text(word_div, word)
+                    _set_hocr_word_text(word_div, word, self.font_style)
                     word_count += 1
         return ET.tostring(page_hocr, encoding="utf-8", method="xml"), ET.ElementTree(page_hocr)
 
@@ -1624,11 +1639,11 @@ class XMLExporter:
                         "id": f"{class_name}_word_{prediction_count}",
                         "title": (
                             f"{prediction_bbox}; x_wconf {int(round(prediction.confidence * 100))}"
-                            f"{_hocr_font(prediction)}"
+                            f"{_hocr_font(prediction, self.font_style)}"
                         ),
                     },
                 )
-                _set_hocr_word_text(word_div, prediction)
+                _set_hocr_word_text(word_div, prediction, self.font_style)
                 prediction_count += 1
         return ET.tostring(page_hocr, encoding="utf-8", method="xml"), ET.ElementTree(page_hocr)
 
@@ -1705,6 +1720,7 @@ class PageExportsMixin:
         direction: str = "auto",
         reading_order: bool = True,
         dpi: int = 72,
+        font_style: bool = True,
     ) -> tuple[bytes, ET.ElementTree]:
         """Export the page as XML (hOCR-format), with its content sorted in reading order
         convention: https://github.com/kba/hocr-spec/blob/master/1.2/spec.md
@@ -1714,11 +1730,12 @@ class PageExportsMixin:
             direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'
             reading_order: whether the content should be linearized in reading order
             dpi: the page resolution in dots per inch, used to estimate font sizes (`x_size`, `x_fsize`)
+            font_style: whether the font style detected for the words (`detect_font_style=True`) is exported
 
         Returns:
             a tuple of the XML byte string, and its ElementTree
         """
-        return XMLExporter().export_page(
+        return XMLExporter(font_style=font_style).export_page(
             cast("Page", self), file_title=file_title, direction=direction, reading_order=reading_order, dpi=dpi
         )
 
@@ -1742,6 +1759,7 @@ class PageExportsMixin:
         escape: bool = True,
         include_furniture: bool = True,
         images: "str | FigureEncoder | None" = "placeholder",
+        font_style: bool = True,
     ) -> str:
         """Export the page as Markdown, with its content sorted in reading order.
 
@@ -1751,11 +1769,12 @@ class PageExportsMixin:
             include_furniture: whether page headers, page footers and footnotes should be included
             images: how to render the figures: 'none', 'placeholder', 'embedded', or a
                 :class:`~doctr.io.FigureEncoder` (required for 'referenced')
+            font_style: whether the font style detected for the words (`detect_font_style=True`) is marked up
 
         Returns:
             a Markdown string
         """
-        return MarkdownExporter().export_page(
+        return MarkdownExporter(font_style=font_style).export_page(
             cast("Page", self),
             direction=direction,
             escape=escape,
@@ -1769,6 +1788,7 @@ class PageExportsMixin:
         escape: bool = True,
         include_furniture: bool = True,
         images: "str | FigureEncoder | None" = "placeholder",
+        font_style: bool = True,
     ) -> str:
         """Export the page as AsciiDoc, with its content sorted in reading order.
 
@@ -1779,11 +1799,12 @@ class PageExportsMixin:
             include_furniture: whether page headers, page footers and footnotes should be included
             images: how to render the figures: 'none', 'placeholder', 'embedded', or a
                 :class:`~doctr.io.FigureEncoder` (required for 'referenced')
+            font_style: whether the font style detected for the words (`detect_font_style=True`) is marked up
 
         Returns:
             an AsciiDoc string
         """
-        return AsciiDocExporter().export_page(
+        return AsciiDocExporter(font_style=font_style).export_page(
             cast("Page", self),
             direction=direction,
             escape=escape,
@@ -1796,6 +1817,7 @@ class PageExportsMixin:
         direction: str = "auto",
         include_furniture: bool = True,
         images: "str | FigureEncoder | None" = "placeholder",
+        font_style: bool = True,
     ) -> str:
         """Export the page as semantic HTML, with its content sorted in reading order.
 
@@ -1804,11 +1826,12 @@ class PageExportsMixin:
             include_furniture: whether page headers, page footers and footnotes should be included
             images: how to render the figures: 'none', 'placeholder', 'embedded', or a
                 :class:`~doctr.io.FigureEncoder` (required for 'referenced')
+            font_style: whether the font style detected for the words (`detect_font_style=True`) is marked up
 
         Returns:
             an HTML string
         """
-        return HTMLExporter().export_page(
+        return HTMLExporter(font_style=font_style).export_page(
             cast("Page", self), direction=direction, include_furniture=include_furniture, images=images
         )
 
@@ -1896,6 +1919,7 @@ class KIEPageExportsMixin:
         direction: str = "auto",
         reading_order: bool = True,
         dpi: int = 72,
+        font_style: bool = True,
     ) -> tuple[bytes, ET.ElementTree]:
         """Export the page as XML (hOCR-format), with the predictions of each class in reading order
         convention: https://github.com/kba/hocr-spec/blob/master/1.2/spec.md
@@ -1905,42 +1929,57 @@ class KIEPageExportsMixin:
             direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'
             reading_order: whether the predictions of each class should be sorted in reading order
             dpi: the page resolution in dots per inch, used to estimate font sizes (`x_size`, `x_fsize`)
+            font_style: whether the font style detected for the words (`detect_font_style=True`) is exported
 
         Returns:
             a tuple of the XML byte string, and its ElementTree
         """
-        return XMLExporter().export_kie_page(
+        return XMLExporter(font_style=font_style).export_kie_page(
             cast("KIEPage", self), file_title=file_title, direction=direction, reading_order=reading_order, dpi=dpi
         )
 
-    def export_as_markdown(self, direction: str = "auto", escape: bool = True) -> str:
+    def export_as_markdown(self, direction: str = "auto", escape: bool = True, font_style: bool = True) -> str:
         """Export the KIE page as Markdown, with the predictions of each class sorted in reading order.
 
         Args:
             direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'
             escape: whether the characters carrying a structural meaning in Markdown should be escaped
+            font_style: whether the font style detected for the words (`detect_font_style=True`) is marked up
 
         Returns:
             a Markdown string with one section per detection class
         """
-        return MarkdownExporter().export_kie_page(cast("KIEPage", self), direction=direction, escape=escape)
+        return MarkdownExporter(font_style=font_style).export_kie_page(
+            cast("KIEPage", self), direction=direction, escape=escape
+        )
 
-    def export_as_asciidoc(self, direction: str = "auto", escape: bool = True) -> str:
+    def export_as_asciidoc(self, direction: str = "auto", escape: bool = True, font_style: bool = True) -> str:
         """Export the KIE page as AsciiDoc, with the predictions of each class sorted in reading order.
 
         Args:
             direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'
             escape: whether the characters and line markers carrying a structural meaning in AsciiDoc should
                 be escaped
+            font_style: whether the font style detected for the words (`detect_font_style=True`) is marked up
 
         Returns:
             an AsciiDoc string with one section per detection class
         """
-        return AsciiDocExporter().export_kie_page(cast("KIEPage", self), direction=direction, escape=escape)
+        return AsciiDocExporter(font_style=font_style).export_kie_page(
+            cast("KIEPage", self), direction=direction, escape=escape
+        )
 
-    def export_as_html(self, direction: str = "auto") -> str:
-        """Export the KIE page as semantic HTML, with the predictions of each class sorted in reading order"""
-        return HTMLExporter().export_kie_page(cast("KIEPage", self), direction=direction)
+    def export_as_html(self, direction: str = "auto", font_style: bool = True) -> str:
+        """Export the KIE page as semantic HTML, with the predictions of each class sorted in reading order
+
+        Args:
+            direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'
+            font_style: whether the font style detected for the words (`detect_font_style=True`) is marked up
+
+        Returns:
+            an HTML string with one section per detection class
+        """
+        return HTMLExporter(font_style=font_style).export_kie_page(cast("KIEPage", self), direction=direction)
 
     def export_as(self, format: str, **kwargs: Any) -> Any:
         """Export the KIE page in the requested format ('markdown'/'md', 'asciidoc'/'adoc', 'html',
@@ -1993,16 +2032,17 @@ class DocumentExportsMixin:
         export_dict["pages"] = [page.export(reading_order=reading_order) for page in self.pages]
         return export_dict
 
-    def export_as_xml(self, **kwargs: Any) -> list[tuple[bytes, ET.ElementTree]]:
+    def export_as_xml(self, font_style: bool = True, **kwargs: Any) -> list[tuple[bytes, ET.ElementTree]]:
         """Export the document as XML (hOCR-format)
 
         Args:
+            font_style: whether the font style detected for the words (`detect_font_style=True`) is exported
             **kwargs: additional keyword arguments passed to the XML page export
 
         Returns:
             list of tuple of (bytes, ElementTree)
         """
-        return XMLExporter().export_document(self, **kwargs)
+        return XMLExporter(font_style=font_style).export_document(self, **kwargs)
 
     def export_as_markdown(self, page_break: str = "\n\n---\n\n", **kwargs: Any) -> str:
         """Export the document as Markdown, with the content of each page sorted in reading order.

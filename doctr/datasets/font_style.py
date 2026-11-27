@@ -429,7 +429,7 @@ def _value(label: dict[str, Any], attribute: str) -> Any:
     return label[attribute]
 
 
-def encode_font_style(label: dict[str, Any], attributes: dict[str, list[Any]] = FONT_STYLE_ATTRIBUTES) -> np.ndarray:
+def encode_font_style(label: dict[str, Any], attributes: dict[str, list[Any]] | None = None) -> np.ndarray:
     """Encode the style label of a word crop as the class index of each attribute
 
     >>> from doctr.datasets import encode_font_style
@@ -439,13 +439,14 @@ def encode_font_style(label: dict[str, Any], attributes: dict[str, list[Any]] = 
     Args:
         label: the style attributes of the crop, e.g. {"bold": True, "underline": "single", "family": "Lato", ...}.
             Without a "handwritten" key, a word is handwritten when its font category is handwriting.
-        attributes: the classes of each attribute, in the order of the model outputs
+        attributes: the classes of each attribute, in the order of the model outputs (defaults to
+            `FONT_STYLE_ATTRIBUTES`)
 
     Returns:
         an int64 array with the class index of each attribute
     """
     indices = []
-    for attribute, classes in attributes.items():
+    for attribute, classes in (attributes or FONT_STYLE_ATTRIBUTES).items():
         raw = _value(label, attribute)
         value = _normalize(attribute, raw)
         if value not in classes:
@@ -471,7 +472,8 @@ class FontStyleDataset(AbstractDataset):
             "color": "black", "highlight": null, "category": "SERIF", "family": "Lora"}, ...}.
             Other keys (e.g. "text") are ignored. Without a "handwritten" key, a word is handwritten when its font
             category is handwriting.
-        attributes: the classes of each attribute, in the order of the model outputs
+        attributes: the classes of each attribute, in the order of the model outputs (defaults to
+            `FONT_STYLE_ATTRIBUTES`)
         **kwargs: keyword arguments from `AbstractDataset`.
     """
 
@@ -479,11 +481,11 @@ class FontStyleDataset(AbstractDataset):
         self,
         img_folder: str,
         labels_path: str,
-        attributes: dict[str, list[Any]] = FONT_STYLE_ATTRIBUTES,
+        attributes: dict[str, list[Any]] | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(img_folder, **kwargs)
-        self.attributes = attributes
+        self.attributes = attributes or FONT_STYLE_ATTRIBUTES
 
         with open(labels_path, encoding="utf-8") as f:
             labels = json.load(f)
@@ -493,7 +495,7 @@ class FontStyleDataset(AbstractDataset):
             if not os.path.exists(os.path.join(self.root, img_name)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_name)}")
             try:
-                target = encode_font_style(label, attributes)
+                target = encode_font_style(label, self.attributes)
             except (KeyError, ValueError) as e:
                 raise ValueError(f"invalid label for {img_name}: {e}") from e
             self.data.append((img_name, target))

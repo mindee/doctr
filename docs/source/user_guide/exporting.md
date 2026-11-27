@@ -121,6 +121,10 @@ Useful options:
 `include_furniture`
 : Include page headers, page footers and footnotes. Enabled by default.
 
+`font_style` (Markdown, AsciiDoc, HTML, hOCR)
+: Mark up the font style of the words detected with `detect_font_style=True`, see [](#font-style). Enabled by
+  default.
+
 `page_break`
 : The separator inserted between pages: `---` in Markdown, `<<<` in AsciiDoc, `<hr>` in HTML.
 
@@ -144,6 +148,15 @@ the font style of the words. Consecutive words sharing the same style are marked
 
 Black and white text are not marked up. In hOCR, bold and italic words hold `<strong>` / `<em>` elements, and every
 word gets its closest font family as `x_font` property. The plain text export is never marked up.
+
+The font style stays in the predictions (`word.font_style`, the JSON export) while the markup can be left out:
+`font_style=False` exports the plain text of the words in Markdown, AsciiDoc, HTML and hOCR (no `x_font` either),
+e.g. to compare the text with that of an export without font style classification:
+
+```python
+markdown = result.export_as_markdown(font_style=False)
+xml_pages = result.export_as("hocr", font_style=False)
+```
 
 ## hOCR
 

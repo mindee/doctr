@@ -285,11 +285,11 @@ def test_resolve_format_explicit_overrides_output(alias, expected):
     ("fmt", "expected_keys"),
     [
         ("json", {"reading_order"}),
-        ("xml", {"reading_order", "direction", "file_title"}),
+        ("xml", {"reading_order", "direction", "file_title", "font_style"}),
         ("txt", {"direction", "include_furniture"}),
-        ("md", {"direction", "escape", "include_furniture", "images"}),
-        ("adoc", {"direction", "escape", "include_furniture", "images"}),
-        ("html", {"direction", "include_furniture", "images"}),
+        ("md", {"direction", "escape", "include_furniture", "images", "font_style"}),
+        ("adoc", {"direction", "escape", "include_furniture", "images", "font_style"}),
+        ("html", {"direction", "include_furniture", "images", "font_style"}),
     ],
 )
 def test_export_kwargs(fmt, expected_keys):
@@ -298,6 +298,13 @@ def test_export_kwargs(fmt, expected_keys):
     assert set(kwargs) == expected_keys
     assert kwargs.get("direction", "ltr") == "ltr"
     assert kwargs.get("escape", False) is False
+    assert kwargs.get("font_style", True) is True
+
+
+def test_export_kwargs_font_style_markup():
+    assert cli._export_kwargs("md", _args("--no-font_style_markup"))["font_style"] is False
+    assert cli._export_kwargs("xml", _args("--no-font_style_markup"))["font_style"] is False
+    assert "font_style" not in cli._export_kwargs("txt", _args("--no-font_style_markup"))
 
 
 def test_export_kwargs_images(tmp_path):

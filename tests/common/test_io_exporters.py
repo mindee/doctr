@@ -1494,3 +1494,38 @@ def test_font_style_exports():
     assert "<li><strong>Total</strong></li>" in kie_page.export_as_html()
     xml_word = ET.fromstring(kie_page.export_as_xml()[0]).find(".//{*}span[@class='ocrx_word']")
     assert xml_word[0].tag.endswith("strong") and xml_word[0].text == "Total"
+
+
+def test_font_style_exports_can_be_plain():
+    # Detected font style left out of the markup: the exports of a page without font style
+    page = _styled_page()
+    plain_text = "Total amount is *due* now x white"
+    assert page.export_as_markdown(font_style=False) == "Total amount is \\*due\\* now x white"
+    assert page.export_as_asciidoc(font_style=False) == "Total amount is \\*due\\* now x white"
+    assert page.export_as_html(font_style=False) == f"<p>{plain_text}</p>"
+    assert page.export_as("md", font_style=False) == page.export_as_markdown(font_style=False)
+    xml = page.export_as_xml(font_style=False)[0]
+    assert "x_font" not in xml.decode() and ET.fromstring(xml).find(".//{*}strong") is None
+    words = ET.fromstring(xml).findall(".//{*}span[@class='ocrx_word']")
+    assert [word.text for word in words] == plain_text.split()
+    # ... while the font style stays in the predictions
+    assert page.export()["blocks"][0]["lines"][0]["words"][0]["font_style"]["bold"]["value"] is True
+
+    # Documents pass the option to their pages
+    document = elements.Document([page, page])
+    assert "**" not in document.export_as_markdown(font_style=False)
+    assert "<strong>" not in document.export_as_html(font_style=False)
+    assert "**" not in document.export_as_asciidoc(font_style=False)
+    assert all(ET.fromstring(xml).find(".//{*}strong") is None for xml, _ in document.export_as_xml(font_style=False))
+    assert "**Total amount**" in document.export_as("markdown")
+
+    # KIE
+    prediction = elements.Prediction(
+        "Total", 0.9, ((0.1, 0.1), (0.9, 0.2)), 0.9, _ORIENTATION, {"bold": {"value": True, "confidence": 0.9}}
+    )
+    kie_page = _kie_page({CLASS_NAME: [prediction]})
+    assert kie_page.export_as_markdown(font_style=False) == f"**{CLASS_NAME}**\n\n- Total"
+    assert "<li>Total</li>" in kie_page.export_as_html(font_style=False)
+    assert "**" not in kie_page.export_as_asciidoc(font_style=False).split("\n", 1)[1]
+    xml_word = ET.fromstring(kie_page.export_as_xml(font_style=False)[0]).find(".//{*}span[@class='ocrx_word']")
+    assert len(xml_word) == 0 and xml_word.text == "Total"
