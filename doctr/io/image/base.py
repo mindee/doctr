@@ -45,14 +45,22 @@ def _pil_to_rgb_array(pil_img: Image.Image) -> np.ndarray:
     return cv2.bitwise_not(rgb, dst=rgb)
 
 
-def _decode_transparent_img(content: bytes) -> np.ndarray | None:
-    """Decode an image with transparency over a white background, in RGB order (None if it has no transparency)"""
+def _decode_with_pillow(content: bytes, only_transparent: bool = False) -> np.ndarray | None:
+    """Decode an image with Pillow in RGB order, with transparency over a white background
+
+    Args:
+        content: the bytes of the image file
+        only_transparent: whether to leave an image without transparency (None) to OpenCV
+
+    Returns:
+        the image as a numpy array of shape H x W x 3, or None if it is not decoded
+    """
     try:
         with Image.open(BytesIO(content)) as pil_img:
-            if not pil_img.has_transparency_data:
+            if only_transparent and not pil_img.has_transparency_data:
                 return None
             return _pil_to_rgb_array(pil_img)
-    except (OSError, ValueError, Image.DecompressionBombError):  # left to OpenCV
+    except (OSError, ValueError, Image.DecompressionBombError):
         return None
 
 
@@ -83,10 +91,14 @@ def read_img_as_numpy(
     else:
         raise TypeError("unsupported object type for argument 'file'")
 
-    img = _decode_transparent_img(content)
+    img = _decode_with_pillow(content, only_transparent=True)
     is_rgb = img is not None
     if img is None:
         img = cv2.imdecode(np.frombuffer(content, np.uint8), cv2.IMREAD_COLOR)
+    if img is None:
+        # A format OpenCV does not decode (TGA, PCX, SGI, PSD, ...) or only in some builds (JPEG 2000)
+        img = _decode_with_pillow(content)
+        is_rgb = img is not None
 
     # Validity check
     if img is None:

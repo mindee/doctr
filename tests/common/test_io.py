@@ -124,6 +124,26 @@ def test_pdf(mock_pdf):
     _check_doc_content(pages, num_pages)
 
 
+@pytest.mark.parametrize("fmt", ["TGA", "SGI", "PCX"])
+def test_read_img_as_numpy_decoded_by_pillow(tmpdir_factory, fmt):
+    # OpenCV does not decode these formats: Pillow does
+    img = np.zeros((20, 30, 3), dtype=np.uint8)
+    img[:10, :15] = (255, 0, 0)
+    img[10:, 15:] = (0, 0, 255)
+    path = str(tmpdir_factory.mktemp("images").join(f"img.{fmt.lower()}"))
+    Image.fromarray(img).save(path, format=fmt)
+
+    assert np.array_equal(io.read_img_as_numpy(path), img)
+    assert np.array_equal(io.read_img_as_numpy(path, rgb_output=False), img[..., ::-1])
+    with open(path, "rb") as f:
+        content = f.read()
+    assert np.array_equal(io.read_img_as_numpy(content), img)
+    assert io.read_img_as_numpy(content, output_size=(10, 15)).shape == (10, 15, 3)
+    # A truncated file is still not readable
+    with pytest.raises(ValueError):
+        io.read_img_as_numpy(content[: len(content) // 2])
+
+
 def test_read_img_as_numpy_exif_orientation(tmpdir_factory):
     # A JPEG with EXIF orientation 6 (90° clockwise display rotation)
     folder = tmpdir_factory.mktemp("images")
