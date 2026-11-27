@@ -4,6 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import datetime
+import functools
 import logging
 import multiprocessing as mp
 import os
@@ -60,14 +61,24 @@ def _scaler():
     return torch.amp.GradScaler("cuda", enabled=AMP_DTYPE == torch.float16)
 
 
-def rnd_rotate(sample: Sample) -> Sample:
-    angle = int(np.random.choice(CLASSES))
-    idx = CLASSES.index(angle)
+def rnd_rotate(sample: Sample, class_prior: list[float] | None = None) -> Sample:
+    """Rotate the image before it is resized and padded, like the crops / pages at inference.
+
+    The orientation is drawn with the probabilities `class_prior` (uniform by default): a prior favoring the upright
+    class teaches the model the real-world distribution, so that ambiguous inputs (digits, short tokens, single
+    CJK characters...) are not rotated at random.
+
+    Rotating an already padded image leaks the label: the odd remainder of the symmetric padding always goes to the
+    top / left (cf. `Resize`), so a rotation moves it to the bottom / right and the model learns that cue instead of
+    the text orientation (unseen at inference, where the input is padded after being rotated).
+    """
+    idx = int(np.random.choice(len(CLASSES), p=class_prior))
+    # class index k <=> rotated counter-clockwise by k * 90 degrees (cf. `rectify_crops`): exact, no interpolation
+    rotated_img = torch.rot90(sample.image, idx, dims=(-2, -1))
     # augment the angle randomly with a probability of 0.5
     if np.random.rand() < 0.5:
-        angle += float(np.random.choice(np.arange(-25, 25, 5)))
-    rotated_img = F.rotate(sample.image, angle=-angle, fill=0, expand=angle not in CLASSES)[:3]
-    return Sample(image=rotated_img, target=idx)
+        rotated_img = F.rotate(rotated_img, angle=float(np.random.choice(np.arange(-25, 30, 5))), fill=0, expand=True)
+    return Sample(image=rotated_img[:3], target=idx)
 
 
 def record_lr(
@@ -249,12 +260,10 @@ def main(args):
     st = time.time()
     val_set = OrientationDataset(
         img_folder=os.path.join(args.val_path, "images"),
-        img_transforms=Compose([
-            T.Resize(input_size, preserve_aspect_ratio=True, symmetric_pad=True),
-        ]),
+        # rotate first, then resize & pad: same order as at inference (cf. `rnd_rotate`)
         sample_transforms=T.SampleCompose([
             rnd_rotate,
-            T.Resize(input_size),
+            T.Resize(input_size, preserve_aspect_ratio=True, symmetric_pad=True),
         ]),
     )
     val_loader = DataLoader(
@@ -294,20 +303,20 @@ def main(args):
     st = time.time()
     train_set = OrientationDataset(
         img_folder=os.path.join(args.train_path, "images"),
-        img_transforms=Compose([
-            T.Resize(input_size, preserve_aspect_ratio=True, symmetric_pad=True),
-            # Augmentations
-            T.RandomApply(T.ColorInversion(), 0.1),
-            T.RandomApply(T.GaussianNoise(mean=0.1, std=0.1), 0.1),
-            T.RandomApply(T.RandomShadow(), 0.2),
-            T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.3),
-            T.ImageTorchvisionTransform(RandomPhotometricDistort(p=0.1)),
-            T.ImageTorchvisionTransform(RandomGrayscale(p=0.1)),
-            T.ImageTorchvisionTransform(RandomPerspective(distortion_scale=0.1, p=0.3)),
-        ]),
+        # rotate first, then resize & pad: same order as at inference (cf. `rnd_rotate`)
         sample_transforms=T.SampleCompose([
-            rnd_rotate,
-            T.Resize(input_size),
+            functools.partial(rnd_rotate, class_prior=args.class_prior),
+            Compose([
+                T.Resize(input_size, preserve_aspect_ratio=True, symmetric_pad=True),
+                # Augmentations (independent of the orientation)
+                T.RandomApply(T.ColorInversion(), 0.1),
+                T.RandomApply(T.GaussianNoise(mean=0.1, std=0.1), 0.1),
+                T.RandomApply(T.RandomShadow(), 0.2),
+                T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.3),
+                T.ImageTorchvisionTransform(RandomPhotometricDistort(p=0.1)),
+                T.ImageTorchvisionTransform(RandomGrayscale(p=0.1)),
+                T.ImageTorchvisionTransform(RandomPerspective(distortion_scale=0.1, p=0.3)),
+            ]),
         ]),
     )
 
@@ -373,6 +382,7 @@ def main(args):
         "optimizer": args.optim,
         "framework": "pytorch",
         "classes": CLASSES,
+        "class_prior": args.class_prior,
         "scheduler": args.sched,
         "pretrained": args.pretrained,
     }
@@ -548,10 +558,20 @@ def parse_args():
         help="autocast dtype for --amp; bfloat16 (Ampere+ GPUs) avoids float16 overflows, no loss scaling",
     )
     parser.add_argument("--find-lr", action="store_true", help="Gridsearch the optimal LR")
+    parser.add_argument(
+        "--class-prior",
+        type=float,
+        nargs=4,
+        default=None,
+        help="probabilities of the training orientations [0, -90, 180, 90] (default: uniform), e.g. 0.4 0.2 0.2 0.2",
+    )
     parser.add_argument("--early-stop", action="store_true", help="Enable early stopping")
     parser.add_argument("--early-stop-epochs", type=int, default=5, help="Patience for early stopping")
     parser.add_argument("--early-stop-delta", type=float, default=0.01, help="Minimum Delta for early stopping")
     args = parser.parse_args()
+    if args.class_prior is not None:
+        if any(p < 0 for p in args.class_prior) or abs(sum(args.class_prior) - 1) > 1e-6:
+            parser.error("--class-prior must be 4 non-negative probabilities summing to 1")
 
     return args
 

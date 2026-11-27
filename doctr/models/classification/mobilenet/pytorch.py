@@ -61,14 +61,14 @@ default_cfgs: dict[str, dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 256, 256),
         "classes": [0, -90, 180, 90],
-        "url": "https://doctr-static.mindee.com/models?id=v0.8.1/mobilenet_v3_small_crop_orientation-f0847a18.pt&src=0",
+        "url": "https://github.com/mindee/doctr/releases/download/v1.2.0/crop_orientation_mnv3s-3753d2cd.pt",
     },
     "mobilenet_v3_small_page_orientation": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 512, 512),
         "classes": [0, -90, 180, 90],
-        "url": "https://doctr-static.mindee.com/models?id=v0.8.1/mobilenet_v3_small_page_orientation-8e60325c.pt&src=0",
+        "url": "https://github.com/mindee/doctr/releases/download/v1.2.0/page_orientation_mnv3s-58e44dbb.pt",
     },
     "mobilenet_v3_small_font_style": {
         "mean": (0.694, 0.695, 0.693),

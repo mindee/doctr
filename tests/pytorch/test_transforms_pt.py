@@ -85,6 +85,14 @@ def test_resize_preserve_aspect_ratio(symmetric_pad, content_rows):
     assert torch.equal(mask, expected_mask)
 
 
+@pytest.mark.parametrize("target", [2, np.int64(2), "label", np.array([2])])
+def test_resize_class_target(target):
+    # Class targets (e.g. an orientation index) are not boxes: kept as is when the aspect ratio is preserved
+    data = Resize((32, 32), preserve_aspect_ratio=True, symmetric_pad=True)(Sample(image=_ones(16, 64), target=target))
+    assert data.image.shape[-2:] == (32, 32)
+    assert np.array_equal(data.target, target) if isinstance(target, np.ndarray) else data.target == target
+
+
 def test_resize_repr_and_shapes():
     transfo = Resize(32, preserve_aspect_ratio=True, symmetric_pad=True)
     expected = "Resize(output_size=(32, 32), interpolation='bilinear', preserve_aspect_ratio=True, symmetric_pad=True)"
