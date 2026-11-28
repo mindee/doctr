@@ -430,6 +430,10 @@ def test_page_export_as_markdown():
     page = _page([_line_at("*bold* #tag [link]", 0.1, 0.1, 0.9, 0.15)])
     assert page.export_as_markdown() == "\\*bold\\* \\#tag \\[link\\]"
     assert page.export_as_markdown(escape=False) == "*bold* #tag [link]"
+    # A named character reference is escaped too, to keep the OCR text as is
+    page = _page([_line_at("&copy; 2024 R&D", 0.1, 0.1, 0.9, 0.15)])
+    assert page.export_as_markdown() == "\\&copy; 2024 R&D"
+    assert page.export_as_markdown(escape=False) == "&copy; 2024 R&D"
     # Empty pages export to an empty string
     assert elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [], 0, (1000, 800)).export_as_markdown() == ""
 
@@ -449,6 +453,25 @@ def test_page_export_as_markdown():
 )
 def test_markdown_finalize_line(line, expected):
     assert MarkdownExporter().finalize_line(line) == expected
+
+
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        ("&copy; 2024", "\\&copy; 2024"),
+        ("use &amp; and &lt;div&gt;", "use \\&amp; and \\&lt;div\\&gt;"),
+        ("&nbsp;&nbsp;", "\\&nbsp;\\&nbsp;"),
+        ("R&D", "R&D"),
+        ("AT&T Inc.", "AT&T Inc."),
+        ("Q&A; session", "Q&A; session"),
+        ("fish & chips;", "fish & chips;"),
+        ("&;", "&;"),
+        ("&1;", "&1;"),
+    ],
+)
+def test_markdown_escape_text_entity(text, expected):
+    # Markdown reads "&copy;" as the character: the ampersand of such a reference is escaped, any other one is kept
+    assert MarkdownExporter().escape_text(text) == expected
 
 
 def test_page_export_list_items():

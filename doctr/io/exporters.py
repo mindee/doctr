@@ -5,6 +5,7 @@
 
 import re
 from html import escape as _html_escape
+from html.entities import html5
 from typing import TYPE_CHECKING, Any, ClassVar, NamedTuple, cast
 from xml.etree import ElementTree as ET
 from xml.etree.ElementTree import Element as ETElement
@@ -68,6 +69,8 @@ _MD_SPECIAL_CHARS = "\\`*_[]|#<>"
 _MD_LINE_MARKERS = "-+>#=`"
 # Ordered list marker at the start of a line, e.g. "3." or "3)"
 _MD_ORDERED_MARKER = re.compile(r"^(\s*\d{1,9})([.)])(?=\s|$)")
+# A named character reference, e.g. "&copy;": Markdown reads it as the character it names
+_MD_ENTITY = re.compile(r"&([A-Za-z][A-Za-z0-9]*;)")
 _ADOC_SPECIAL_CHARS = "\\`*_#^~|+{}<>"
 _ADOC_LINE_MARKERS = "=*.-/+"
 
@@ -969,7 +972,8 @@ class MarkdownExporter(_PageTextExporter):
     figure_placeholder: ClassVar[str] = "<!-- image -->"
 
     def escape_text(self, text: str) -> str:
-        return "".join(f"\\{char}" if char in _MD_SPECIAL_CHARS else char for char in text)
+        escaped = "".join(f"\\{char}" if char in _MD_SPECIAL_CHARS else char for char in text)
+        return _MD_ENTITY.sub(lambda m: f"\\{m.group(0)}" if m.group(1) in html5 else m.group(0), escaped)
 
     def finalize_line(self, line: str) -> str:
         stripped = line.lstrip()
